@@ -1,0 +1,62 @@
+meter_geral_prof:
+  model: Transmiter           #Exemplo
+  model_url: http://www.currentcost.com/product-transmitter.html   #Exemplo do URL
+  sample_period: 1 #Em segundos
+  max_sample_period: 60 #APartir de 60 segundos de falha o meter é considerado desligado
+  measurements: 
+    - { #Valores Exemplo
+      upper_limit: 25000, #Leitura máxima do meter
+      lower_limit: 0, #Leitura mínima do meter
+      physical_quantity: power, #{‘power’, ‘energy’, ‘cumulative energy’, ‘voltage’, ‘current’, ‘frequency’, ‘power factor’, ‘state’, ‘phase angle’, ‘total harmonic distortion’, ‘temperature’}
+                                #Units: phase angle: degrees; power: watts; energy: kWh; voltage: volts; current: amps; temperature: degrees Celsius.
+      type: apparent # {‘reactive’, ‘active’, ‘apparent’}.- necessário para power, energy e AC
+      }
+    - {description: RMS voltage, upper_limit: 275, lower_limit: 180, physical_quantity: voltage} #Alterar
+  site_meter: true #Se é um meter geral ou não
+  description: Optional description for hand made meters.
+  pre_pay: true #É um meter pré-pago?
+  wireless: true
+  wireless_config: #Exemplo, Dados sobre como é feita a comunicação do sensor para o recetor de dados centralizado
+    base: >
+      creators: [Jack Kelly]
+      model: rfm_edf_ecomanager
+      model_url: https://github.com/JackKelly/rfm_edf_ecomanager/
+    protocol: custom
+    carrier_frequency: 434
+  
+  data_logger:      #Descrição do logger de dados usado
+    creators: [Jack Kelly]
+    model: rfm_ecomanager_logger
+    model_url: https://github.com/JackKelly/rfm_ecomanager_logger
+
+
+meter_heater_prof:
+  model: Transmiter           #Exemplo
+  model_url: http://www.currentcost.com/product-transmitter.html   #Exemplo do URL
+  sample_period: 1 #Em segundos
+  max_sample_period: 60 #APartir de 60 segundos de falha o meter é considerado desligado
+  measurements: 
+    - { #Valores Exemplo
+      upper_limit: 25000, #Leitura máxima do meter
+      lower_limit: 0, #Leitura mínima do meter
+      physical_quantity: power, #{‘power’, ‘energy’, ‘cumulative energy’, ‘voltage’, ‘current’, ‘frequency’, ‘power factor’, ‘state’, ‘phase angle’, ‘total harmonic distortion’, ‘temperature’}
+                                #Units: phase angle: degrees; power: watts; energy: kWh; voltage: volts; current: amps; temperature: degrees Celsius.
+      type: apparent # {‘reactive’, ‘active’, ‘apparent’}.- necessário para power, energy e AC
+      }
+    #- {description: RMS voltage, upper_limit: 275, lower_limit: 180, physical_quantity: voltage} #Alterar
+  
+  description: Optional description for hand made meters.
+  pre_pay: true #É um meter pré-pago?
+  wireless: true
+  wireless_config: #Exemplo, Dados sobre como é feita a comunicação do sensor para o recetor de dados centralizado
+    base: >
+      creators: [Jack Kelly]
+      model: rfm_edf_ecomanager
+      model_url: https://github.com/JackKelly/rfm_edf_ecomanager/
+    protocol: custom
+    carrier_frequency: 434
+  
+  data_logger:      #Descrição do logger de dados usado
+    creators: [Jack Kelly]
+    model: rfm_ecomanager_logger
+    model_url: https://github.com/JackKelly/rfm_ecomanager_logger

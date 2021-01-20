@@ -1,0 +1,35 @@
+name: avEiro
+
+long_name: avEiro Eletricity 
+
+contact: rafaelgteixeira@ua.pt #Might need change
+
+creators: ["Rafael Teixeira", "Diogo Gomes", "Tomás Oliveira"]
+
+timezone: "Europe/London"
+
+description: "Aplience-by-Aplience and whole-house power demand readings from X Homes from Aveiro, Portugal. The power demand was recorded each second, for both aplience-by-aplience and whole-house." #Better future description
+
+number_of_buildings: 1  #Future Update
+
+subject: Domestic buildings whole-house and aplience-by-aplience readings. #Needs to be updated
+
+geospaticial_coverage: Aveiro, Portugal #Might need to be updated
+
+date: "2020-11-25"  #Need to be updated
+
+timeframe: {start: "2020-11-25", end:"2020-11-25"} #Needs Change
+
+geo_location: {country: PT, latitude: 40.6333333, longitude: -8.65, locality: Aveiro} #Might need update
+
+
+rights_list: 
+  - {name: Creative Commons Attribution 4.0 International (CC BY 4.0), uri: 'http://creativecommons.org/licenses/by/4.0/'} #Just an example
+
+funding: ["WithUs", "Universidade de Aveiro"] #Needs to be changed
+
+description_of_subjects: PhD Students, Researchers and Company workers #Needs to be updated
+
+related_documents: ["Example 1"]  #Need to be updated with future publishes of pappers
+
+schema: https://github.com/nilmtk/nilm_metadata/tree/v0.2
