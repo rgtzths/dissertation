@@ -22,7 +22,7 @@ class Svm(Disaggregator):
                 } 
             ]
 
-            svm = SVR(verbose=True)
+            svm = SVR()
             clf = GridSearchCV(svm, param, cv=5, n_jobs=20)
             y_train = power[0]["power"]["apparent"].values
 
