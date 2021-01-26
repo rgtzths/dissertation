@@ -20,7 +20,7 @@ experiment1 = {
             'buildings': {
                 1: {
                     'start_time': '2020-10-01',
-                    'end_time': '2020-10-02'
+                    'end_time': '2020-10-31'
                     }
                 }                
             }
@@ -29,10 +29,10 @@ experiment1 = {
   'test': {
     'datasets': {
         'avEiro': {
-            'path': '../converter/avEiro.h5',
+            'path': '../converters/avEiro_h5/avEiro.h5',
             'buildings': {
                 1: {
-                    'start_time': '2020-11-09',
+                    'start_time': '2020-10-31',
                     'end_time': '2020-11-10'
                     }
                 }

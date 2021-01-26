@@ -17,20 +17,19 @@ class Svm(Disaggregator):
             param = [
                 {
                     "kernel": ["rbf"],
-                    "C": [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30],
-                    "gamma": [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30]
-                    #"C" : [1],
-                    #"gamma" : [1]
+                    "C": [0.01, 0.03, 0.1, 0.3, 1, 3],
+                    "gamma": [0.01, 0.03, 0.1, 0.3, 1, 3]
                 } 
             ]
 
             svm = SVR(verbose=True)
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=3)
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=20)
             y_train = power[0]["power"]["apparent"].values
 
             x_train = train_main[0]["power"]["apparent"]
             x_train = np.reshape( x_train.values, (np.size(x_train.values), 1) )            
             clf.fit(x_train, y_train)
+            print(clf.best_estimator_)
             self.model[app_name] = clf
             
             
