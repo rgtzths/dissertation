@@ -26,7 +26,7 @@ class Svm(Disaggregator):
                     "C": [0.03, 0.1, 0.3, 1]
                 }
             ]
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=3)
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=2)
             clf.fit(x_train, y_train)
             rbf = (clf.best_estimator_, clf.best_score_)
             
@@ -37,7 +37,7 @@ class Svm(Disaggregator):
                     "C": [0.03, 0.1, 0.3, 1]
                 }
             ]
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=3)
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=2)
             clf.fit(x_train, y_train)
             poly = (clf.best_estimator_, clf.best_score_)
 

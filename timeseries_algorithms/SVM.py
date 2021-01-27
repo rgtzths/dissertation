@@ -1,12 +1,11 @@
 
-from nilmtk.disaggregate import Disaggregator
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import matthews_corrcoef, make_scorer
 import numpy as np
 import pandas as pd
 
-class SVM(Disaggregator):
+class SVM():
     def __init__(self):
         self.MODEL_NAME = 'SVM'
 
@@ -21,7 +20,7 @@ class SVM(Disaggregator):
 
         svm = SVC()
         mcc_scorer = make_scorer(matthews_corrcoef)
-        clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=3, scoring=mcc_scorer)
+        clf = GridSearchCV(svm, param, cv=5, n_jobs=4, verbose=2, scoring=mcc_scorer)
         clf.fit(X_train, y_train)
         rbf = (clf.best_estimator_, clf.best_score_)
 
@@ -32,7 +31,7 @@ class SVM(Disaggregator):
                 "C": [0.03, 0.1, 0.3, 1]
             }
         ]
-        clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=3, scoring=mcc_scorer)
+        clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=2, scoring=mcc_scorer)
         clf.fit(X_train, y_train)
         poly = (clf.best_estimator_, clf.best_score_)
 
