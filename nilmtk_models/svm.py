@@ -33,14 +33,14 @@ class Svm(Disaggregator):
             param = [
                 {
                     "kernel": ["poly"],
-                    "degree": [3, 4, 5],
+                    "degree": [2, 3, 4],
                     "C": [0.03, 0.1, 0.3, 1]
                 }
             ]
             clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=3)
             clf.fit(x_train, y_train)
             poly = (clf.best_estimator_, clf.best_score_)
-            
+
             if rbf[1] > poly[1]:
                 print(rbf[0])
                 self.model[app_name] = rbf[0]
