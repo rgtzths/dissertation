@@ -16,14 +16,14 @@ class Svm(Disaggregator):
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             param = [
                 {
-                    "kernel": ["rbf"],
-                    "C": [0.01, 0.03, 0.1, 0.3, 1, 3],
-                    "gamma": [0.01, 0.03, 0.1, 0.3, 1, 3]
+                    "kernel": ["rbf", "poly"],
+                    "degree": [3, 4, 5],
+                    "C": [0.03, 0.1, 0.3, 1],
                 } 
             ]
 
             svm = SVR()
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=20)
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=15)
             y_train = power[0]["power"]["apparent"].values
 
             x_train = train_main[0]["power"]["apparent"]
