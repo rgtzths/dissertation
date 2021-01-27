@@ -32,12 +32,12 @@ def convert_aveiro(aveiro_path, output_filename, format='HDF'):
     _convert(aveiro_path, store, _aveiro_measurement_mapping_func, 'Europe/London', sort_index=True, drop_duplicates=True)
 
     # Add metadata
-    save_yaml_to_datastore("avEiro/metadata", store)
+    save_yaml_to_datastore(metada_path, store)
 
     store.close()
     print("Done converting avEiro to HDF5!")
 
-def _convert(input_path, store, measurement_mapping_func, tz, sort_index=True, drop_duplicates=False):
+def _convert(input_path, store, measurement_mapping_func, tz, sort_index=True, drop_duplicates=True):
     """
     Parameters
     ----------
@@ -193,6 +193,7 @@ def _load_csv(filename, columns, tz, drop_duplicates=False, sort_index=False):
     return df
 
 
-aveiro_path = "../avEiro/"
-output_filename = "../avEiro.h5"
+aveiro_path = "../avEiro_dataset/"
+metada_path = "../avEiro_dataset/metadata"
+output_filename = "../avEiro_h5/avEiro.h5"
 convert_aveiro(aveiro_path, output_filename, format='HDF')

@@ -48,8 +48,9 @@ class Svm(Disaggregator):
             column = pd.Series(
                     pred, index=test_mains[0].index, name=i)
             appliance_powers_dict[app_name] = column
-            appliance_powers = pd.DataFrame(
-                    appliance_powers_dict, dtype='float32')
+            
+        appliance_powers = pd.DataFrame(
+                appliance_powers_dict, dtype='float32')
         test_predictions_list.append(appliance_powers)
 
         return test_predictions_list

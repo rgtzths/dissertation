@@ -3,10 +3,10 @@ from nilmtk import DataSet
 '''
     Data access example
 '''
-aveiro = DataSet('../converters/avEiro.h5')
+aveiro = DataSet('../converters/avEiro_h5/avEiro.h5')
 
 elec = aveiro.buildings[1].elec
-
+print(aveiro.buildings[1])
 print("Eletric Appliences of Building 1")
 print(elec)
 
