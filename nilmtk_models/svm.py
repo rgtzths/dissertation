@@ -11,28 +11,43 @@ class Svm(Disaggregator):
         self.MODEL_NAME = 'SVM'
 
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
+        x_train = train_main[0]["power"]["apparent"]    
+        x_train = np.reshape( x_train.values, (np.size(x_train.values), 1) )
 
         for app_name, power in train_appliances:
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+            
+            y_train = power[0]["power"]["apparent"].values
+            svm = SVR()
+
             param = [
                 {
-                    "kernel": ["rbf", "poly"],
-                    "degree": [3, 4, 5],
-                    "C": [0.03, 0.1, 0.3, 1],
-                } 
+                    "kernel": ["rbf"],
+                    "C": [0.03, 0.1, 0.3, 1]
+                }
             ]
-
-            svm = SVR()
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=15)
-            y_train = power[0]["power"]["apparent"].values
-
-            x_train = train_main[0]["power"]["apparent"]
-            x_train = np.reshape( x_train.values, (np.size(x_train.values), 1) )            
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=3)
             clf.fit(x_train, y_train)
-            print(clf.best_estimator_)
-            self.model[app_name] = clf
+            rbf = (clf.best_estimator_, clf.best_score_)
             
+            param = [
+                {
+                    "kernel": ["poly"],
+                    "degree": [3, 4, 5],
+                    "C": [0.03, 0.1, 0.3, 1]
+                }
+            ]
+            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=3)
+            clf.fit(x_train, y_train)
+            poly = (clf.best_estimator_, clf.best_score_)
             
+            if rbf[1] > poly[1]:
+                print(rbf[0])
+                self.model[app_name] = rbf[0]
+            else:
+                print(poly[0])
+                self.model[app_name] = poly[0]
+                        
     def disaggregate_chunk(self, test_mains):
         test_predictions_list = []
         x_test = test_mains[0]["power"]["apparent"]
