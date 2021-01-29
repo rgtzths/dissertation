@@ -11,36 +11,39 @@ class SVM():
 
     def partial_fit(self, X_train, y_train):
 
-        param = [
-            {
-                "kernel": ["rbf"],
-                "C": [0.03, 0.1, 0.3, 1]
-            }
-        ]
+        #param = [
+        #    {
+        #        "kernel": ["rbf"],
+        #        "C": [0.03, 0.1, 0.3, 1]
+        #    }
+        #]
 
-        svm = SVC()
-        mcc_scorer = make_scorer(matthews_corrcoef)
-        clf = GridSearchCV(svm, param, cv=5, n_jobs=4, verbose=2, scoring=mcc_scorer)
-        clf.fit(X_train, y_train)
-        rbf = (clf.best_estimator_, clf.best_score_)
+        #svm = SVC()
+        #mcc_scorer = make_scorer(matthews_corrcoef)
+        #clf = GridSearchCV(svm, param, cv=5, n_jobs=4, verbose=2, scoring=mcc_scorer)
+        #clf.fit(X_train, y_train)
+        #rbf = (clf.best_estimator_, clf.best_score_)
 
-        param = [
-            {
-                "kernel": ["poly"],
-                "degree": [2, 3, 4],
-                "C": [0.03, 0.1, 0.3, 1]
-            }
-        ]
-        clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=2, scoring=mcc_scorer)
-        clf.fit(X_train, y_train)
-        poly = (clf.best_estimator_, clf.best_score_)
+        #param = [
+        #    {
+        #        "kernel": ["poly"],
+        #        "degree": [2, 3, 4],
+        #        "C": [0.03, 0.1, 0.3, 1]
+        #    }
+        #]
+        #clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=2, scoring=mcc_scorer)
+        #clf.fit(X_train, y_train)
+        #poly = (clf.best_estimator_, clf.best_score_)
 
-        if rbf[1] > poly[1]:
-            print(rbf[0])
-            self.model = rbf[0]
-        else:
-            print(poly[0])
-            self.model = poly[0]
+        #if rbf[1] > poly[1]:
+        #    print(rbf[0])
+        #    self.model = rbf[0]
+        #else:
+        #    print(poly[0])
+        #    self.model = poly[0]
+        svm = SVC(C=0.3)
+        svm.fit(X_train, y_train)
+        self.model = svm
             
             
     def disaggregate_chunk(self, X_test, y_test):
@@ -54,12 +57,12 @@ class SVM():
         for i in range(0, len(pred)):
             if pred[i] == y_test[i] and y_test[i] == 1:
                 tp +=1
-            elif pred[i] == y_test[i] and y_test[i] == 2:
+            elif pred[i] == y_test[i]:
                 tn += 1
-            elif pred[i] != y_test[i] and y_test[i] == 2:
-                fp += 1
-            else:
+            elif pred[i] != y_test[i] and y_test[i] == 1:
                 fn += 1
+            else:
+                fp += 1
         
         print("True Positives: ", tp)
         print("True Negatives: ", tn)  
