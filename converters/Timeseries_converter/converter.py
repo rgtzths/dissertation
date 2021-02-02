@@ -188,7 +188,7 @@ def _get_csv_filename(input_path, house_id, chan_id):
 filespath = "../avEiro_dataset/"
 output_path = "../avEiro_timeseries"
 
-timeframe = 1
+timeframe = 10
 overlap = 0.5
 
 convert_aveiro(filespath, output_path, timeframe, overlap)

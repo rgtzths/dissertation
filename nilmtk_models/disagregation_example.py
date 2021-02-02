@@ -7,12 +7,14 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from svm import Svm
+from lstm import LSTM_RNN
 
 experiment1 = {
   'power': {'mains': ['apparent'],'appliance': ['apparent']},
-  'sample_rate': 1,
+  'sample_rate': 2,
   'appliances': ['electric shower heater'],
-  'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({})},
+  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({})},
+  'methods': {"LSTM":LSTM_RNN(10, 2, 0.5)},
   'train': {    
     'datasets': {
         'avEiro': {
@@ -20,7 +22,7 @@ experiment1 = {
             'buildings': {
                 1: {
                     'start_time': '2020-10-01',
-                    'end_time': '2020-10-31'
+                    'end_time': '2020-11-12'
                     }
                 }                
             }
