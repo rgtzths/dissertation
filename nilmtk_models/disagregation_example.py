@@ -22,8 +22,8 @@ experiment1 = {
   'power': {'mains': ['apparent'],'appliance': ['apparent']},
   'sample_rate': 2,
   'appliances': ['electric shower heater'],
-  'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({}), "LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent")) },
-  #'methods': {"LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent"))},
+  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({})},
+  'methods': {"LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent"))},
   'train': {    
     'datasets': {
         'avEiro': {
