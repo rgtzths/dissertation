@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 
 class LSTM_RNN(Disaggregator):
-    def __init__(self, timeframe, timestep, overlap, predicted_column, cv=0.2 ):
+    def __init__(self, timeframe, timestep, predicted_column, cv=0.2 ):
         self.MODEL_NAME = 'LSTM RNN'
         self.cv = cv
         self.timeframe = timeframe
@@ -25,7 +25,7 @@ class LSTM_RNN(Disaggregator):
         n_features = len(train_main[0].columns.values)
         n_past_examples = int(self.timeframe*60/self.timestep)
 
-        print("Preparing the Training Data")
+        print("Preparing the Training Data: X")
 
         X_train = self.generate_main_timeseries(train_main[0], False)
         X_train = X_train.reshape(X_train.shape[0], n_past_examples, n_features)
@@ -35,7 +35,7 @@ class LSTM_RNN(Disaggregator):
         X_train = X_train[0:int(len(X_train)*(1-self.cv))]
 
         for app_name, power in train_appliances:
-            print("Preparing the Test Data")
+            print("Preparing the Training Data: Y")
             y_train = self.generate_appliance_timeseries(power[0])
             
             y_cv = y_train[int(len(y_train)*(1-self.cv)):]
@@ -48,13 +48,14 @@ class LSTM_RNN(Disaggregator):
             model.add(Dense(1))
             model.compile(optimizer='adam', loss='mean_squared_error', metrics=["RootMeanSquaredError"])
             model.fit(X_train, y_train, epochs=1, batch_size=500, validation_data=(X_cv, y_cv), verbose=2, shuffle=False)
+
             self.model[app_name] = model
             
     def disaggregate_chunk(self, test_mains):
         test_predictions_list = []
         n_past_examples = int(self.timeframe*60/self.timestep)
         n_features = len(test_mains[0].columns.values)
-
+        print("Preparing the Test Data")
         X_test = self.generate_main_timeseries(test_mains[0], True)
         X_test = X_test.reshape(X_test.shape[0], n_past_examples, n_features)
         
@@ -67,7 +68,6 @@ class LSTM_RNN(Disaggregator):
             pred = [p[0] for p in pred]
             column = pd.Series(
                     pred, index=test_mains[0].index, name=i)
-            print(column)
             appliance_powers_dict[app_name] = column
             
         appliance_powers = pd.DataFrame(
@@ -84,7 +84,7 @@ class LSTM_RNN(Disaggregator):
         #TODO
         return
 
-    def generate_main_timeseries(self, df, is_test):
+    def generate_main_timeseries(self, df):
         columns = list(df.columns.values)
 
         one_second = pd.Timedelta(1, unit="s")
@@ -92,14 +92,8 @@ class LSTM_RNN(Disaggregator):
         current_time = df.index[0].round("s", ambiguous=False)
         current_index = 0
 
-        if is_test:
-            overlap_index = 1
-            objective_step = timestep
-            objective_time = current_time + timestep
-        else:
-            overlap_index =  int(self.timeframe*60*len(columns)/self.timestep - int(self.timeframe*60/self.timestep*len(columns)*self.overlap))
-            objective_step = pd.Timedelta(self.timeframe*60, unit="s") - pd.Timedelta(self.timeframe*60*self.overlap, unit="s")
-            objective_time = current_time + pd.Timedelta(self.timeframe*60, unit="s")
+        objective_step = timestep
+        objective_time = current_time + timestep
 
         past_feature_vector = []
         aprox = 0
@@ -111,8 +105,8 @@ class LSTM_RNN(Disaggregator):
 
             feature_vector = []
             if len(past_feature_vector) != 0:
-                feature_vector = past_feature_vector[ overlap_index :]
-            elif len(past_feature_vector) == 0 and is_test:
+                feature_vector = past_feature_vector[ 1:]
+            elif len(past_feature_vector) == 0:
                 feature_vector = [0 for i in range(0, int(self.timeframe*60*len(columns)/self.timestep -1))]
 
             while current_time != objective_time and current_index < len(df):
@@ -158,8 +152,8 @@ class LSTM_RNN(Disaggregator):
         current_time = df.index[0].round("s", ambiguous=False)
         current_index = 0
 
-        objective_step = pd.Timedelta(self.timeframe*60, unit="s") - pd.Timedelta(self.timeframe*60*self.overlap, unit="s")
-        objective_time = current_time + pd.Timedelta(self.timeframe*60, unit="s")
+        objective_step = timestep
+        objective_time = current_time + timestep
 
         aprox = 0
         arred = 0
@@ -170,7 +164,9 @@ class LSTM_RNN(Disaggregator):
 
             while current_time != objective_time and current_index < len(df):
                 index_time = df.index[current_index].round("s", ambiguous=False)
+
                 if index_time == current_time or index_time - one_second == current_time or index_time + one_second == current_time:
+                    data.append(df[self.column[0]][self.column[1]][df.index[current_index]])
                     current_index += 1
                     current_time += timestep
                     aprox += 1
@@ -178,16 +174,16 @@ class LSTM_RNN(Disaggregator):
                     if  current_index < len(df) -1:
                         next_index = df.index[current_index+1].round("s", ambiguous=False)
                         if next_index == current_time or next_index - one_second == current_time:
+                            data.append(df[self.column[0]][self.column[1]][df.index[current_index]])
                             current_time += timestep
                             behind += 1
                     current_index += 2
                 else:
+                    data.append( (df[self.column[0]][self.column[1]][df.index[current_index]] + data[-1] )/2 )
                     current_time += timestep
                     arred += 1
 
-            if current_index < len(df):
-                objective_time += objective_step
-                data.append(df[self.column[0]][self.column[1]][df.index[current_index]])
+            objective_time += objective_step
         
         print("")
         print("Aprox Values: ", aprox)

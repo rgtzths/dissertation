@@ -3,16 +3,16 @@ from nilmtk import DataSet
 '''
     Data access example
 '''
-aveiro = DataSet('../converters/avEiro_h5/avEiro.h5')
+aveiro = DataSet('../../datasets/avEiro_h5/avEiro.h5')
 
 elec = aveiro.buildings[1].elec
 print(aveiro.buildings[1])
 print("Eletric Appliences of Building 1")
 print(elec)
 
-heater = elec['electric shower heater']
+heater = elec[1]
 
-print("Eletric mesurements for the heater in building 1")
+print("Eletric mesurements for the heat pump in building 1")
 print(heater.available_columns())
 
 # Load all columns (default) of the heater
@@ -23,14 +23,14 @@ print(df.head())
 
 #Load a Single collum
 series = next(heater.power_series())
-print("Loading a single column as a series")
+print("Loading a power series")
 print(series.head())
 
 
 #Load a specific column (physical quantity and AC type)
 
-df = next(heater.load(physical_quantity='power', ac_type='apparent'))
-print("Loading a single column as a data frame")
+df = next(heater.load(physical_quantity='voltage', ac_type=''))
+print("Loading tail of the dataset")
 print(df.tail())
 
 # resample to minutely (i.e. with a sample period of 60 secs)

@@ -9,8 +9,8 @@ from lstm import LSTM_RNN
 from gru import GRU_RNN
 from sklearn.utils import shuffle
 
-agregated_readings = "../converters/avEiro_timeseries/house_1/channel_1.csv"
-appliance_status = "../converters/avEiro_timeseries/house_1/channel_2.csv"
+agregated_readings = "../../datasets/avEiro_timeseries/house_1/channel_1.csv"
+appliance_status = "../../datasets/avEiro_timeseries/house_1/channel_2.csv"
 
 train_size = 0.7
 

@@ -11,8 +11,8 @@ import time
 
 
 #Loading the datasets
-train = DataSet('../converter/avEiro.h5')
-test = DataSet('../converter/avEiro.h5')
+train = DataSet('../../datasets/avEiro_h5/avEiro.h5')
+test = DataSet('../../datasets/avEiro_h5/avEiro.h55')
 
 #Dividing the dataset by time window
 train.set_window(end="2020-10-30")

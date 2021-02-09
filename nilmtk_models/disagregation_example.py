@@ -17,21 +17,21 @@ logging.basicConfig(level=logging.INFO,
 
 from svm import Svm
 from lstm import LSTM_RNN
+from gru import GRU_RNN
 
 experiment1 = {
   'power': {'mains': ['apparent'],'appliance': ['apparent']},
   'sample_rate': 2,
-  'appliances': ['electric shower heater'],
-  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({})},
-  'methods': {"LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent"))},
+  'appliances': ['heat pump', 'charger'],
+  'methods': {"LSTM":LSTM_RNN(10, 2, ("power", "apparent")), "GRU":GRU_RNN(10, 2, ("power", "apparent"))},
   'train': {    
     'datasets': {
         'avEiro': {
-            'path': '../converters/avEiro_h5/avEiro.h5',
+            'path': '../../datasets/avEiro_h5/avEiro.h5',
             'buildings': {
                 1: {
                     'start_time': '2020-10-01',
-                    'end_time': '2020-11-12'
+                    'end_time': '2021-01-01'
                     }
                 }                
             }
@@ -40,11 +40,11 @@ experiment1 = {
   'test': {
     'datasets': {
         'avEiro': {
-            'path': '../converters/avEiro_h5/avEiro.h5',
+            'path': '../../datasets/avEiro_h5/avEiro.h5',
             'buildings': {
                 1: {
-                    'start_time': '2020-10-31',
-                    'end_time': '2020-11-10'
+                    'start_time': '2021-01-01',
+                    'end_time': '2021-02-06'
                     }
                 }
             }

@@ -8,11 +8,12 @@
   - using the environment in conda do
   - pip3 install -r https://raw.githubusercontent.com/Lasagne/Lasagne/v0.1/requirements.txt
   - pip3 install Lasagne==0.1
-  - pip install pymongo
-  - pip install h5py
+  - pip3 install pymongo
+  - pip3 install h5py
   - inside the git folder now do
   - edit setup.py var "name" to "neuralnilm"
   - pip3 install .
-  - in the requirements.txt remove the last 4 lines
-  - run pip3 install -r requirements.txt
+- Install tensorflow and keras
+  - pip3 install keras
+  - pip3 install tensorflow
 - Download UKDale H5 - https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.h5.zip
