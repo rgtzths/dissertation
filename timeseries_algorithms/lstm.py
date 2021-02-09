@@ -31,7 +31,7 @@ class LSTM_RNN():
         self.MODEL_NAME = 'LSTM RNN'
         
         model = Sequential()
-        model.add(LSTM(256, input_shape=(time_lag, n_features)))
+        model.add(LSTM(300, input_shape=(time_lag, n_features)))
         model.add(Dense(units=1, activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
 
@@ -45,7 +45,7 @@ class LSTM_RNN():
         X_train = X_train[0:int(len(X_train)*(1-self.cv))]
         y_train = y_train[0:int(len(y_train)*(1-self.cv))]
         
-        self.model.fit(X_train, y_train, epochs=100, batch_size=72, validation_data=(X_cv, y_cv), verbose=2, shuffle=False)
+        self.model.fit(X_train, y_train, epochs=500, batch_size=500, validation_data=(X_cv, y_cv), verbose=2, shuffle=False)
             
     def disaggregate_chunk(self, X_test, y_test):
         pred = self.model.predict(X_test)

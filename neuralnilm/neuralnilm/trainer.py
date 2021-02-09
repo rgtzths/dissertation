@@ -58,10 +58,6 @@ class Trainer(object):
             Run during `Trainer.validation()`
         """
         # Database
-        if mongo_host is None:
-            mongo_host = config.get("MongoDB", "address")
-        mongo_client = MongoClient(mongo_host)
-        self.db = mongo_client[mongo_db]
 
         # Training and validation state
         self.requested_learning_rates = (
@@ -73,38 +69,6 @@ class Trainer(object):
         self.data_pipeline = data_pipeline
         self.min_train_cost = float("inf")
         self.num_seqs_to_plot = num_seqs_to_plot
-
-        # Check if this experiment already exists in database
-        delete_or_quit = None
-        if self.db.experiments.find_one({'_id': self.experiment_id}):
-            delete_or_quit = raw_input(
-                "Database already has an experiment with _id == {}."
-                " Should the old experiment be deleted (d)"
-                " (both from the database and from disk)? Or quit (q)?"
-                " Or append (a) '_try<i>` string to _id? [A/q/d] "
-                .format(self.experiment_id)).lower()
-            if delete_or_quit == 'd':
-                logger.info("Deleting documents for old experiment.")
-                self.db.experiments.delete_one({'_id': self.experiment_id})
-                for collection in COLLECTIONS:
-                    self.db[collection].delete_many(
-                        {'experiment_id': self.experiment_id})
-            elif delete_or_quit == 'q':
-                raise KeyboardInterrupt()
-            else:
-                self.modification_since_last_try = raw_input(
-                    "Enter a short description of what has changed since"
-                    " the last try: ")
-                try_i = 2
-                while True:
-                    candidate_id = self.experiment_id + '_try' + str(try_i)
-                    if self.db.experiments.find_one({'_id': candidate_id}):
-                        try_i += 1
-                    else:
-                        self.experiment_id = candidate_id
-                        logger.info("experiment_id set to {}"
-                                    .format(self.experiment_id))
-                        break
 
         # Output path
         path_list = [config.get('Paths', 'output')]
@@ -165,7 +129,6 @@ class Trainer(object):
                     dict_to_update = dict_to_update[key]
                 dict_to_update.update(update)
         report = sanitise_dict_for_mongo(report)
-        self.db.experiments.insert_one(report)
         return report
 
     @property
@@ -184,15 +147,6 @@ class Trainer(object):
             logger.info(
                 "Iteration {:d}: Change learning rate to {:.1E}"
                 .format(self.net.train_iterations, rate))
-            self.db.experiments.find_one_and_update(
-                filter={'_id': self.experiment_id},
-                update={
-                    '$set':
-                    {'trainer.actual_learning_rates.{:d}'
-                     .format(self.net.train_iterations):
-                     float(rate)}},
-                upsert=True
-            )
             self._learning_rate.set_value(rate)
 
     def _start_data_thread(self):
@@ -218,15 +172,6 @@ class Trainer(object):
     def _training_loop(self, num_iterations=None):
         logger.info("Starting training for {} iterations."
                     .format(num_iterations))
-
-        self.db.experiments.find_one_and_update(
-            filter={'_id': self.experiment_id},
-            update={
-                '$set':
-                {'trainer.requested_train_iterations': num_iterations}
-            },
-            upsert=True
-        )
 
         print("   Update # |  Train cost  | Secs per update | Source ID")
         print("------------|--------------|-----------------|-----------")
@@ -279,7 +224,6 @@ class Trainer(object):
             'loss': train_cost,
             'source_id': batch.metadata['source_id']
         }
-        self.db.train_scores.insert_one(score)
         time4 = time()
         duration = time4 - time0
 
@@ -354,14 +298,7 @@ class Trainer(object):
                         break
                 scores = scores_accumulator / n
                 scores = scores.astype(float)
-                self.db.validation_scores.insert_one({
-                    'experiment_id': self.experiment_id,
-                    'iteration': self.net.train_iterations,
-                    'source_id': source_id,
-                    'fold': fold,
-                    'scores': two_level_series_to_dict(scores)
-                })
-        logger.info("  Finished validation.".format(self.net.train_iterations))
+                logger.info("  Finished validation.".format(self.net.train_iterations))
 
     def _get_train_func(self):
         if self._train_func is None:

@@ -1,10 +1,19 @@
 
 
 from nilmtk.disaggregate import CO, FHMMExact, Mean, Hart85
-
 from nilmtk.api import API
+
 import warnings
 warnings.filterwarnings("ignore")
+import sys
+import logging
+
+sys.stderr = open('./err.log', 'w')
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='./info.log',
+                    filemode='w')
 
 from svm import Svm
 from lstm import LSTM_RNN
@@ -13,8 +22,8 @@ experiment1 = {
   'power': {'mains': ['apparent'],'appliance': ['apparent']},
   'sample_rate': 2,
   'appliances': ['electric shower heater'],
-  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({})},
-  'methods': {"LSTM":LSTM_RNN(10, 2, 0.5)},
+  'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':3}), "Hart85":Hart85({}), "SVM":Svm({}), "LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent")) },
+  #'methods': {"LSTM":LSTM_RNN(10, 2, 0.5, ("power", "apparent"))},
   'train': {    
     'datasets': {
         'avEiro': {

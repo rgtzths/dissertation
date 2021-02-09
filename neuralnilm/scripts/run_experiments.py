@@ -4,7 +4,15 @@ import sys
 from neuralnilm.config import config
 
 import logging
+
 logger = logging.getLogger('neuralnilm')
+
+sys.stderr = open('./err.log', 'a')
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='./extauth.log',
+                    filemode='a')
 
 experiment_definition_path = "../experiment_definitions"
 job_list_filename = join(experiment_definition_path, 'job_list.txt')

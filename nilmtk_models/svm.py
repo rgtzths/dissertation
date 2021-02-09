@@ -11,47 +11,21 @@ class Svm(Disaggregator):
         self.MODEL_NAME = 'SVM'
 
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
-        x_train = train_main[0]["power"]["apparent"]    
-        x_train = np.reshape( x_train.values, (np.size(x_train.values), 1) )
+        x_train = train_main[0].values   
+        x_train = x_train.reshape( x_train.shape[0], len(train_main[0].columns.values))
 
         for app_name, power in train_appliances:
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             
             y_train = power[0]["power"]["apparent"].values
-            svm = SVR()
-
-            param = [
-                {
-                    "kernel": ["rbf"],
-                    "C": [0.03, 0.1, 0.3, 1]
-                }
-            ]
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=2)
+            clf = SVR(kernel="rbf", C=0.1)
             clf.fit(x_train, y_train)
-            rbf = (clf.best_estimator_, clf.best_score_)
-            
-            param = [
-                {
-                    "kernel": ["poly"],
-                    "degree": [2, 3, 4],
-                    "C": [0.03, 0.1, 0.3, 1]
-                }
-            ]
-            clf = GridSearchCV(svm, param, cv=5, n_jobs=20, verbose=2)
-            clf.fit(x_train, y_train)
-            poly = (clf.best_estimator_, clf.best_score_)
-
-            if rbf[1] > poly[1]:
-                print(rbf[0])
-                self.model[app_name] = rbf[0]
-            else:
-                print(poly[0])
-                self.model[app_name] = poly[0]
+            self.model[app_name] = clf
                         
     def disaggregate_chunk(self, test_mains):
         test_predictions_list = []
-        x_test = test_mains[0]["power"]["apparent"]
-        x_test = np.reshape( x_test.values, (np.size(x_test.values), 1) )
+        x_test = test_mains[0].values
+        x_test = x_test.reshape( x_test.shape[0], len(test_mains.columns.value))
 
         appliance_powers_dict = {}
 

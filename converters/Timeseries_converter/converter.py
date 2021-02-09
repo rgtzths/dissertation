@@ -24,7 +24,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, overlap):
     houses = _find_all_houses(aveiro_path)
     one_second = pd.Timedelta(1, unit="s")
     two_seconds = pd.Timedelta(2, unit="s")
-    overlap_index =  timeframe*30 - int(timeframe*30*overlap) -1
+    overlap_index =  timeframe*30 - int(timeframe*30*overlap)
     objective_step = pd.Timedelta(timeframe*60, unit="s") - pd.Timedelta(timeframe*60*overlap, unit="s")
 
     for house_id in houses:
@@ -61,7 +61,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, overlap):
             while current_index < len(df):
                 feature_vector = []
                 if len(past_feature_vector) != 0:
-                    feature_vector = past_feature_vector[ overlap_index : -1]
+                    feature_vector = past_feature_vector[ overlap_index :]
 
                 while current_time != objective_time and current_index < len(df):
                     index_time = df.index[current_index].round("s", ambiguous=False)

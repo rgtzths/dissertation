@@ -21,7 +21,7 @@ from neuralnilm.metrics import Metrics
 from neuralnilm.utils import select_windows, filter_activations
 
 
-NILMTK_FILENAME = '/data/dk3810/ukdale.h5'
+NILMTK_FILENAME = '../../../ukdale.h5'
 SAMPLE_PERIOD = 6
 STRIDE = None
 APPLIANCES = [
@@ -194,7 +194,7 @@ def get_pipeline(target_appliance, activations):
         stride=STRIDE
     )
 
-    sample = real_agg_source.get_batch(num_seq_per_batch=1024).next()
+    sample = next(real_agg_source.get_batch(num_seq_per_batch=1024))
     sample = sample.before_processing
     input_std = sample.input.flatten().std()
     target_std = sample.target.flatten().std()
