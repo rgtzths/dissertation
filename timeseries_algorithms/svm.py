@@ -1,68 +1,41 @@
 
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import matthews_corrcoef, make_scorer
+from sklearn.metrics import matthews_corrcoef, make_scorer, confusion_matrix
 import numpy as np
 import pandas as pd
 
 class SVM():
-    def __init__(self):
+    def __init__(self, params):
+        self.model = {}
         self.MODEL_NAME = 'SVM'
+        self.kernel = params.get('kernel', "rbf")
+        self.C = params.get('C', "0.1")
+        self.degree = params.get('degree', 1)
+        self.coef = params.get('coef', 0.1)
+        self.epsilon = params.get("epsilon", 0.1)
+        self.tol = params.get("tol", 0.0001)
+        self.save_model_path = params.get('save_model_folder', None)
+        self.load_model_path = params.get('load_model_folder',None)
+        if self.load_model_path:
+            self.load_model(self.load_model_path)
 
-    def partial_fit(self, X_train, y_train):
+    def partial_fit(self, X_train, y_train, app):
 
-        #param = [
-        #    {
-        #        "kernel": ["rbf"],
-        #        "C": [0.03, 0.1, 0.3, 1]
-        #    }
-        #]
-
-        #svm = SVC()
-        #mcc_scorer = make_scorer(matthews_corrcoef)
-        #clf = GridSearchCV(svm, param, cv=5, n_jobs=4, verbose=2, scoring=mcc_scorer)
-        #clf.fit(X_train, y_train)
-        #rbf = (clf.best_estimator_, clf.best_score_)
-
-        #param = [
-        #    {
-        #        "kernel": ["poly"],
-        #        "degree": [2, 3, 4],
-        #        "C": [0.03, 0.1, 0.3, 1]
-        #    }
-        #]
-        #clf = GridSearchCV(svm, param, cv=5, n_jobs=3, verbose=2, scoring=mcc_scorer)
-        #clf.fit(X_train, y_train)
-        #poly = (clf.best_estimator_, clf.best_score_)
-
-        #if rbf[1] > poly[1]:
-        #    print(rbf[0])
-        #    self.model = rbf[0]
-        #else:
-        #    print(poly[0])
-        #    self.model = poly[0]
-        svm = SVC(C=0.3)
-        svm.fit(X_train, y_train)
-        self.model = svm
+        if app in self.model:
+            clf = self.model[app]
+        else:
+            clf = SVC(kernel=self.kernel, C=self.C, epsilon=self.epsilon, coef0=self.coef, degree=self.degree, tol=self.tol)
+        
+        clf.fit(X_train, y_train)
+        
+        self.model[app] = clf
             
             
-    def disaggregate_chunk(self, X_test, y_test):
+    def disaggregate_chunk(self, X_test, y_test, app):
 
-        pred = self.model.predict(X_test)
-
-        tp = 0
-        tn = 0
-        fp = 0
-        fn = 0
-        for i in range(0, len(pred)):
-            if pred[i] == y_test[i] and y_test[i] == 1:
-                tp +=1
-            elif pred[i] == y_test[i]:
-                tn += 1
-            elif pred[i] != y_test[i] and y_test[i] == 1:
-                fn += 1
-            else:
-                fp += 1
+        pred = self.model[app].predict(X_test)
+        tn, fp, fn, tp = confusion_matrix(y_test, pred).ravel()
         
         print("True Positives: ", tp)
         print("True Negatives: ", tn)  
@@ -70,12 +43,12 @@ class SVM():
         print("False Positives: ", fp)        
         print( "MCC: ", matthews_corrcoef(y_test, pred))
 
-
-
     def save_model(self, folder_name):
-        #TODO
-        return
+        for app in self.model:
+            joblib.dump(self.model[app], join(folder_name, app+".sav"))
 
     def load_model(self, folder_name):
-        #TODO
-        return
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        for app in app_models:
+            self.model[app.split(".")[0]] = joblib.load(join(folder_name, app))
+        

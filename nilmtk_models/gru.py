@@ -12,20 +12,23 @@ import pandas as pd
 import numpy as np
 
 class GRU_RNN(Disaggregator):
-    def __init__(self, timeframe, timestep, predicted_column, cv=0.2 ):
-        self.MODEL_NAME = 'GRU RNN'
-        self.cv = cv
-        self.timeframe = timeframe
-        self.timestep = timestep
-        self.overlap = overlap
+    def __init__(self, params):
         self.model = {}
-        self.column = predicted_column
+        self.MODEL_NAME = 'GRU RNN'
+        self.cv = params.get('cv', "0.18")
+        self.timeframe = params.get('timeframe', 5)
+        self.timestep = params.get('timestep', 2)
+        self.column = params.get('predicted_column', ("power", "apparent"))
+        self.save_model_path = params.get('save_model_folder', None)
+        self.load_model_path = params.get('load_model_folder',None)
+        if self.load_model_path:
+            self.load_model(self.load_model_path)
 
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
         n_features = len(train_main[0].columns.values)
         n_past_examples = int(self.timeframe*60/self.timestep)
 
-        print("Preparing the Training Data")
+        print("Preparing the Training Data: X")
 
         X_train = self.generate_main_timeseries(train_main[0], False)
         X_train = X_train.reshape(X_train.shape[0], n_past_examples, n_features)
@@ -35,7 +38,8 @@ class GRU_RNN(Disaggregator):
         X_train = X_train[0:int(len(X_train)*(1-self.cv))]
 
         for app_name, power in train_appliances:
-            print("Preparing the Test Data")
+
+            print("Preparing the Training Data: Y")
             y_train = self.generate_appliance_timeseries(power[0])
             
             y_cv = y_train[int(len(y_train)*(1-self.cv)):]
@@ -43,10 +47,14 @@ class GRU_RNN(Disaggregator):
            
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             
-            model = Sequential()
-            model.add(GRU(X_train.shape[1], input_shape=(n_past_examples, n_features)))
-            model.add(Dense(1))
-            model.compile(optimizer='adam', loss='mean_squared_error', metrics=["RootMeanSquaredError"])
+            if app_name in self.model:
+                model = self.model[app_name]
+            else:
+                model = Sequential()
+                model.add(GRU(X_train.shape[1], input_shape=(n_past_examples, n_features)))
+                model.add(Dense(1))
+                model.compile(optimizer='adam', loss='mean_squared_error', metrics=["RootMeanSquaredError"])
+            
             model.fit(X_train, y_train, epochs=1, batch_size=500, validation_data=(X_cv, y_cv), verbose=2, shuffle=False)
 
             self.model[app_name] = model
@@ -78,12 +86,13 @@ class GRU_RNN(Disaggregator):
         return test_predictions_list
 
     def save_model(self, folder_name):
-        #TODO
-        return
+        for app in self.model:
+            self.model[app_name].save(join(folder_name, app + ".h5"))
 
     def load_model(self, folder_name):
-        #TODO
-        return
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        for app in app_models:
+            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
     def generate_main_timeseries(self, df):
         columns = list(df.columns.values)

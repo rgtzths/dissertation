@@ -4,11 +4,25 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 import numpy as np
 import pandas as pd
+from os.path import isfile, join
+from os import listdir
+from sklearn.externals import joblib
 
 class Svm(Disaggregator):
     def __init__(self, params):
         self.model = {}
         self.MODEL_NAME = 'SVM'
+        self.kernel = params.get('kernel', "rbf")
+        self.C = params.get('C', "0.1")
+        self.degree = params.get('degree', 1)
+        self.coef = params.get('coef', 0.1)
+        self.epsilon = params.get("epsilon", 0.1)
+        self.tol = params.get("tol", 0.0001)
+        self.save_model_path = params.get('save_model_folder', None)
+        self.load_model_path = params.get('load_model_folder',None)
+        if self.load_model_path:
+            self.load_model(self.load_model_path)
+
 
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
         x_train = train_main[0].values
@@ -18,7 +32,12 @@ class Svm(Disaggregator):
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             
             y_train = power[0]["power"]["apparent"].values
-            clf = SVR(kernel="rbf", C=0.1)
+
+            if app_name in self.model:
+                clf = self.model[app_name]
+            else:
+                clf = SVR(kernel=self.kernel, C=self.C, epsilon=self.epsilon, coef0=self.coef, degree=self.degree, tol=self.tol)
+            
             clf.fit(x_train, y_train)
             self.model[app_name] = clf
                         
@@ -45,12 +64,12 @@ class Svm(Disaggregator):
         return test_predictions_list
 
     def save_model(self, folder_name):
-        string_to_save = json.dumps(self.model)
-        os.makedirs(folder_name, exist_ok=True)
-        with open(os.path.join(folder_name, "model.txt"), "w") as f:
-            f.write(string_to_save)
+        for app in self.model:
+            joblib.dump(self.model[app], join(folder_name, app+".sav"))
+
 
     def load_model(self, folder_name):
-        with open(os.path.join(folder_name, "model.txt"), "r") as f:
-            model_string = f.read().strip()
-            self.model = json.loads(model_string)
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        for app in app_models:
+            self.model[app.split(".")[0]] = joblib.load(join(folder_name, app))
+        

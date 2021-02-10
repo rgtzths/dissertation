@@ -32,29 +32,31 @@ y_train = y[0:int(len(X)*train_size)]
 X_test = X[int(len(X)*train_size):]
 y_test = y[int(len(X)*train_size):]
 
-def test_svm(X_train, y_train, X_test, y_test):
+def test_svm(X_train, y_train, X_test, y_test, app):
 
-    clf = SVM()
-    clf.partial_fit(X_train, y_train)
-    clf.disaggregate_chunk(X_test, y_test)
+    clf = SVM({})
+    clf.partial_fit(X_train, y_train, app)
+    clf.disaggregate_chunk(X_test, y_test, app)
 
-def test_lstm(X_train, y_train, X_test, y_test):
+def test_lstm(X_train, y_train, X_test, y_test, app):
     X_train = X_train.reshape(X_train.shape[0], n_samples, n_features)
 
     X_test = X_test.reshape(X_test.shape[0], n_samples, n_features)
 
-    clf = LSTM_RNN(X_train.shape[1], X_train.shape[2], cv_percentage)
-    clf.partial_fit(X_train, y_train)
-    clf.disaggregate_chunk(X_test, y_test)
+    clf = LSTM_RNN( {"timeframe": X_train.shape[1], "n_features" : X_train.shape[2], "cv" : cv_percentage })
 
-def test_gru(X_train, y_train, X_test, y_test):
+    clf.partial_fit(X_train, y_train, app)
+    clf.disaggregate_chunk(X_test, y_test, app)
+
+def test_gru(X_train, y_train, X_test, y_test, app):
     X_train = X_train.reshape(X_train.shape[0], n_samples, n_features)
 
     X_test = X_test.reshape(X_test.shape[0], n_samples, n_features)
 
-    clf = GRU_RNN(X_train.shape[1], X_train.shape[2], cv_percentage)
-    clf.partial_fit(X_train, y_train)
-    clf.disaggregate_chunk(X_test, y_test)
+    clf = GRU_RNN({"timeframe": X_train.shape[1], "n_features" : X_train.shape[2], "cv" : cv_percentage})
+
+    clf.partial_fit(X_train, y_train, app)
+    clf.disaggregate_chunk(X_test, y_test, app)
 
 test_lstm(X_train, y_train, X_test, y_test)
 test_gru(X_train, y_train, X_test, y_test)
