@@ -19,7 +19,7 @@ appliance_meter_mapping = {
 
 
 
-def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
+def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
     """
     Parameters
     ----------
@@ -34,6 +34,9 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
     houses = _find_all_houses(aveiro_path)
 
     one_second = pd.Timedelta(1, unit="s")
+    
+    objective_step = pd.Timedelta(timeframe*60, unit="s") - pd.Timedelta(timeframe*60*overlap, unit="s")
+
     step = pd.Timedelta(timestep, unit="s")
 
     for house_id in houses:
@@ -48,6 +51,8 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
 
             dfs = []
             if appliance == "mains":
+                overlap_index =  int(timeframe*60*2/timestep - timeframe*60*overlap*2/timestep)
+
                 for measure in column_mapping.keys():
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                     df = pd.read_csv(csv_filename)
@@ -63,6 +68,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
                     dfs.append(df)
             else:
                 measure = "power"
+
                 df = pd.read_csv(csv_filename)
                 df.index = pd.to_datetime(df["time"], unit='ns')
                 df.index = df.index.round("s", ambiguous=False)
@@ -82,7 +88,8 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
 
             current_time = dfs[0].index[0]
             current_index = 0
-            objective_time = current_time + step
+            objective_time = current_time + objective_step*2
+            overlap_index = int(timeframe*60/timestep - timeframe*60*overlap*len(columns)/timestep)
 
             past_feature_vector = []
             aprox = 0
@@ -93,9 +100,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
 
                 feature_vector = []
                 if len(past_feature_vector) != 0:
-                    feature_vector = past_feature_vector[ 1:]
-                elif len(past_feature_vector) == 0:
-                    feature_vector = [0 for i in range(0, int(timeframe*60*len(columns)/timestep -1))]
+                    feature_vector = past_feature_vector[overlap_index:]
 
                 while current_time != objective_time and current_index < len(df):
                     index_time = df.index[current_index].round("s", ambiguous=False)
@@ -121,71 +126,32 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep):
                         arred += 1
 
                 if len(feature_vector) == int(timeframe*60*len(columns)/timestep):
-                    objective_time += objective_step
+                    
                     past_feature_vector = feature_vector
                     if appliance == "mains":
-                        data.append(feature_vector)
+                        data.append([objective_time]+ feature_vector )
                     else:
                         added = False
                         for i in feature_vector:
                             if i > 0:
-                                data.append(1)
+                                data.append([objective_time, 1])
                                 added = True
                                 break
                         if not added:
-                            data.append(0)
+                            data.append([objective_time, 0])
+
+                    objective_time += objective_step
             
             new_df = pd.DataFrame(data)
+            new_df = new_df.set_index(0)
             new_df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance), header=False)
-
-            #while current_index < len(df):
-#
-            #    feature_vector = []
-            #    if len(past_feature_vector) != 0:
-            #        feature_vector = past_feature_vector[ 1:]
-#
-            #    while current_time != objective_time and current_index < len(df):
-            #        index_time = df.index[current_index].round("s", ambiguous=False)
-            #        if index_time == current_time or index_time - one_second == current_time or index_time + one_second == current_time:
-            #            feature_vector.append(column[df.index[current_index]])
-            #            current_index += 1
-            #            current_time += timestep
-            #            aprox += 1
-            #        elif current_time > index_time:
-            #            next_index = df.index[current_index+1].round("s", ambiguous=False)
-            #            if next_index == current_time or next_index - one_second == current_time or next_index + one_second == current_time:
-            #                feature_vector.append(column[df.index[current_index+1]])
-            #                current_time += timestep
-            #            current_index += 2
-            #            behind += 1
-            #        else:
-            #            feature_vector.append( (column[df.index[current_index]] + feature_vector[-1])/2 )
-            #            current_time += timestep
-            #            arred += 1
-            #    if current_index < len(df):
-            #        objective_time += timestep
-            #        past_feature_vector = feature_vector
-            #        stdout.flush()
-            #        if chan_id == 1:
-            #            data.append(feature_vector)
-            #        else:
-            #            added = False
-            #            for i in feature_vector:
-            #                if i > 0:
-            #                    data.append(1)
-            #                    added = True
-            #                    break
-            #            if not added:
-            #                data.append(0)
+            
             print("")
-           
             print("Aprox Values: ", aprox)
             print("Arred values: ", arred)
             print("Behind values:", behind)
-            print("")
-            #new_df = pd.DataFrame(data)
-            #new_df.to_csv('{}/house_{}/channel_{}.csv'.format(output_path, house_id, chan_id), index = False, header=False)
-            
+            print()
+
         print()
 
     print("Done converting avEiro to Timeseries!")
@@ -231,5 +197,6 @@ output_path = "../../../datasets/avEiro_timeseries"
 
 timeframe = 10
 timestep = 2
+overlap = 0.5
 
-convert_aveiro(filespath, output_path, timeframe, timestep)
+convert_aveiro(filespath, output_path, timeframe, timestep, overlap)

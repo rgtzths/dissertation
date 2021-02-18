@@ -18,7 +18,7 @@ print(heater.available_columns())
 # Load all columns (default) of the heater
 df = next(heater.load())
 print("Head data stored for heater")
-print(df.head())
+print(df[0:50])
 
 
 #Load a Single collum

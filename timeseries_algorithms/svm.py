@@ -4,6 +4,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import matthews_corrcoef, make_scorer, confusion_matrix
 import numpy as np
 import pandas as pd
+import joblib
 
 class SVM():
     def __init__(self, params):

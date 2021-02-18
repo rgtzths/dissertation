@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from os.path import isfile, join
 from os import listdir
-from sklearn.externals import joblib
+import joblib
 
 class Svm(Disaggregator):
     def __init__(self, params):
