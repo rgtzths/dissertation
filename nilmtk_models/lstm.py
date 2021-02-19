@@ -36,7 +36,7 @@ class LSTM_RNN(Disaggregator):
         X_train = self.generate_main_timeseries(train_main, False)
 
         X_train = X_train.reshape(X_train.shape[0], n_past_examples, n_features)
-        print(X_train.shape)
+        
         X_cv = X_train[int(len(X_train)*(1-self.cv)):]
         
         X_train = X_train[0:int(len(X_train)*(1-self.cv))]
@@ -64,11 +64,14 @@ class LSTM_RNN(Disaggregator):
             
     def disaggregate_chunk(self, test_mains):
         test_predictions_list = []
+
         n_past_examples = int(self.timeframe*60/self.timestep)
+        
         n_features = len(test_mains[0].columns.values)
 
         print("Preparing the Test Data")
         X_test = self.generate_main_timeseries(test_mains, True)
+        
         X_test = X_test.reshape(X_test.shape[0], n_past_examples, n_features)
         
         appliance_powers_dict = {}

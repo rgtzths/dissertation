@@ -26,7 +26,7 @@ class Svm(Disaggregator):
 
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
         x_train = train_main[0].values
-        x_train = x_train.reshape( x_train.shape[0], len(train_main[0].columns.value) )
+        x_train = x_train.reshape( x_train.shape[0], len(train_main[0].columns.values) )
 
         for app_name, power in train_appliances:
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")

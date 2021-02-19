@@ -23,9 +23,14 @@ experiment1 = {
   'power': {'mains': ['active'],'appliance': ['active']},
   'sample_rate': 6,
   'appliances': ['kettle', 'fridge', 'washing machine', 'microwave', 'dish washer'],
-  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':2}), "Hart85":Hart85({}), "SVM":Svm({}), "LSTM":LSTM_RNN(10, 2, ("power", "apparent")), "GRU":GRU_RNN(10, 2, ("power", "apparent"))},
-  #'methods': {"LSTM":LSTM_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent")}), "GRU":GRU_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent")})},
-  'methods': {"LSTM": LSTM_RNN({"timeframe":10, "timestep": 6,"predicted_column": ("power", "active"), "overlap":0.5})},
+  'methods': {"LSTM": LSTM_RNN({"timeframe":10, "timestep": 6,"predicted_column": ("power", "active"), "overlap":0.5}), 
+              "GRU": GRU_RNN({"timeframe":10, "timestep": 6,"predicted_column": ("power", "active"), "overlap":0.5}),
+              "CO":CO({}), 
+              "Mean":Mean({}),
+              "FHMM_EXACT":FHMMExact({'num_of_states':2}), 
+              "Hart85":Hart85({}), 
+              #"SVM":Svm({})
+            },
   'train': {    
     'datasets': {
         'UKDale': {
@@ -33,11 +38,11 @@ experiment1 = {
             'buildings': {
                 1: {
                     'start_time': "2015-07-01",
-                    'end_time': "2015-07-02"
+                    'end_time':  "2015-07-01T12:00"
                 },
                 2: {
                     'start_time': "2013-05-22",
-                    'end_time': "2013-05-23"
+                    'end_time': "2013-05-22T12:00"
                 },             
             }
         }
@@ -50,7 +55,7 @@ experiment1 = {
             'buildings': {
                 5: {
                     'start_time': "2014-06-29",
-                    'end_time': "2014-06-30"
+                    'end_time': "2014-06-29T12:00"
                     }
                 }
             }
