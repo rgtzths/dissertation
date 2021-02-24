@@ -1,0 +1,304 @@
+Started training for  LSTM RNN
+Joint training for  LSTM RNN
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+Preparing the Training Data: X
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  kettle  in  LSTM RNN  model
+382/382 - 93s - loss: 37198.4102 - root_mean_squared_error: 192.8689 - val_loss: 120151.3125 - val_root_mean_squared_error: 346.6285
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  fridge  in  LSTM RNN  model
+382/382 - 92s - loss: 3691.6311 - root_mean_squared_error: 60.7588 - val_loss: 2929.7776 - val_root_mean_squared_error: 54.1274
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  washing machine  in  LSTM RNN  model
+382/382 - 92s - loss: 70602.4766 - root_mean_squared_error: 265.7113 - val_loss: 14021.8174 - val_root_mean_squared_error: 118.4138
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  microwave  in  LSTM RNN  model
+382/382 - 93s - loss: 7432.5088 - root_mean_squared_error: 86.2120 - val_loss: 6866.8350 - val_root_mean_squared_error: 82.8664
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  dish washer  in  LSTM RNN  model
+382/382 - 92s - loss: 80656.6562 - root_mean_squared_error: 284.0012 - val_loss: 70623.6562 - val_root_mean_squared_error: 265.7511
+Finished training for  LSTM RNN
+[2K[2KStarted training for  GRU RNN
+Joint training for  GRU RNN
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+Preparing the Training Data: X
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  kettle  in  GRU RNN  model
+382/382 - 79s - loss: 37059.1055 - root_mean_squared_error: 192.5074 - val_loss: 119376.9922 - val_root_mean_squared_error: 345.5098
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  fridge  in  GRU RNN  model
+382/382 - 79s - loss: 3414.4290 - root_mean_squared_error: 58.4331 - val_loss: 2375.2939 - val_root_mean_squared_error: 48.7370
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  washing machine  in  GRU RNN  model
+382/382 - 79s - loss: 70401.2734 - root_mean_squared_error: 265.3324 - val_loss: 13991.5391 - val_root_mean_squared_error: 118.2858
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  microwave  in  GRU RNN  model
+382/382 - 79s - loss: 7412.9199 - root_mean_squared_error: 86.0983 - val_loss: 6848.8208 - val_root_mean_squared_error: 82.7576
+Preparing the Training Data: Y
+
+Aprox Values:  11620081
+Arred values:  1200
+Behind values: 0
+
+Training  dish washer  in  GRU RNN  model
+382/382 - 79s - loss: 80384.7188 - root_mean_squared_error: 283.5220 - val_loss: 70180.1484 - val_root_mean_squared_error: 264.9154
+Finished training for  GRU RNN
+[2K[2KStarted training for  CO
+Joint training for  CO
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+...............CO partial_fit running.............
+Finished training for  CO
+[2K[2KStarted training for  Mean
+Joint training for  Mean
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+Training %s in %s modelTraining %s in %s modelTraining %s in %s modelTraining %s in %s modelTraining %s in %s modelFinished training for  Mean
+[2K[2KStarted training for  FHMM
+Joint training for  FHMM
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+.........................FHMM partial_fit.................
+(11621281, 1)
+Training model for submeter 'kettle'
+Learnt model for : kettle
+Training model for submeter 'fridge'
+Learnt model for : fridge
+Training model for submeter 'washing machine'
+Learnt model for : washing machine
+Training model for submeter 'microwave'
+Learnt model for : microwave
+Training model for submeter 'dish washer'
+Learnt model for : dish washer
+kettle
+fridge
+washing machine
+microwave
+dish washer
+print ........... GaussianHMM(covariance_type='full', n_components=32)
+FHMM partial_fit end.................
+Finished training for  FHMM
+[2K[2KStarted training for  Hart85
+Joint training for  Hart85
+............... Loading Data for training ...................
+Loading data for  UKDale  dataset
+Loading building ...  1
+Dropping missing values
+Loading building ...  2
+Dropping missing values
+...........................Hart_85 Partial Fit Running...............
+Finding Edges, please wait ...
+Edge detection complete.
+Creating transition frame ...
+Transition frame created.
+Creating states frame ...
+States frame created.
+Finished.
+.........................Hart_85 Partial Fit End....................
+..............................Predicting Centroid Matching..........................
+...................................End Centroid Matching............................
+Finished training for  Hart85
+[2K[2KJoint Testing for all algorithms
+Loading data for  UKDale  dataset
+Dropping missing values
+Generating predictions for : LSTM RNN
+Preparing the Test Data
+
+Aprox Values:  1006585
+Arred values:  0
+Behind values: 0
+
+Estimating power demand for 'kettle' in 'LSTM RNN'
+
+Estimating power demand for 'fridge' in 'LSTM RNN'
+
+Estimating power demand for 'washing machine' in 'LSTM RNN'
+
+Estimating power demand for 'microwave' in 'LSTM RNN'
+
+Estimating power demand for 'dish washer' in 'LSTM RNN'
+
+Generating predictions for : GRU RNN
+
+Aprox Values:  1006585
+Arred values:  0
+Behind values: 0
+
+Estimating power demand for 'kettle' in 'GRU RNN'
+
+2014-06-29 17:23:54+01:00    19.412600
+2014-06-29 17:24:00+01:00    18.122999
+2014-06-29 17:24:06+01:00    16.829891
+2014-06-29 17:24:12+01:00    15.672847
+2014-06-29 17:24:18+01:00    14.380030
+                               ...    
+2014-09-07 15:01:54+01:00     2.618082
+2014-09-07 15:02:00+01:00     2.644252
+2014-09-07 15:02:06+01:00     2.619922
+2014-09-07 15:02:12+01:00     2.628517
+2014-09-07 15:02:18+01:00     2.666260
+Freq: 6S, Name: 0, Length: 1006585, dtype: float64
+Estimating power demand for 'fridge' in 'GRU RNN'
+
+2014-06-29 17:23:54+01:00    29.974218
+2014-06-29 17:24:00+01:00    32.042969
+2014-06-29 17:24:06+01:00    32.052967
+2014-06-29 17:24:12+01:00    32.053089
+2014-06-29 17:24:18+01:00    32.053089
+                               ...    
+2014-09-07 15:01:54+01:00    32.019764
+2014-09-07 15:02:00+01:00    32.019794
+2014-09-07 15:02:06+01:00    32.019764
+2014-09-07 15:02:12+01:00    32.019779
+2014-09-07 15:02:18+01:00    32.019810
+Freq: 6S, Name: 1, Length: 1006585, dtype: float64
+Estimating power demand for 'washing machine' in 'GRU RNN'
+
+2014-06-29 17:23:54+01:00    16.009787
+2014-06-29 17:24:00+01:00    16.183582
+2014-06-29 17:24:06+01:00    16.250858
+2014-06-29 17:24:12+01:00    16.298233
+2014-06-29 17:24:18+01:00    16.332485
+                               ...    
+2014-09-07 15:01:54+01:00    16.660765
+2014-09-07 15:02:00+01:00    16.660805
+2014-09-07 15:02:06+01:00    16.660852
+2014-09-07 15:02:12+01:00    16.660894
+2014-09-07 15:02:18+01:00    16.660915
+Freq: 6S, Name: 2, Length: 1006585, dtype: float64
+Estimating power demand for 'microwave' in 'GRU RNN'
+
+2014-06-29 17:23:54+01:00    9.271046
+2014-06-29 17:24:00+01:00    8.325633
+2014-06-29 17:24:06+01:00    7.141561
+2014-06-29 17:24:12+01:00    6.208784
+2014-06-29 17:24:18+01:00    5.646318
+                               ...   
+2014-09-07 15:01:54+01:00    2.264540
+2014-09-07 15:02:00+01:00    2.348290
+2014-09-07 15:02:06+01:00    2.287163
+2014-09-07 15:02:12+01:00    2.305038
+2014-09-07 15:02:18+01:00    2.412231
+Freq: 6S, Name: 3, Length: 1006585, dtype: float64
+Estimating power demand for 'dish washer' in 'GRU RNN'
+
+2014-06-29 17:23:54+01:00    21.076567
+2014-06-29 17:24:00+01:00    14.025888
+2014-06-29 17:24:06+01:00    11.291963
+2014-06-29 17:24:12+01:00    10.528291
+2014-06-29 17:24:18+01:00    10.642900
+                               ...    
+2014-09-07 15:01:54+01:00     7.948194
+2014-09-07 15:02:00+01:00     7.962381
+2014-09-07 15:02:06+01:00     7.948869
+2014-09-07 15:02:12+01:00     7.954227
+2014-09-07 15:02:18+01:00     7.972199
+Freq: 6S, Name: 4, Length: 1006585, dtype: float64
+Generating predictions for : CO
+...............CO disaggregate_chunk running.............
+Estimating power demand for 'kettle'Estimating power demand for 'fridge'Estimating power demand for 'washing machine'Estimating power demand for 'microwave'Estimating power demand for 'dish washer'Generating predictions for : Mean
+Generating predictions for : FHMM
+Generating predictions for : Hart85
+Finding Edges, please wait ...
+Edge detection complete.
+Creating transition frame ...
+Transition frame created.
+Creating states frame ...
+States frame created.
+Finished.
+............  mae  ..............
+                      LSTM        GRU  ...  FHMM_EXACT     Hart85
+kettle           12.489013  13.640239  ...  372.876038  51.444733
+fridge           45.969856  48.864658  ...   67.973640  14.363266
+washing machine  30.748823  26.951742  ...   69.463921  64.546272
+microwave        42.318520  41.795692  ...  100.198616  52.530376
+dish washer      25.684044  26.588472  ...   60.520115  55.634174
+
+[5 rows x 6 columns]
+............  rmse  ..............
+                       LSTM         GRU  ...  FHMM_EXACT      Hart85
+kettle           173.802089  173.242830  ...  521.405942  183.402659
+fridge            57.122624   54.563364  ...   82.339786   39.473159
+washing machine  165.515695  164.189719  ...  209.803461  170.849286
+microwave         57.124363   56.606220  ...  227.761028   66.035439
+dish washer      165.267167  164.588010  ...  346.132832  171.935461
+
+[5 rows x 6 columns]
+<nilmtk.api.API object at 0x7f844f666190>
