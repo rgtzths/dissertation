@@ -8,12 +8,12 @@ warnings.filterwarnings("ignore")
 import sys
 import logging
 
-#sys.stderr = open('./outputs/err.log', 'w')
-#
-#logging.basicConfig(level=logging.INFO,
-#                    format='%(asctime)s %(levelname)s %(message)s',
-#                    filename='./outputs/info.log',
-#                    filemode='w')
+sys.stderr = open('./outputs/err.log', 'w')
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='./outputs/info.log',
+                    filemode='w')
 
 from svm import Svm
 from lstm import LSTM_RNN
@@ -38,11 +38,11 @@ experiment1 = {
             'buildings': {
                 1: {
                     'start_time': "2015-07-01",
-                    'end_time':  "2015-07-01T12:00"
+                    'end_time':  None
                 },
                 2: {
                     'start_time': "2013-05-22",
-                    'end_time': "2013-05-22T12:00"
+                    'end_time': None
                 },             
             }
         }
@@ -55,7 +55,7 @@ experiment1 = {
             'buildings': {
                 5: {
                     'start_time': "2014-06-29",
-                    'end_time': "2014-06-29T12:00"
+                    'end_time': None
                     }
                 }
             }
