@@ -5,33 +5,55 @@ from sys import stdout
 import pandas as pd
 import numpy as np
 
-
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
+house_appliances_mappings = {
+    "house1" : {
+        "aggregate" : "1",
+        "washing_machine": "5",
+        "dish_washer": "6",
+        "fridge": "12",
+        "microwave": "13",
+        "boiler": "2"
+    },
+    "house2" : {
+        "aggregate" : "1",
+        "washing_machine": "12",
+        "dish_washer": "13",
+        "kettle": "8",
+        "toaster": "16",
+        "fridge": "14",
+        "microwave": "15",
+    },
+    "house3" : {
+        "aggregate" : "1",
+        "kettle": "2",
+    },
+    "house5" : {
+        "aggregate" : "1",
+        "oven": "20",
+        "dish_washer": "22",
+        "kettle": "18",
+        "toaster":"15",
+        "fridge": "19",
+        "microwave": "23",
+    },
+    "house4" : {}
 }
 
-appliances = [
-    "mains",
-    "heatpump",
-    "carcharger"
-]
 
 
-
-def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
+def convert_ukdale(ukdale_path, output_path, timeframe, timestep, overlap):
     """
     Parameters
     ----------
-    aveiro_path : str
-        The root path of the avEiro low_freq dataset.
+    ukdale_path : str
+        The root path of the ukdale low_freq dataset.
     output_filename : str
         The destination filename (including path and suffix).
     timeframe : int
         Time covered in each frame in min
     """
 
-    houses = _find_all_houses(aveiro_path)
+    houses = _find_all_houses(ukdale_path)
 
     one_second = pd.Timedelta(1, unit="s")
     
@@ -45,48 +67,30 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
 
         filenames = []
 
-        for appliance, meter in appliance_meter_mapping.items():
+        for appliance, meter in house_appliances_mappings["house"+str(house_id)].items():
             print("Converting ", appliance)
             stdout.flush()
 
-            dfs = []
-            if appliance == "mains":
-                overlap_index =  int(timeframe*60*2/timestep - timeframe*60*overlap*2/timestep)
+            csv_filename = ukdale_path + "house_" + str(house_id) + "/channel_" + meter + ".dat"
+                    
+            measure = "power"
 
-                for measure in column_mapping.keys():
-                    csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
-                    df = pd.read_csv(csv_filename)
-                    df.index = pd.to_datetime(df["time"], unit='ns')
-                    df.index = df.index.round("s", ambiguous=False)
-                    df = df.drop("time", 1)
-                    df = df.drop("name", 1)
-                    df.columns = [measure]
-                    df = df.sort_index()
-                    dups_in_index = df.index.duplicated(keep='first')
-                    if dups_in_index.any():
-                        df = df[~dups_in_index]
-                    dfs.append(df)
-            else:
-                measure = "power"
+            df = pd.read_csv(csv_filename, sep=" ", header=None)
+            df.columns = ["time", measure]
+            df.index = pd.to_datetime(df["time"], unit='s')
+            
+            df = df.drop("time", 1)
+            df = df.sort_index()
+            
+            dups_in_index = df.index.duplicated(keep='first')
+            if dups_in_index.any():
+                df = df[~dups_in_index]
 
-                df = pd.read_csv(csv_filename)
-                df.index = pd.to_datetime(df["time"], unit='ns')
-                df.index = df.index.round("s", ambiguous=False)
-                df = df.drop("time", 1)
-                df = df.drop("name", 1)
-                df.columns = [measure]
-                df = df.sort_index()
-                dups_in_index = df.index.duplicated(keep='first')
-                if dups_in_index.any():
-                    df = df[~dups_in_index]
-                dfs.append(df)
-
-            df = pd.concat(dfs, axis=1)
             data = []
             
             columns = list(df.columns.values)
 
-            current_time = dfs[0].index[0]
+            current_time = df.index[0]
             current_index = 0
             objective_time = current_time + objective_step*2
             overlap_index = int(timeframe*60/timestep - timeframe*60*overlap*len(columns)/timestep)
@@ -95,7 +99,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
             aprox = 0
             arred = 0
             behind = 0
-
+            
             while current_index < len(df):
 
                 feature_vector = []
@@ -154,7 +158,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
 
         print()
 
-    print("Done converting avEiro to Timeseries!")
+    print("Done converting UKDale to Timeseries!")
 
 
 def _find_all_houses(input_path):
@@ -192,11 +196,11 @@ def _matching_ints(strings, regex):
     return ints
 
 
-filespath = "../../../datasets/avEiro_dataset_v2/"
-output_path = "../../../datasets/avEiro_timeseries"
+filespath = "../../../datasets/ukdale/"
+output_path = "../../../datasets/ukdale_timeseries"
 
 timeframe = 10
-timestep = 2
+timestep = 6
 overlap = 0.5
 
-convert_aveiro(filespath, output_path, timeframe, timestep, overlap)
+convert_ukdale(filespath, output_path, timeframe, timestep, overlap)

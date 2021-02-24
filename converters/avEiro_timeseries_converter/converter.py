@@ -11,11 +11,11 @@ column_mapping = {
     "vrms" : ("voltage", "")
 }
 
-appliance_meter_mapping = {
-    "mains" : 1,
-    "heatpump" : 2,
-    "carcharger" : 3
-}
+appliances = [
+    "mains",
+    "heatpump",
+    "carcharger"
+]
 
 
 
@@ -25,8 +25,8 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
     ----------
     aveiro_path : str
         The root path of the avEiro low_freq dataset.
-    output_filename : str
-        The destination filename (including path and suffix).
+    output_path : str
+        The destination path fot the avEiro dataset timeseries.
     timeframe : int
         Time covered in each frame in min
     """
@@ -45,13 +45,12 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
 
         filenames = []
 
-        for appliance, meter in appliance_meter_mapping.items():
+        for appliance in appliances:
             print("Converting ", appliance)
             stdout.flush()
 
             dfs = []
             if appliance == "mains":
-                overlap_index =  int(timeframe*60*2/timestep - timeframe*60*overlap*2/timestep)
 
                 for measure in column_mapping.keys():
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
@@ -146,7 +145,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
             new_df = new_df.set_index(0)
             new_df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance), header=False)
             
-            print("")
+            print()
             print("Aprox Values: ", aprox)
             print("Arred values: ", arred)
             print("Behind values:", behind)
@@ -192,7 +191,7 @@ def _matching_ints(strings, regex):
     return ints
 
 
-filespath = "../../../datasets/avEiro_dataset_v2/"
+filespath = "../../../datasets/avEiro/"
 output_path = "../../../datasets/avEiro_timeseries"
 
 timeframe = 10

@@ -17,17 +17,15 @@ app_file = "../../datasets/avEiro_dataset_v2/house_1/"+ app_name +"/power.csv"
 
 df = pd.read_csv(app_file)
 df["time"] = pd.to_datetime(df["time"], unit='ns')
-df.index = df["time"]
-df.index = df.index.round("T", ambiguous=False)
 
 begining_index = 0
 
-while(df.index[begining_index] != begining):
+while(df["time"][begining_index] != begining):
     begining_index += 1
 
 end_index = begining_index
 
-while(df.index[end_index] != end):
+while(df["time"][end_index] != end):
     end_index += 1
 
 
