@@ -5,42 +5,6 @@ from sys import stdout
 import pandas as pd
 import numpy as np
 
-house_appliances_mappings = {
-    "house1" : {
-        "aggregate" : "1",
-        "washing_machine": "5",
-        "dish_washer": "6",
-        "fridge": "12",
-        "microwave": "13",
-        "boiler": "2"
-    },
-    "house2" : {
-        "aggregate" : "1",
-        "washing_machine": "12",
-        "dish_washer": "13",
-        "kettle": "8",
-        "toaster": "16",
-        "fridge": "14",
-        "microwave": "15",
-    },
-    "house3" : {
-        "aggregate" : "1",
-        "kettle": "2",
-    },
-    "house5" : {
-        "aggregate" : "1",
-        "oven": "20",
-        "dish_washer": "22",
-        "kettle": "18",
-        "toaster":"15",
-        "fridge": "19",
-        "microwave": "23",
-    },
-    "house4" : {}
-}
-
-
-
 def convert_ukdale(ukdale_path, output_path, timeframe, timestep, overlap):
     """
     Parameters
@@ -160,7 +124,6 @@ def convert_ukdale(ukdale_path, output_path, timeframe, timestep, overlap):
 
     print("Done converting UKDale to Timeseries!")
 
-
 def _find_all_houses(input_path):
     """
     Returns
@@ -195,6 +158,39 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
+house_appliances_mappings = {
+    "house1" : {
+        "mains" : "1",
+        "washing_machine": "5",
+        "dish_washer": "6",
+        "fridge": "12",
+        "microwave": "13",
+        "boiler": "2"
+    },
+    "house2" : {
+        "mains" : "1",
+        "washing_machine": "12",
+        "dish_washer": "13",
+        "kettle": "8",
+        "toaster": "16",
+        "fridge": "14",
+        "microwave": "15",
+    },
+    "house3" : {
+        "mains" : "1",
+        "kettle": "2",
+    },
+    "house5" : {
+        "mains" : "1",
+        "oven": "20",
+        "dish_washer": "22",
+        "kettle": "18",
+        "toaster":"15",
+        "fridge": "19",
+        "microwave": "23",
+    },
+    "house4" : {}
+}
 
 filespath = "../../../datasets/ukdale/"
 output_path = "../../../datasets/ukdale_timeseries"

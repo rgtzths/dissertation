@@ -10,7 +10,7 @@ print(aveiro.buildings[1])
 print("Eletric Appliences of Building 1")
 print(elec)
 
-heater = elec[1]
+heater = elec[3]
 
 print("Eletric mesurements for the heat pump in building 1")
 print(heater.available_columns())

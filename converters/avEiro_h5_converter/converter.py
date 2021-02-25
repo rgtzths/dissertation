@@ -11,17 +11,6 @@ from nilm_metadata import save_yaml_to_datastore
 import pandas as pd
 import numpy as np
 
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
-
-appliance_meter_mapping = {
-    "mains" : 1,
-    "heatpump" : 2,
-    "carcharger" : 3
-}
-
 def convert_aveiro(aveiro_path, output_filename):
     """
     Parameters
@@ -66,6 +55,19 @@ def convert_aveiro(aveiro_path, output_filename):
                     dfs.append(df)
                 
                 total = pd.concat(dfs, axis=1)
+
+                for c in total.columns.values:
+                    for i in range(0, len(total[c])):
+                        if np.isnan(total[c][i]):
+                            for j in range(i+1, len(total[c])):
+                                if not np.isnan(total[c][j]):
+                                    total[c][i] = (total[c][i-1] + total[c][j])/2
+                                    break
+                        if np.isnan(total[c][i]):
+                            for j in range(i, len(total[c])):
+                                total[c][j] = total[c][j-1]
+                            break
+                            
                 total = total.tz_localize('UTC').tz_convert('Europe/London')
                 total.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in total.columns])
                 total.columns.set_names(LEVEL_NAMES, inplace=True)
@@ -129,8 +131,18 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
+column_mapping = {
+    "power" : ("power", "apparent"),
+    "vrms" : ("voltage", "")
+}
 
-aveiro_path = "../../../datasets/avEiro_dataset_v2/"
+appliance_meter_mapping = {
+    "mains" : 1,
+    "heatpump" : 2,
+    "carcharger" : 3
+}
+
+aveiro_path = "../../../datasets/avEiro/"
 metada_path = aveiro_path + "metadata"
 output_filename = "../../../datasets/avEiro_h5/avEiro.h5"
 convert_aveiro(aveiro_path, output_filename)

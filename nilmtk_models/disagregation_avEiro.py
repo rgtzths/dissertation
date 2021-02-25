@@ -20,11 +20,17 @@ from lstm import LSTM_RNN
 from gru import GRU_RNN
 
 experiment1 = {
-  'power': {'mains': ['apparent'],'appliance': ['apparent']},
+  'power': {'mains': ['apparent'], 'appliance': ['apparent']},
   'sample_rate': 2,
   'appliances': ['heat pump', 'charger'],
-  #'methods': {"CO":CO({}), "Mean":Mean({}),"FHMM_EXACT":FHMMExact({'num_of_states':2}), "Hart85":Hart85({}), "SVM":Svm({}), "LSTM":LSTM_RNN(10, 2, ("power", "apparent")), "GRU":GRU_RNN(10, 2, ("power", "apparent"))},
-  'methods': {"LSTM":LSTM_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent")}), "GRU":GRU_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent")})},
+  'methods': {"lstm": LSTM_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}), 
+              "gru": GRU_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}),
+              "co":CO({}), 
+              "mean":Mean({}),
+              "fhmm_exact":FHMMExact({'num_of_states':2}), 
+              "hart85":Hart85({}), 
+              "svm":Svm({})
+            },
   'train': {    
     'datasets': {
         'avEiro': {
@@ -32,7 +38,7 @@ experiment1 = {
             'buildings': {
                 1: {
                     'start_time': '2020-10-01',
-                    'end_time': '2021-01-01'
+                    'end_time': '2021-01-31'
                     }
                 }                
             }
@@ -44,8 +50,8 @@ experiment1 = {
             'path': '../../datasets/avEiro_h5/avEiro.h5',
             'buildings': {
                 1: {
-                    'start_time': '2021-01-01',
-                    'end_time': '2021-02-06'
+                    'start_time': '2021-01-31',
+                    'end_time': None
                     }
                 }
             }
@@ -54,7 +60,18 @@ experiment1 = {
     }
 }
 
+models_folder = "./models/"
 
 api_results_experiment_1 = API(experiment1)
 
-print(api_results_experiment_1)
+for m in api_results_experiment_1.methods:
+    if m not in ["co", "fhmm_exact", "hart85"]:
+        api_results_experiment_1.methods[m].save_model(models_folder + m)
+
+
+errors_keys = api_results_experiment_1.errors_keys
+errors = api_results_experiment_1.errors
+for i in range(len(errors)):
+    print (errors_keys[i])
+    print (errors[i])
+    print ("\n\n")

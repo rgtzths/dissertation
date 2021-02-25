@@ -5,21 +5,41 @@ from sys import stdout
 import pandas as pd
 import numpy as np
 
+def _find_all_houses(input_path):
+    """
+    Returns
+    -------
+    list of integers (house instances)
+    """
+    dir_names = [p for p in listdir(input_path) if isdir(join(input_path, p))]
+    return _matching_ints(dir_names, r'^house_(\d)$')
 
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
+def _matching_ints(strings, regex):
+    """Uses regular expression to select and then extract an integer from
+    strings.
 
-appliances = [
-    "mains",
-    "heatpump",
-    "carcharger"
-]
+    Parameters
+    ----------
+    strings : list of strings
+    regex : string
+        Regular Expression.  Including one group.  This group is used to
+        extract the integer from each string.
 
+    Returns
+    -------
+    list of ints
+    """
+    ints = []
+    p = re.compile(regex)
+    for string in strings:
+        m = p.match(string)
+        if m:
+            integer = int(m.group(1))
+            ints.append(integer)
+    ints.sort()
+    return ints
 
-
-def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
+def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap, columns_names, appliances):
     """
     Parameters
     ----------
@@ -46,13 +66,12 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
         filenames = []
 
         for appliance in appliances:
-            print("Converting ", appliance)
+            print("\tConverting ", appliance)
             stdout.flush()
 
             dfs = []
             if appliance == "mains":
-
-                for measure in column_mapping.keys():
+                for measure in columns_names:
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                     df = pd.read_csv(csv_filename)
                     df.index = pd.to_datetime(df["time"], unit='ns')
@@ -67,7 +86,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
                     dfs.append(df)
             else:
                 measure = "power"
-
+                csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                 df = pd.read_csv(csv_filename)
                 df.index = pd.to_datetime(df["time"], unit='ns')
                 df.index = df.index.round("s", ambiguous=False)
@@ -81,11 +100,25 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
                 dfs.append(df)
 
             df = pd.concat(dfs, axis=1)
-            data = []
-            
-            columns = list(df.columns.values)
 
-            current_time = dfs[0].index[0]
+            data = []
+            columns = list(df.columns.values)
+            if len(columns) > 1:
+                print("\t\tReplacing Nans")
+                for c in columns:
+                    for i in range(0, len(df[c])):
+                        if np.isnan(df[c][i]):
+                            for j in range(i+1, len(df[c])):
+                                if not np.isnan(df[c][j]):
+                                    df[c][i] = (df[c][i-1] + df[c][j])/2
+                                    break
+                        if np.isnan(df[c][i]):
+                            for j in range(i, len(df[c])):
+                                df[c][j] = df[c][j-1]
+                            break
+
+            print("\t\tConverting to feature vectors.")
+            current_time = df.index[0]
             current_index = 0
             objective_time = current_time + objective_step*2
             overlap_index = int(timeframe*60/timestep - timeframe*60*overlap*len(columns)/timestep)
@@ -132,7 +165,7 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
                     else:
                         added = False
                         for i in feature_vector:
-                            if i > 0:
+                            if i > 10:
                                 data.append([objective_time, 1])
                                 added = True
                                 break
@@ -146,56 +179,32 @@ def convert_aveiro(aveiro_path, output_path, timeframe, timestep, overlap):
             new_df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance), header=False)
             
             print()
-            print("Aprox Values: ", aprox)
-            print("Arred values: ", arred)
-            print("Behind values:", behind)
+            print("\tAprox Values: ", aprox)
+            print("\tArred values: ", arred)
+            print("\tBehind values:", behind)
             print()
 
         print()
 
     print("Done converting avEiro to Timeseries!")
 
-
-def _find_all_houses(input_path):
-    """
-    Returns
-    -------
-    list of integers (house instances)
-    """
-    dir_names = [p for p in listdir(input_path) if isdir(join(input_path, p))]
-    return _matching_ints(dir_names, r'^house_(\d)$')
-
-def _matching_ints(strings, regex):
-    """Uses regular expression to select and then extract an integer from
-    strings.
-
-    Parameters
-    ----------
-    strings : list of strings
-    regex : string
-        Regular Expression.  Including one group.  This group is used to
-        extract the integer from each string.
-
-    Returns
-    -------
-    list of ints
-    """
-    ints = []
-    p = re.compile(regex)
-    for string in strings:
-        m = p.match(string)
-        if m:
-            integer = int(m.group(1))
-            ints.append(integer)
-    ints.sort()
-    return ints
-
-
 filespath = "../../../datasets/avEiro/"
 output_path = "../../../datasets/avEiro_timeseries"
+
+columns_names = [
+    "power",
+    "vrms"
+]
+
+appliances = [
+    "mains",
+    "heatpump",
+    "carcharger"
+]
+
 
 timeframe = 10
 timestep = 2
 overlap = 0.5
 
-convert_aveiro(filespath, output_path, timeframe, timestep, overlap)
+convert_aveiro(filespath, output_path, timeframe, timestep, overlap, columns_names, appliances)
