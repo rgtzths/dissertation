@@ -13,6 +13,7 @@ import numpy as np
 
 def convert_aveiro(aveiro_path, output_filename):
     """
+    Converts the avEiro dataset into a h5 dataset ready to be used in nilmtk.
     Parameters
     ----------
     aveiro_path : str
@@ -24,38 +25,53 @@ def convert_aveiro(aveiro_path, output_filename):
     # Open DataStore
     store = get_datastore(output_filename, "HDF", mode='w')
 
-    # Convert raw data to DataStore
     check_directory_exists(aveiro_path)
 
+    #Gets all houses
     houses = _find_all_houses(aveiro_path)
 
+    #Starts the conversion
     for house_id in houses:
         print("Loading house ", house_id)
-        stdout.flush()
+        
         for appliance, meter in appliance_meter_mapping.items():
             print("Loading ", appliance)
-            stdout.flush()
 
+            #Generate a Key with the building id (1,2,3...) and the meter obtained in the appliance_meter_mapping.
             key = Key(building=house_id, meter=meter)
-
+            
+            #When using mains the are multiple measures used
             if appliance == "mains":
                 dfs = []
+                #Loads the measures and places the dataframes in an array.
                 for measure in column_mapping.keys():
+
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                     df = pd.read_csv(csv_filename)
+                    #Converts the time column from a unix timestamp to datetime and uses it as index
                     df.index = pd.to_datetime(df["time"], unit='ns')
                     df.index = df.index.round("s", ambiguous=False)
+                    #Drops unnecessary columns
                     df = df.drop("time", 1)
                     df = df.drop("name", 1)
+                    #Labels the value column with the appliance name
                     df.columns = [measure]
+                    #Sort index and drop duplicates
                     df = df.sort_index()
                     dups_in_index = df.index.duplicated(keep='first')
                     if dups_in_index.any():
                         df = df[~dups_in_index]
+                    
+                    #Store the dataframe into an array
                     dfs.append(df)
-                
+
+                #Concatenate the multiple dataframes ( only relevant when multiple measures are present)
                 total = pd.concat(dfs, axis=1)
 
+                #When there are multiple readings present
+                #Sometimes the index don't match so
+                #We need to find those cases and substitute the Nan values of the collumns with the
+                #average between readings
                 for c in total.columns.values:
                     for i in range(0, len(total[c])):
                         if np.isnan(total[c][i]):
@@ -67,13 +83,16 @@ def convert_aveiro(aveiro_path, output_filename):
                             for j in range(i, len(total[c])):
                                 total[c][j] = total[c][j-1]
                             break
-                            
+
+                #Convert datetime to time aware datetime 
                 total = total.tz_localize('UTC').tz_convert('Europe/London')
+                #Rename the columns
                 total.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in total.columns])
                 total.columns.set_names(LEVEL_NAMES, inplace=True)
-
+                #Store the dataframe in h5
                 store.put(str(key), total)
             else:
+                #Same login as in mains but using only one measure.
                 csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/power.csv"
                 df = pd.read_csv(csv_filename)
                 df.index = pd.to_datetime(df["time"], unit='ns')
@@ -99,6 +118,13 @@ def convert_aveiro(aveiro_path, output_filename):
     
 def _find_all_houses(input_path):
     """
+    Searches for folders in the input path with the prefix 'house_' 
+    and returns a list of numbers.
+
+    Parameters
+    ----------
+    input_path : string
+        path to the folder to search for the houses
     Returns
     -------
     list of integers (house instances)
@@ -107,7 +133,8 @@ def _find_all_houses(input_path):
     return _matching_ints(dir_names, r'^house_(\d)$')
 
 def _matching_ints(strings, regex):
-    """Uses regular expression to select and then extract an integer from
+    """
+    Uses regular expression to select and then extract an integer from
     strings.
 
     Parameters
@@ -131,11 +158,13 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
+#Mapping between the names on the dataset and the names used in nilmtk
 column_mapping = {
     "power" : ("power", "apparent"),
     "vrms" : ("voltage", "")
 }
 
+#Mapping between the names on the dataset and the indexes used in the nilmtk
 appliance_meter_mapping = {
     "mains" : 1,
     "heatpump" : 2,

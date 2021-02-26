@@ -19,6 +19,7 @@ from svm import Svm
 from lstm import LSTM_RNN
 from gru import GRU_RNN
 
+#Experiment Definition
 experiment1 = {
   'power': {'mains': ['apparent'], 'appliance': ['apparent']},
   'sample_rate': 2,
@@ -64,11 +65,12 @@ models_folder = "./models/"
 
 api_results_experiment_1 = API(experiment1)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_1.methods:
     if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_1.methods[m].save_model(models_folder + m)
 
-
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_1.errors_keys
 errors = api_results_experiment_1.errors
 for i in range(len(errors)):

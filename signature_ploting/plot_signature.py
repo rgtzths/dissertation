@@ -13,7 +13,7 @@ end = pd.to_datetime('2020-12-01T13:30')
 ######
 
 
-app_file = "../../datasets/avEiro_dataset_v2/house_1/"+ app_name +"/power.csv"
+app_file = "../../datasets/avEiro/house_1/"+ app_name +"/power.csv"
 
 df = pd.read_csv(app_file)
 df["time"] = pd.to_datetime(df["time"], unit='ns')

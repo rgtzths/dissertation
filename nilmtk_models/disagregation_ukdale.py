@@ -286,10 +286,12 @@ models_folder = "./models/"
 
 api_results_experiment_1 = API(experiment1)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_1.methods:
         if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_1.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_1.errors_keys
 errors = api_results_experiment_1.errors
 for i in range(len(errors)):
@@ -299,10 +301,12 @@ for i in range(len(errors)):
 
 api_results_experiment_2 = API(experiment2)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_2.methods:
         if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_2.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_2.errors_keys
 errors = api_results_experiment_2.errors
 for i in range(len(errors)):
@@ -312,10 +316,12 @@ for i in range(len(errors)):
 
 api_results_experiment_3 = API(experiment3)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_3.methods:
         if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_3.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_3.errors_keys
 errors = api_results_experiment_3.errors
 for i in range(len(errors)):
@@ -325,10 +331,12 @@ for i in range(len(errors)):
 
 api_results_experiment_4 = API(experiment4)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_4.methods:
     if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_4.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_4.errors_keys
 errors = api_results_experiment_4.errors
 for i in range(len(errors)):
@@ -339,10 +347,12 @@ for i in range(len(errors)):
 
 api_results_experiment_5 = API(experiment5)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_5.methods:
     if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_5.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_5.errors_keys
 errors = api_results_experiment_5.errors
 for i in range(len(errors)):
@@ -352,10 +362,12 @@ for i in range(len(errors)):
 
 api_results_experiment_6 = API(experiment6)
 
+#Get all methods used in the experiment and save the models
 for m in api_results_experiment_6.methods:
     if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_6.methods[m].save_model(models_folder + m)
 
+#Get all the results in the experiment and print them.
 errors_keys = api_results_experiment_6.errors_keys
 errors = api_results_experiment_6.errors
 for i in range(len(errors)):

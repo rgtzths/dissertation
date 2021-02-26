@@ -14,4 +14,7 @@
 - Install tensorflow and keras
   - pip3 install keras
   - pip3 install tensorflow
+- Install traces
+  - pip3 install traces
 - Download UKDale H5 - https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.h5.zip
+- Download UKDale Full Dataset - https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.zip

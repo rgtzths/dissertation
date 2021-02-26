@@ -97,4 +97,3 @@ class GRU_RNN(Disaggregator):
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
             self.model[app.split(".")[0]] = load_model(join(folder_name, app))
-
