@@ -288,12 +288,11 @@ experiment6 = {
 
 models_folder = "./models/"
 
-
 api_results_experiment_1 = API(experiment1)
 
 #Get all methods used in the experiment and save the models
 for m in api_results_experiment_1.methods:
-        if m not in ["co", "fhmm_exact", "hart85"]:
+    if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_1.methods[m].save_model(models_folder + m)
 
 #Get all the results in the experiment and print them.
@@ -308,7 +307,7 @@ api_results_experiment_2 = API(experiment2)
 
 #Get all methods used in the experiment and save the models
 for m in api_results_experiment_2.methods:
-        if m not in ["co", "fhmm_exact", "hart85"]:
+    if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_2.methods[m].save_model(models_folder + m)
 
 #Get all the results in the experiment and print them.
@@ -323,7 +322,7 @@ api_results_experiment_3 = API(experiment3)
 
 #Get all methods used in the experiment and save the models
 for m in api_results_experiment_3.methods:
-        if m not in ["co", "fhmm_exact", "hart85"]:
+    if m not in ["co", "fhmm_exact", "hart85"]:
         api_results_experiment_3.methods[m].save_model(models_folder + m)
 
 #Get all the results in the experiment and print them.
