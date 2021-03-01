@@ -101,6 +101,7 @@ experiment2 = {
                 2: {
                     'start_time': "2013-05-22",
                     'end_time': None
+                    }
                 }
             }
         },
@@ -135,7 +136,7 @@ experiment3 = {
                     'start_time': "2013-05-22",
                     'end_time':  None
                 }
-
+            
             }
         }
     }
@@ -148,6 +149,7 @@ experiment3 = {
                 5: {
                     'start_time': "2014-06-29",
                     'end_time': None
+                    }
                 }
             }
         },
@@ -190,6 +192,7 @@ experiment4 = {
                 5: {
                     'start_time': "2014-06-29",
                     'end_time': None
+                    }
                 }
             }
         },
@@ -232,7 +235,8 @@ experiment5 = {
                 5: {
                     'start_time': "2014-11-01",
                     'end_time': None
-                }
+                    }
+                }   
             }
         },
         'metrics':['mae', 'rmse']
@@ -274,6 +278,7 @@ experiment6 = {
                 1: {
                     'start_time': "2017-01-01",
                     'end_time': None
+                    }
                 }
             }
         },
