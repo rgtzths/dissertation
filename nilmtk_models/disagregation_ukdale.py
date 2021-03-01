@@ -131,7 +131,7 @@ experiment3 = {
                 2: {
                     'start_time': "2013-05-22",
                     'end_time':  None
-                }
+                },
                 3: {
                     'start_time': "2013-05-22",
                     'end_time':  None
