@@ -174,7 +174,6 @@ def generate_appliance_timeseries(dfs, timeframe, overlap, timestep, column):
                 else:
                     current_value = (df[column[0]][column[1]][df.index[current_index]] + data[-1] )/2 
                     current_time += step
-                     += 1
             #Checks if the feature vector is the right size (in case the last feature vector hasn't the right size)
             if current_time == objective_time:
                 #Add the value to the array.
