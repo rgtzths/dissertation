@@ -71,18 +71,11 @@ def convert_aveiro(aveiro_path, output_filename):
                 #When there are multiple readings present
                 #Sometimes the index don't match so
                 #We need to find those cases and substitute the Nan values of the collumns with the
-                #average between readings
+                #previous reading
                 for c in total.columns.values:
                     for i in range(0, len(total[c])):
                         if np.isnan(total[c][i]):
-                            for j in range(i+1, len(total[c])):
-                                if not np.isnan(total[c][j]):
-                                    total[c][i] = (total[c][i-1] + total[c][j])/2
-                                    break
-                        if np.isnan(total[c][i]):
-                            for j in range(i, len(total[c])):
-                                total[c][j] = total[c][j-1]
-                            break
+                            total[c][i] = total[c][i-1]
 
                 #Convert datetime to time aware datetime 
                 total = total.tz_localize('UTC').tz_convert('Europe/London')
