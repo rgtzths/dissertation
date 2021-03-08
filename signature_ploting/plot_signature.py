@@ -9,8 +9,8 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 ### Valores Editáveis #####
 app_name = "heatpump"
 
-beginning = pd.to_datetime('2020-10-02T01:00')
-end = pd.to_datetime('2020-12-01T13:30')
+beginning = pd.to_datetime('2020-12-02T18:45')
+end = pd.to_datetime('2020-12-02T19:15')
 ######
 
 
@@ -25,8 +25,22 @@ beginning_index = df.index.get_loc(beginning, method="nearest")
 end_index = df.index.get_loc(end, method="nearest")
 
 
-plt.plot(df["time"][beginning_index:end_index], df["value"][beginning_index:end_index])
+app_file = "../../datasets/avEiro/house_1/mains/power.csv"
+
+df2 = pd.read_csv(app_file)
+
+df2.index = pd.to_datetime(df2["time"])
+
+beginning_index_2 = df2.index.get_loc(beginning, method="nearest")
+
+end_index_2 = df2.index.get_loc(end, method="nearest")
+
+plt.plot(df.index[beginning_index:end_index], df["value"][beginning_index:end_index], label="Heatpump")
+plt.plot(df2.index[beginning_index_2:end_index_2], df2["value"][beginning_index_2:end_index_2], label="Aggregated")
+
 plt.xlabel("Time")
 plt.ylabel("Power")
-plt.title(app_name)
+plt.title("Aggregated Readings and HeatPump readings")
+plt.legend()
+
 plt.show()
