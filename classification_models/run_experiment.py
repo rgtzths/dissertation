@@ -1,6 +1,6 @@
 import dataset_loader
 
-def run_experiment(experiment):
+def run(experiment):
     results = {}
     for app in experiment:
         X_train = []
