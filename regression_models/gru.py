@@ -8,7 +8,6 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, GRU
 import pandas as pd
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
-import dataset_loader
 
 class GRU_RNN(Disaggregator):
     def __init__(self, params):
@@ -31,7 +30,7 @@ class GRU_RNN(Disaggregator):
     def partial_fit(self, train_main, train_appliances, **load_kwargs):
         print("Preparing the Training Data: X")
 
-        X_train = generate_main_timeseries(train_main, False, self.timeframe, self.overlap, self.timestep)
+        X_train = generate_main_timeseries(train_main, False, self.timeframe, self.overlap, self.timestep, self.interpolate)
 
         X_train = X_train.reshape(X_train.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
         
@@ -65,7 +64,7 @@ class GRU_RNN(Disaggregator):
         test_predictions_list = []
         
         print("Preparing the Test Data")
-        X_test = generate_main_timeseries(test_mains, True, self.timeframe, self.overlap, self.timestep)
+        X_test = generate_main_timeseries(test_mains, True, self.timeframe, self.overlap, self.timestep, self.interpolate)
 
         X_test = X_test.reshape(X_test.shape[0], int(self.timeframe*60/self.timestep), len(test_mains[0].columns.values))
 
