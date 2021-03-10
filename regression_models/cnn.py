@@ -8,10 +8,12 @@ from os import listdir
 from nilmtk.disaggregate import Disaggregator
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
-from keras.callbacks import History
 import pandas as pd
 import pywt
 import numpy as np
+
+import sys
+sys.path.insert(1, "../feature_extractors")
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
 
 class CNN(Disaggregator):
@@ -36,7 +38,7 @@ class CNN(Disaggregator):
 
         print("Preparing the Training Data: X")
 
-        train_data = generate_main_timeseries(train_main, False, self.timeframe, self.overlap, self.timestep, self.interpolate)
+        train_data = generate_main_timeseries(train_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
 
         train_data = train_data.reshape(train_data.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
         
@@ -54,7 +56,7 @@ class CNN(Disaggregator):
         X_train = X_train[0:int(len(X_train)*(1-self.cv))]
         for app_name, power in train_appliances:
             print("Preparing the Training Data: Y")
-            y_train = generate_appliance_timeseries(power, self.timeframe, self.overlap, self.timestep, self.column, self.interpolate)
+            y_train = generate_appliance_timeseries(power, False, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
             
             y_cv = y_train[int(len(y_train)*(1-self.cv)):]
             y_train = y_train[0:int(len(y_train)*(1-self.cv))]
@@ -85,7 +87,7 @@ class CNN(Disaggregator):
         test_predictions_list = []
 
         print("Preparing the Test Data")
-        test_data = generate_main_timeseries(test_mains, True, self.timeframe, self.overlap, self.timestep, self.interpolate)
+        test_data = generate_main_timeseries(test_mains, True, self.timeframe, self.timestep, self.overlap, self.interpolate)
         
         test_data = test_data.reshape(test_data.shape[0], int(self.timeframe*60/self.timestep), len(test_mains[0].columns.values))
         

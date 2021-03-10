@@ -9,7 +9,11 @@ from keras.layers import Dense, LSTM
 import keras.backend as K
 from sklearn.metrics import matthews_corrcoef, confusion_matrix
 import numpy as np
+
+import sys
+sys.path.insert(1, "../feature_extractors")
 import dataset_loader
+import generate_timeseries
 
 
 def matthews_correlation(y_true, y_pred):
@@ -38,6 +42,7 @@ class LSTM_RNN():
         self.timestep = params.get('timestep', 2)
         self.overlap = params.get('overlap', 0.5)
         self.interpolate = params.get('interpolate', 'average')
+        self.column = params.get('predicted_column', ("power", "apparent"))
         self.cv = params.get('cv', 0.16)
         self.load_model_path = params.get('load_model_folder',None)
         self.input_size = params.get('input_size', 0)
@@ -48,10 +53,9 @@ class LSTM_RNN():
             self.load_model(self.load_model_path)
 
     def partial_fit(self, train_main, train_appliance, app):
-        X_train = dataset_loader.generate_main_timeseries(train_main, self.timeframe, self.timestep, self.overlap, self.interpolate)
-        y_train = dataset_loader.generate_appliance_timeseries(train_appliance, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        X_train = generate_timeseries.generate_main_timeseries(train_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        y_train = generate_timeseries.generate_appliance_timeseries(train_appliance, True, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
         X_train = X_train.reshape(X_train.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
-
         X_cv = X_train[int(len(X_train)*(1-self.cv)):]
         y_cv = y_train[int(len(y_train)*(1-self.cv)):]
 
@@ -68,17 +72,12 @@ class LSTM_RNN():
         
         model.fit(X_train, y_train, epochs=self.epochs, batch_size=1000, validation_data=(X_cv, y_cv), verbose=self.verbose, shuffle=False)
 
-        del X_train
-        del y_train
-        del X_cv
-        del y_cv
-
         self.model[app] = model
 
     def disaggregate_chunk(self, test_main, test_appliance, app):
 
-        X_test = dataset_loader.generate_main_timeseries(test_main, self.timeframe, self.timestep, self.overlap, self.interpolate)
-        y_test = dataset_loader.generate_appliance_timeseries(test_appliance, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        X_test = generate_timeseries.generate_main_timeseries(test_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        y_test = generate_timeseries.generate_appliance_timeseries(test_appliance, True, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
 
         X_test = X_test.reshape(X_test.shape[0], int(self.timeframe*60/self.timestep), len(test_main[0].columns.values))
         
@@ -87,18 +86,15 @@ class LSTM_RNN():
 
         y_test = y_test.reshape(len(y_test),)
 
-        tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
+        #tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
         
         mcc = matthews_corrcoef(y_test, pred)
 
-        print("True Positives: ", tp)
-        print("True Negatives: ", tn)  
-        print("False Negatives: ", fn)  
-        print("False Positives: ", fp)        
-        print( "MCC: ", mcc)
-
-        del X_test
-        del y_test
+        #print("True Positives: ", tp)
+        #print("True Negatives: ", tn)  
+        #print("False Negatives: ", fn)  
+        #print("False Positives: ", fp)        
+        #print( "MCC: ", mcc)
 
         return mcc
 

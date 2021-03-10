@@ -5,7 +5,6 @@ import datetime
 import warnings
 warnings.filterwarnings("ignore")
 
-import dataset_loader
 from lstm import LSTM_RNN
 from gru import GRU_RNN
 from run_experiment import run

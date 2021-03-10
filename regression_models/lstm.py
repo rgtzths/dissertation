@@ -7,6 +7,9 @@ from nilmtk.disaggregate import Disaggregator
 from keras.models import Sequential, load_model
 from keras.layers import Dense, LSTM
 import pandas as pd
+
+import sys
+sys.path.insert(1, "../feature_extractors")
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
 
 class LSTM_RNN(Disaggregator):
@@ -31,7 +34,7 @@ class LSTM_RNN(Disaggregator):
 
         print("Preparing the Training Data: X")
 
-        X_train = generate_main_timeseries(train_main, False, self.timeframe, self.overlap, self.timestep, self.interpolate)
+        X_train = generate_main_timeseries(train_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
 
         X_train = X_train.reshape(X_train.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
         
@@ -41,7 +44,7 @@ class LSTM_RNN(Disaggregator):
 
         for app_name, power in train_appliances:
             print("Preparing the Training Data: Y")
-            y_train = generate_appliance_timeseries(power, self.timeframe, self.overlap, self.timestep, self.column, self.interpolate)
+            y_train = generate_appliance_timeseries(power, False, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
             
             y_cv = y_train[int(len(y_train)*(1-self.cv)):]
             y_train = y_train[0:int(len(y_train)*(1-self.cv))]
@@ -64,7 +67,7 @@ class LSTM_RNN(Disaggregator):
         test_predictions_list = []
 
         print("Preparing the Test Data")
-        X_test = generate_main_timeseries(test_mains, True, self.timeframe, self.overlap, self.timestep, self.interpolate)
+        X_test = generate_main_timeseries(test_mains, True, self.timeframe, self.timestep, self.overlap, self.interpolate)
         
         X_test = X_test.reshape(X_test.shape[0], int(self.timeframe*60/self.timestep), len(test_mains[0].columns.values))
         

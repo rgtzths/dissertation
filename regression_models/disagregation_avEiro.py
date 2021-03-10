@@ -17,14 +17,14 @@ experiment1 = {
   'power': {'mains': ['apparent'], 'appliance': ['apparent']},
   'sample_rate': 2,
   'appliances': ['heat pump'],
-  'methods': {#"lstm": LSTM_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}), 
-              #"gru": GRU_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}),
+  'methods': {"lstm": LSTM_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}), 
+              "gru": GRU_RNN({"timeframe":10, "timestep": 2,"predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 350, "verbose": 0}),
               #"co":CO({}), 
               #"mean":Mean({}),
               #"fhmm_exact":FHMMExact({'num_of_states':2}), 
               #"hart85":Hart85({}), 
-              #"svm":Svm({}),
-              #"cnn":CNN({"timeframe":10, "timestep": 2, "predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 10, "verbose": 0})
+              "svm":Svm({}),
+              "cnn":CNN({"timeframe":10, "timestep": 2, "predicted_column": ("power", "apparent"), "overlap":0.5, "epochs": 10, "verbose": 0}),
               "gradient_boosting":GradientBoosting({"timeframe":10, "timestep": 2, "predicted_column": ("power", "apparent"), "overlap":0.5})
             },
   'train': {    
@@ -33,8 +33,8 @@ experiment1 = {
             'path': '../../datasets/avEiro_h5/avEiro.h5',
             'buildings': {
                 1: {
-                    'start_time': '2020-10-01',
-                    'end_time': '2020-10-02'
+                    'start_time': '2020-10-31',
+                    'end_time': '2020-10-31T01:00'
                     }
                 }                
             }

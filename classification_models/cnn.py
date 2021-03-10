@@ -5,9 +5,10 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 from os.path import join, isfile
 from os import listdir
 from keras.models import Sequential, load_model
-from keras.layers import Dense, GRU
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 import keras.backend as K
 from sklearn.metrics import matthews_corrcoef, confusion_matrix
+import pywt
 import numpy as np
 
 import sys
@@ -33,9 +34,9 @@ def matthews_correlation(y_true, y_pred):
 
     return numerator / (denominator + K.epsilon())
 
-class GRU_RNN():
+class CNN():
     def __init__(self, params):
-        self.MODEL_NAME = params.get('model_name', 'GRU RNN')
+        self.MODEL_NAME = params.get('model_name', 'CNN')
         self.model = {}
         self.timeframe = params.get('timeframe', None)
         self.timestep = params.get('timestep', 2)
@@ -44,19 +45,28 @@ class GRU_RNN():
         self.column = params.get('predicted_column', ("power", "apparent"))
         self.cv = params.get('cv', 0.16)
         self.load_model_path = params.get('load_model_folder',None)
-        self.input_size = params.get('input_size', 0)
         self.epochs = params.get('epochs', 300)
         self.verbose = params.get('verbose', 0)
+        self.waveletname = params.get('waveletname', 'morl')
         
         if self.load_model_path:
             self.load_model(self.load_model_path)
 
     def partial_fit(self, train_main, train_appliance, app):
 
-        X_train = generate_timeseries.generate_main_timeseries(train_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        train_data = generate_timeseries.generate_main_timeseries(train_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
         y_train = generate_timeseries.generate_appliance_timeseries(train_appliance, True, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
 
-        X_train = X_train.reshape(X_train.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
+        train_data = train_data.reshape(train_data.shape[0], int(self.timeframe*60/self.timestep), len(train_main[0].columns.values))
+        
+        X_train = np.ndarray(shape=(train_data.shape[0], train_data.shape[1]-1, train_data.shape[1]-1, train_data.shape[2]))
+
+        for i in range(0, train_data.shape[0]):
+            for j in range(0, train_data.shape[2]):
+                signal = train_data[i, :, j]
+                coeff, freq = pywt.cwt(signal, range(1, train_data.shape[1]), self.waveletname, 1)
+                coeff_ = coeff[:,:train_data.shape[1]-1]
+                X_train[i, :, :, j] = coeff_
         
         X_cv = X_train[int(len(X_train)*(1-self.cv)):]
         y_cv = y_train[int(len(y_train)*(1-self.cv)):]
@@ -68,7 +78,15 @@ class GRU_RNN():
             model = self.model[app]
         else:
             model = Sequential()
-            model.add(GRU(X_train.shape[1] + X_train.shape[1]*self.input_size, input_shape=(X_train.shape[1], X_train.shape[2])))
+            model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
+                            activation='relu',
+                            input_shape=(X_train.shape[1], X_train.shape[1], X_train.shape[3])))
+
+            model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+            model.add(Conv2D(64, (5, 5), activation='relu'))
+            model.add(MaxPooling2D(pool_size=(2, 2)))
+            model.add(Flatten())
+            model.add(Dense(1000, activation='relu'))
             model.add(Dense(units=1, activation='sigmoid'))
             model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
 
@@ -82,10 +100,20 @@ class GRU_RNN():
         self.model[app] = model
             
     def disaggregate_chunk(self, test_main, test_appliance, app):
-        X_test = generate_timeseries.generate_main_timeseries(test_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
+        test_data = generate_timeseries.generate_main_timeseries(test_main, False, self.timeframe, self.timestep, self.overlap, self.interpolate)
         y_test = generate_timeseries.generate_appliance_timeseries(test_appliance, True, self.timeframe, self.timestep, self.overlap, self.column, self.interpolate)
 
-        X_test = X_test.reshape(X_test.shape[0], int(self.timeframe*60/self.timestep), len(test_main[0].columns.values))
+        test_data = test_data.reshape(test_data.shape[0], int(self.timeframe*60/self.timestep), len(test_main[0].columns.values))
+
+        X_test = np.ndarray(shape=(test_data.shape[0], test_data.shape[1]-1, test_data.shape[1]-1, test_data.shape[2]))
+
+        for i in range(0, test_data.shape[0]):
+            for j in range(0, test_data.shape[2]):
+                signal = test_data[i, :, j]
+                coeff, freq = pywt.cwt(signal, range(1, test_data.shape[1]), self.waveletname, 1)
+                coeff_ = coeff[:,:test_data.shape[1]-1]
+                X_test[i, :, :, j] = coeff_ 
+
 
         pred = self.model[app].predict(X_test)
         pred = [ 0 if p < 0.5 else 1 for p in pred ]
