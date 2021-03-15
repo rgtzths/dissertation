@@ -38,15 +38,21 @@ class CNN():
     def __init__(self, params):
         self.MODEL_NAME = params.get('model_name', 'CNN')
         self.model = {}
+        
         self.timeframe = params.get('timeframe', None)
         self.timestep = params.get('timestep', 2)
         self.overlap = params.get('overlap', 0.5)
         self.interpolate = params.get('interpolate', 'average')
+
         self.column = params.get('predicted_column', ("power", "apparent"))
+        
         self.cv = params.get('cv', 0.16)
+        
         self.load_model_path = params.get('load_model_folder',None)
+        
         self.epochs = params.get('epochs', 300)
         self.verbose = params.get('verbose', 0)
+        
         self.waveletname = params.get('waveletname', 'morl')
         
         if self.load_model_path:
