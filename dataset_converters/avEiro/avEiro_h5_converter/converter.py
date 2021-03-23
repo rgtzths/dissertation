@@ -1,17 +1,20 @@
 
 from nilmtk.utils import get_datastore
-from nilmtk.utils import get_module_directory, check_directory_exists
+from nilmtk.utils import check_directory_exists
 from nilmtk.datastore import Key
 from nilmtk.measurement import LEVEL_NAMES
-from os.path import join, isdir, isfile
+from os.path import join, isdir
 from os import listdir
 import re
-from sys import stdout
 from nilm_metadata import save_yaml_to_datastore
 import pandas as pd
 import numpy as np
 
-def convert_aveiro(aveiro_path, output_filename):
+import sys
+sys.path.insert(1, "../")
+from data_clean import clean_data
+
+def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
     """
     Converts the avEiro dataset into a h5 dataset ready to be used in nilmtk.
     Parameters
@@ -68,23 +71,18 @@ def convert_aveiro(aveiro_path, output_filename):
                 #Concatenate the multiple dataframes ( only relevant when multiple measures are present)
                 total = pd.concat(dfs, axis=1)
 
-                #When there are multiple readings present
-                #Sometimes the index don't match so
-                #We need to find those cases and substitute the Nan values of the collumns with the
-                #previous reading
-                for c in total.columns.values:
-                    for i in range(0, len(total[c])):
-                        if np.isnan(total[c][i]):
-                            total[c][i] = total[c][i-1]
+                total = clean_data(total, timestep, interpolate)
 
                 #Convert datetime to time aware datetime 
                 total = total.tz_localize('UTC').tz_convert('Europe/London')
-                #Rename the columns
-                total.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in total.columns])
+                total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values])
                 total.columns.set_names(LEVEL_NAMES, inplace=True)
+                print(total)
                 #Store the dataframe in h5
                 store.put(str(key), total)
+                
             else:
+                measure = "power"
                 #Same login as in mains but using only one measure.
                 csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/power.csv"
                 df = pd.read_csv(csv_filename)
@@ -97,9 +95,13 @@ def convert_aveiro(aveiro_path, output_filename):
                 dups_in_index = df.index.duplicated(keep='first')
                 if dups_in_index.any():
                     df = df[~dups_in_index]
+                df = clean_data(df, timestep, interpolate)
+
                 df = df.tz_localize('UTC').tz_convert('Europe/London')
                 df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
                 df.columns.set_names(LEVEL_NAMES, inplace=True)
+                
+                print(df)
                 store.put(str(key), df)
         print()
 
@@ -164,7 +166,11 @@ appliance_meter_mapping = {
     "carcharger" : 3
 }
 
-aveiro_path = "../../../datasets/avEiro/"
+aveiro_path = "../../../../datasets/avEiro/"
 metada_path = aveiro_path + "metadata"
-output_filename = "../../../datasets/avEiro_h5/avEiro.h5"
-convert_aveiro(aveiro_path, output_filename)
+output_filename = "../../../../datasets/avEiro_h5/avEiro.h5"
+
+interpolate = "previous"
+timestep = 2
+
+convert_aveiro(aveiro_path, output_filename, timestep, interpolate)

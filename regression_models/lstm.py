@@ -225,7 +225,7 @@ class LSTM_RNN(Disaggregator):
                     gridsearch = RandomizedSearchCV(
                         estimator=model,
                         param_distributions=self.gridsearch_params['model'], 
-                        cv=10, 
+                        cv=5, 
                         n_iter=self.gridsearch_params['n_iter'],
                         n_jobs=self.gridsearch_params['n_jobs'], 
                         scoring='neg_root_mean_squared_error',

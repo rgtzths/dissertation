@@ -45,10 +45,6 @@ class CNN(Disaggregator):
         self.timewindow = params.get('timewindow', {})
         #Defines the step bertween each reading (in seconds)
         self.timestep = params.get('timestep', {})
-        #Defines the number of nodes in the LSTM, 
-        #its a percentage of the number of values per feature vector
-        #Usualy 0.9, 1 or 1.1 of the input size
-        self.n_nodes = params.get('n_nodes', {})
         #Number of epochs that the models run
         self.epochs = params.get('epochs', {})
         #Number of examples presented per batch
@@ -236,8 +232,6 @@ class CNN(Disaggregator):
 
                 #Defines the input shape according to the timewindow and timestep.
                 self.gridsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[1], X_train.shape[3])]
-
-                #self.gridsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] *0.5), int(X_train.shape[1]*2))
                 
                 for app_name, power in train_appliances:
                     #Generate the appliance timeseries acording to the timewindow and timestep

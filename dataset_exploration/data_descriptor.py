@@ -27,23 +27,23 @@ print("Getting the meters of the first building.")
 pprint(aveiro.buildings[1].elec)
 print("\n\n")
 
-print("Getting the available collumns for one meter.")
-pprint(aveiro.buildings[1].elec['heat pump'].available_columns())
+print("Getting the available columns for one meter.")
+pprint(aveiro.buildings[1].elec.mains().available_columns())
 print("\n\n")
 
 print("Loading a single collumn of one meter.")
 pprint(next(aveiro.buildings[1].elec['heat pump'].load(physical_quantity="power", ac_type="apparent")))
 print("\n\n")
 
-print("Loading the collumns of power (specific physical quantity).")
-pprint(next(aveiro.buildings[1].elec['heat pump'].load(physical_quantity="power")))
+print("Loading the columns of power (specific physical quantity) of charger.")
+pprint(next(aveiro.buildings[1].elec['charger'].load(physical_quantity="power")))
 print("\n\n")
 
-print("Loading the collumns of apparent energy (specific ac type).")
+print("Loading the columns of apparent energy (specific ac type).")
 pprint(next(aveiro.buildings[1].elec['heat pump'].load(ac_type="apparent")))
 print("\n\n")
 
-print("Loading the collumns of power with a specific resampling.")
+print("Loading the columns of power with a specific resampling.")
 pprint(next(aveiro.buildings[1].elec['heat pump'].load(physical_quantity="power", sample_period=60)))
 print("\n\n")
 

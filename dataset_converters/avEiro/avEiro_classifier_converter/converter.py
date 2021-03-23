@@ -4,6 +4,13 @@ import re
 import pandas as pd
 import numpy as np
 
+from nilmtk.measurement import LEVEL_NAMES
+
+import sys
+sys.path.insert(1, "../")
+from data_clean import clean_data
+
+
 def _find_all_houses(input_path):
     """
     Searches for folders in the input path with the prefix 'house_' 
@@ -48,7 +55,7 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
-def convert_aveiro(aveiro_path, output_path, columns_names, appliances):
+def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep, interpolate):
     """
     Converts the avEiro dataset into a timeseries dataset.
     Parameters
@@ -79,7 +86,7 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances):
             #If it is mains there are multiple readings otherwise there is only power
             if appliance == "mains":
                 #Loads all the readings
-                for measure in columns_names:
+                for measure in column_mapping:
 
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                     df = pd.read_csv(csv_filename)
@@ -118,39 +125,23 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances):
             #Concatenate the multiple dataframes ( only relevant when multiple measures are present)
             df = pd.concat(dfs, axis=1)
 
-            data = []
-            columns = list(df.columns.values)
-            #When there are multiple readings present
-            #Sometimes the index don't match so
-            #We need to find those cases and substitute the Nan values of the collumns with the
-            #average between readings
-            if len(columns) > 1:
-                print("\t\tReplacing Nans")
-                for c in columns:
-                    for i in range(0, len(df[c])):
-                        if np.isnan(df[c][i]):
-                            for j in range(i+1, len(df[c])):
-                                if not np.isnan(df[c][j]):
-                                    df[c][i] = (df[c][i-1] + df[c][j])/2
-                                    break
-                        if np.isnan(df[c][i]):
-                            for j in range(i, len(df[c])):
-                                df[c][j] = df[c][j-1]
-                            break
-
+            df = clean_data(df, timestep, interpolate)
+            
+            df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
+            df.columns.set_names(LEVEL_NAMES, inplace=True)
             
             df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
         print()
 
     print("Done converting avEiro to Timeseries!")
 
-filespath = "../../../datasets/avEiro/"
-output_path = "../../../datasets/avEiro_classification"
+filespath = "../../../../datasets/avEiro/"
+output_path = "../../../../datasets/avEiro_classification"
 
-columns_names = [
-    "power",
-    "vrms"
-]
+column_mapping = {
+    "power" : ("power", "apparent"),
+    "vrms" : ("voltage", "")
+}
 
 appliances = [
     "mains",
@@ -158,4 +149,8 @@ appliances = [
     "carcharger"
 ]
 
-convert_aveiro(filespath, output_path, columns_names, appliances)
+timestep = 2
+
+interpolate = "previous"
+
+convert_aveiro(filespath, output_path, column_mapping, appliances, timestep, interpolate)

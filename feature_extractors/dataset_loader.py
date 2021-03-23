@@ -18,32 +18,17 @@ def load_data(dataset_folder, appliance, houses):
     #Goes through all the houses
     for house in houses:
         #Loads the mains files
-        df = pd.read_csv(dataset_folder+house+"/mains.csv", sep=',')
-        #Converts the time column from a unix timestamp to datetime and uses it as index
-        df.index = pd.to_datetime(df["time"])
-        df.index = df.index.round("s", ambiguous=False)
-        #Drops unnecessary columns
-        df = df.drop("time", 1)
-        df = df.sort_index()
-        dups_in_index = df.index.duplicated(keep='first')
-        if dups_in_index.any():
-            df = df[~dups_in_index]
-
-        df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
+        df = pd.read_csv(dataset_folder+house+"/mains.csv", sep=',', header=[0,1], index_col=0)
+        df.columns = pd.MultiIndex.from_tuples(df.columns)
+        df.index = pd.to_datetime(df.index)
+        df.columns = pd.MultiIndex.from_tuples([column_mapping["power"], column_mapping["vrms"]])
         df.columns.set_names(LEVEL_NAMES, inplace=True)
         #appends that dataframe to an array
         aggregated_readings.append(df)
 
         #Loads the appliance to be used from that house using a similar logic.
-        df = pd.read_csv(dataset_folder+house+ "/"+ appliance + ".csv", sep=',')
-        df.index = pd.to_datetime(df["time"])
-        df.index = df.index.round("s", ambiguous=False)
-        #Drops unnecessary columns
-        df = df.drop("time", 1)
-        df = df.sort_index()
-        dups_in_index = df.index.duplicated(keep='first')
-        if dups_in_index.any():
-            df = df[~dups_in_index]
+        df = pd.read_csv(dataset_folder+house+ "/"+ appliance + ".csv", sep=',', header=[0,1], index_col=0)
+        df.index = pd.to_datetime(df.index)
         df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
         df.columns.set_names(LEVEL_NAMES, inplace=True)
         #Stores the dataframe in a dictionary

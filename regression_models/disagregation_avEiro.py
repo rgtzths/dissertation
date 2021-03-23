@@ -54,7 +54,6 @@ experiment1 = {
         "cnn":CNN( {
             "timewindow": {"heat pump" : 5}, 
             "timestep": {"heat pump" : 2},
-            "n_nodes" : {"heat pump" : 300},
             "epochs" : {"heat pump" : 10},
             "batch_size" : {"heat pump" : 500},
             "predicted_column": ("power", "apparent"), 
@@ -64,7 +63,7 @@ experiment1 = {
             "gridsearch_params": {
                 "timewindow" : [5],
                 "timestep" : [2],
-                "n_iter" : 1,
+                "n_iter" : 50,
                 "n_jobs" : 1,
                 "model": {
                     "epochs": randint(10,50),
@@ -85,7 +84,7 @@ experiment1 = {
             "gridsearch_params": {
                 "timewindow" : [5],
                 "timestep" : [2],
-                "n_iter" : 1,
+                "n_iter" : 50,
                 "n_jobs" : -1,
                 "model": {
                     "epochs": randint(10,50),
@@ -106,7 +105,7 @@ experiment1 = {
             "gridsearch_params": {
                 "timewindow" : [5],
                 "timestep" : [2],
-                "n_iter" : 1,
+                "n_iter" : 50,
                 "n_jobs" : -1,
                 "model": {
                     "epochs": randint(10,50),
