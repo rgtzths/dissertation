@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def generate_main_timeseries(dfs, is_test, timewindow, timestep):
+def generate_main_timeseries(dfs, timewindow, timestep, overlap):
     """
     Converts an array of dataframes with the format timestamp : value into an
     array of feature vectors.
@@ -15,46 +15,48 @@ def generate_main_timeseries(dfs, is_test, timewindow, timestep):
         If true the overlap is ignored and the overlap becomes equal to the lenght of the
         feature vector -2.
     timewindow : int
-        Time gap covered by each feature vector in min
+        Time gap covered by each feature vector in seconds
     timestep : int
         Time between each reading in seconds
+    overlap : int
+        Time overlaping between each reading in seconds
     Returns
     -------
     Numpy array of feature vectors
     """
     data = []
+    n_columns = len(dfs[0].columns.values)
+
+    overlap_index = int((timewindow-overlap)*n_columns/timestep)
+
+    step = int((timewindow - overlap)/timestep)
+
     for df in dfs:
-        if is_test:
-            current_index = 0
-            previous_values = []
-            while current_index < len(df):
+        
+        current_index = 0
 
-                if len(previous_values) == 0:
-                    values = np.zeros(int(timewindow*60/timestep) -1)
-                if len(previous_values) != 0: 
-                    values = previous_values[1:]
-                
-                while len(values) < int(timewindow*60/timestep) and current_index < len(df):
-                    values.append(df.loc[df.index[current_index]].values)
-                    current_index += 1
-                if len(values)  == int(timewindow*60/timestep):
-                    data.append(values)
-                    previous_values = values
-            data = np.array(data)
-
+        if overlap != 0:
+            values = np.zeros(overlap_index)
         else:
-            values = df.values
-            values = values[:int(values.shape[0]/int(timewindow*60/timestep)) * int(timewindow*60/timestep)]
-            values = values.reshape(int(values.shape[0]/int(timewindow*60/timestep)) , int(timewindow*60/timestep), len(df.columns.values))
+            values = np.zeros(0)
 
-            if len(data) == 0:
-                data = values
-            else:
-                data = np.concatenate((data, values), axis=0)
-    
+        while current_index + step < len(df):
+
+            values = np.append(values, df.loc[df.index[current_index:current_index + step ].values].values)
+
+            if len(values) != int(timewindow*n_columns/timestep):
+                raise Exception("Invalid length of values ", len(values), int(timewindow*n_columns/timestep))
+
+            data.append(values)
+
+            values = values[overlap_index:]
+            
+            current_index += step
+
+    data = np.array(data)
     return data
 
-def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, column):
+def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, column, overlap):
     """
     Converts an array of dataframes with the format timestamp : value into an
     array of values.
@@ -75,27 +77,24 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
     """
 
     data = []
+    step = int((timewindow-overlap)/timestep)
 
     #Starting the conversion (goes through all the dataframes)
     for df in dfs:
-        values = df[column].values
-        values = values[:int(values.shape[0]/int(timewindow*60/timestep)) * int(timewindow*60/timestep)]
-        values = values.reshape(int(values.shape[0]/int(timewindow*60/timestep)), int(timewindow*60/timestep))
+   
+        current_index = 0
 
-        if is_classification:
-            for feature_vector in values:
-                is_postive = False
-                for value in feature_vector:
-                    if value > 20:
-                        is_postive = True
-                        data.append(1)
-                        break
+        while current_index + step < len(df):
 
-                if not is_postive:
-                    data.append(0)
-
-        else:
-            for feature_vector in values:
-                data.append(feature_vector[-1])
+            value = df.loc[df.index[current_index + step ], column]
+                
+            if is_classification:
+                
+                data.append(1) if value > 20 else data.append(0)
+                
+            else:
+                data.append(value)
+            
+            current_index += step    
 
     return np.array(data)

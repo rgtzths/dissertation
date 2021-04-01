@@ -7,7 +7,7 @@ import numpy as np
 from nilmtk.measurement import LEVEL_NAMES
 
 import sys
-sys.path.insert(1, "../")
+sys.path.insert(1, "../../")
 from data_clean import clean_data
 
 

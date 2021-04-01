@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 import sys
-sys.path.insert(1, "../")
+sys.path.insert(1, "../../")
 from data_clean import clean_data
 
 def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):

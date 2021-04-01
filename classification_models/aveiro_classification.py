@@ -19,27 +19,33 @@ def run_experiment():
     experiment = {
         "heatpump" : {
             "methods" : {
-                #"GRU DWT" :GRU_DWT( {
-                #    "verbose" : 2,
-                #    "timewindow": {"heatpump" : 0.5}, 
-                #    "timestep": {"heatpump" : 2},
-                #    "gru_timewindow": {"heatpump" : 10},
-                #    "epochs" : {"heatpump" : 800},
-                #    "batch_size" : {"heatpump" : 1000},
-                #    "predicted_column": ("power", "apparent"), 
-                #    "randomsearch": False,
-                #    "randomsearch_params": {
-                #        "timewindow" : [1],
-                #        "timestep" : [2],
-                #        "n_iter" : 1,
-                #        "n_jobs" : -1,
-                #        "cv" : 5,
-                #        "model": {
-                #            "epochs": randint(10,50),
-                #            "batch_size" : randint(10,1000),
-                #        }
-                #    }
-                #}),
+                "GRU_DWT" :GRU_DWT( {
+                    "verbose" : 2,
+                    "appliances" : {
+                        "heatpump" : {
+                            "dwt_timewindow" : 12,
+                            "timestep" : 2,
+                            "dwt_overlap" : 6,
+                            "examples_overlap" : 150,
+                            "examples_timewindow" : 300,
+                            "epochs" : 3000,
+                            "batch_size" : 2000,
+                        }
+                    },
+                    "predicted_column": ("power", "apparent"), 
+                    "randomsearch": False,
+                    "randomsearch_params": {
+                        "timewindow" : [1],
+                        "timestep" : [2],
+                        "n_iter" : 1,
+                        "n_jobs" : -1,
+                        "cv" : 5,
+                        "model": {
+                            "epochs": randint(10,50),
+                            "batch_size" : randint(10,1000),
+                        }
+                    }
+                }),
                 #"LSTM" : LSTM_RNN( {
                 #    "verbose" : 2,
                 #    "timewindow": {"heatpump" : 5}, 
@@ -82,36 +88,36 @@ def run_experiment():
                 #        }
                 #    }
                 #}),
-                "Gradient" : GradientBoosting({
-                    "verbose" : 2,
-                    "timewindow": {"heatpump" : 5}, 
-                    "timestep": {"heatpump" : 2}, 
-                    "predicted_column": ("power", "apparent"), 
-                    "params" : {
-                        "heatpump" : {
-                            'n_estimators': 500,
-                            'max_depth': 4,
-                            'min_samples_split': 5,
-                            'learning_rate': 0.01,
-                            'loss': 'deviance'
-                        }
-                    },
-                    "randomsearch" : False,
-                    "randomsearch_params" : {
-                        "timewindow" : [1],
-                        "timestep" : [2],
-                        "n_iter" : 1,
-                        "n_jobs" : -1,
-                        "cv" : 5,
-                        "model": {
-                            'n_estimators': randint(200,1000),
-                            'max_depth': randint(2,10),
-                            'min_samples_split': randint(2,10),
-                            'learning_rate': loguniform(0.001, 1),
-                            'loss': ['deviance']
-                        }
-                    }
-                }),
+                #"Gradient" : GradientBoosting({
+                #    "verbose" : 2,
+                #    "timewindow": {"heatpump" : 5}, 
+                #    "timestep": {"heatpump" : 2}, 
+                #    "predicted_column": ("power", "apparent"), 
+                #    "params" : {
+                #        "heatpump" : {
+                #            'n_estimators': 500,
+                #            'max_depth': 4,
+                #            'min_samples_split': 5,
+                #            'learning_rate': 0.01,
+                #            'loss': 'deviance'
+                #        }
+                #    },
+                #    "randomsearch" : False,
+                #    "randomsearch_params" : {
+                #        "timewindow" : [1],
+                #        "timestep" : [2],
+                #        "n_iter" : 1,
+                #        "n_jobs" : -1,
+                #        "cv" : 5,
+                #        "model": {
+                #            'n_estimators': randint(200,1000),
+                #            'max_depth': randint(2,10),
+                #            'min_samples_split': randint(2,10),
+                #            'learning_rate': loguniform(0.001, 1),
+                #            'loss': ['deviance']
+                #        }
+                #    }
+                #}),
                 #"CNN" : CNN( {
                 #    "verbose" : 2,
                 #    "timewindow": {"heatpump" : 1}, 
@@ -170,7 +176,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" :  datetime.datetime(2021, 1, 15)
+                            "end" : datetime.datetime(2021, 1, 15)
                         }
                     }
                 },
@@ -181,7 +187,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2021, 1, 15),
-                            "end" : None
+                            "end" : datetime.datetime(2021, 2, 5)
                         }
                     }
                 }

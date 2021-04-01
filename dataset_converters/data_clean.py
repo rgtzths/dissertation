@@ -64,7 +64,9 @@ def clean_data(df, timestep, interpolate):
             for i, c in enumerate(columns):
                 if interpolate == "average":
                     if not np.isnan(df[c][df.index[current_index]]):
-                        if (df[c][df.index[current_index]] +  data[-1][i]) /2 > 0:
+                        if len(data) == 0:
+                           feature_vector.append(df[c][df.index[current_index-1]] + df[c][df.index[current_index]] /2)
+                        elif (df[c][df.index[current_index]] +  data[-1][i]) /2 > 0: 
                             feature_vector.append((df[c][df.index[current_index]] +  data[-1][i]) /2)
                         else:
                             feature_vector.append(0)
@@ -73,7 +75,7 @@ def clean_data(df, timestep, interpolate):
                 else:
                     feature_vector = data[-1]
             current_time += step
-
+    
         if len(feature_vector) == len(columns):
             data.append(feature_vector)
             index.append(current_time - step)

@@ -2,7 +2,7 @@ import datetime
 
 def get_seasonality(dt):
     month = dt.month
-    feature_vector = [0, 0, 0, 0, 0, 0]
+    feature_vector = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     if month <= 3:
         i = 0
@@ -23,5 +23,14 @@ def get_seasonality(dt):
         feature_vector[4] = dt.weekday() + 1 
     else:
         feature_vector[5] = dt.weekday() - 4
+    
+    if dt.hour > 6 and dt.hour < 13:
+        feature_vector[6] = 1
+    elif dt.hour > 13 and dt.hour < 20:
+        feature_vector[7] = 1
+    else:
+        feature_vector[8] = 1
+    
+
 
     return feature_vector

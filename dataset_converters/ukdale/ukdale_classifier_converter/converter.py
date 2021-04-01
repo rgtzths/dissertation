@@ -1,11 +1,16 @@
 from os.path import join, isdir, isfile
 from os import listdir
 import re
-from sys import stdout
 import pandas as pd
 import numpy as np
 
-def convert_ukdale(ukdale_path, output_path):
+from nilmtk.measurement import LEVEL_NAMES
+
+import sys
+sys.path.insert(1, "../../")
+from data_clean import clean_data
+
+def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
     """
     Converts the ukdale dataset into a timeseries dataset.
     Parameters
@@ -14,12 +19,10 @@ def convert_ukdale(ukdale_path, output_path):
         The root path of the ukdale low_freq dataset.
     output_path : str
         The destination path for the ukdale dataset timeseries.
-    timeframe : int
-        Time gap covered by each feature vector in min
     timestep : int
         Time between each reading in seconds
-    overlap : float
-        Amount of overlap between each feacture vector (percentage)
+    interpolate : string
+        Type of overlap to be used: either average or previouse
     """
 
     #Finds all the houses in the dataset
@@ -33,28 +36,34 @@ def convert_ukdale(ukdale_path, output_path):
         #Goes through all the appliances to be converted from that house
         for appliance, meter in house_appliances_mappings["house"+str(house_id)].items():
             print("Converting ", appliance)
+            measure = "power"
 
             csv_filename = ukdale_path + "house_" + str(house_id) + "/channel_" + meter + ".dat"       
             df = pd.read_csv(csv_filename, sep=" ", header=None)
-            df.columns = ["time", "power"]
+            df.columns = ["time", measure]
 
             #Converts the time column from a unix timestamp to datetime and uses it as index
             df.index = pd.to_datetime(df["time"], unit='s')
 
             #Drops unnecessary column         
             df = df.drop("time", 1)
-
             #Sort index and drop duplicates
             df = df.sort_index()
             dups_in_index = df.index.duplicated(keep='first')
             if dups_in_index.any():
                 df = df[~dups_in_index]
-            
-            df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
 
+
+            df = clean_data(df, timestep, interpolate)
+
+            df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
+            df.columns.set_names(LEVEL_NAMES, inplace=True)            
+            
+            df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance), header=False)
+            
         print()
 
-    print("Done converting UKDale for classification!")
+    print("Done converting UKDale to Timeseries!")
 
 def _find_all_houses(input_path):
     """
@@ -133,7 +142,16 @@ house_appliances_mappings = {
     "house4" : {}
 }
 
-filespath = "../../../datasets/ukdale/"
-output_path = "../../../datasets/ukdale_classification"
+column_mapping = {
+    "power" : ("power", "apparent"),
+    "vrms" : ("voltage", "")
+}
 
-convert_ukdale(filespath, output_path)
+filespath = "../../../../datasets/ukdale/"
+output_path = "../../../../datasets/ukdale_classification"
+
+timeframe = 10
+timestep = 6
+interpolate = 'average'
+
+convert_ukdale(filespath, output_path, timeframe, timestep, interpolate)
