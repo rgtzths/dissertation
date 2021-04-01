@@ -13,6 +13,17 @@ from cnn import CNN
 from svm import SVM
 from gru_dwt import GRU_DWT
 
+import sys
+import logging
+
+sys.stderr = open('./outputs/err.log', 'w')
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='./outputs/info.log',
+                    filemode='w')
+
+
 def run_experiment():
 
     #Experiment Definition
