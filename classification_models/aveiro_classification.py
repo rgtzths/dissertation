@@ -16,12 +16,12 @@ from gru_dwt import GRU_DWT
 import sys
 import logging
 
-sys.stderr = open('./outputs/err.log', 'w')
+#sys.stderr = open('./outputs/err.log', 'w')
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)s %(message)s',
-                    filename='./outputs/info.log',
-                    filemode='w')
+#logging.basicConfig(level=logging.INFO,
+#                    format='%(asctime)s %(levelname)s %(message)s',
+#                    filename='./outputs/info.log',
+#                    filemode='w')
 
 
 def run_experiment():
@@ -39,20 +39,38 @@ def run_experiment():
                             "dwt_overlap" : 6,
                             "examples_overlap" : 150,
                             "examples_timewindow" : 300,
-                            "epochs" : 3000,
+                            "epochs" : 1,
                             "batch_size" : 2000,
                         }
                     },
                     "predicted_column": ("power", "apparent"), 
-                    "randomsearch": False,
+                    "randomsearch": True,
                     "randomsearch_params": {
-                        "timewindow" : [1],
-                        "timestep" : [2],
+                        "dwt_timewindow" : [8, 12, 24, 48, 60],
+                        "examples_timewindow": [150, 300, 600, 1300, 2700, 3600],
+                        "wavelets" : ['bior2.2', 'coif2', 'db2', 'dmey', 'haar', 'sym2', 'rbio2.2'],
+                        "timestep" : 2,
+                        "dwt_overlap" : {
+                            12 : 6,
+                            8 : 4,
+                            24 : 12,
+                            48 : 24,
+                            60 : 30
+                        },
+                        "examples_overlap" : {
+                            300 : 150,
+                            150 : 75,
+                            600 : 300,
+                            1300 : 650,
+                            2700 : 1350,
+                            3600 : 1300
+                        },
+                        "n_nodes" : (0.5, 2),
                         "n_iter" : 1,
                         "n_jobs" : -1,
                         "cv" : 5,
                         "model": {
-                            "epochs": randint(10,50),
+                            "epochs" : randint(10,50),
                             "batch_size" : randint(10,1000),
                         }
                     }
@@ -187,7 +205,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" : datetime.datetime(2021, 1, 15)
+                            "end" : datetime.datetime(2020, 10, 3)
                         }
                     }
                 },
@@ -198,7 +216,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2021, 1, 15),
-                            "end" : datetime.datetime(2021, 2, 5)
+                            "end" : datetime.datetime(2021, 1, 17)
                         }
                     }
                 }
