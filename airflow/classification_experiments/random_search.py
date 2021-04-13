@@ -51,7 +51,6 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                     }
                 }),
             },
-            "model_path" : "./models/",
             "train" : {
                 "ukdale" : {
                     "location" : "/home/rteixeira/datasets/avEiro_classification/",
