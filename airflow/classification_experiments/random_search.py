@@ -45,8 +45,8 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                         "n_jobs" : 5,
                         "cv" : 5,
                         "model": {
-                            "epochs" : randint(1,2),
-                            "batch_size" : randint(500,1000),
+                            "epochs" : randint(1000,2000),
+                            "batch_size" : randint(1000,3000),
                         }
                     }
                 }),
@@ -58,7 +58,7 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" : datetime.datetime(2020, 10, 2)
+                            "end" : datetime.datetime(2021, 1, 15)
                         }
                     }
                 },
@@ -103,8 +103,6 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
         for method in experiment[app]["methods"]:
             print("Training %s" % (method))
             experiment[app]["methods"][method].partial_fit(X_train, [(app, y_train)])
-
-            experiment[app]["methods"][method].save_model(experiment[app]["model_path"] + method.lower())
 
 if __name__ == "__main__":
     run_experiment(8, 4, 150, 300, 'bior2.2')
