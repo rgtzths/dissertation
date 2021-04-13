@@ -43,9 +43,9 @@ def load_data(dataset_folder, appliance, houses):
             else: 
                 beginning = aggregated_readings[i].index[0]
         else:
-            if aggregated_readings[i].index[0] > houses[house]["beginning"] and app_readings[i].index[0] > houses[house]["beginning"]:
+            if aggregated_readings[i].index[0] > houses[house]["beginning"] or app_readings[i].index[0] > houses[house]["beginning"]:
                 raise Exception("Beginning Time before the beginning of the house dataset, use None instead.")
-            elif aggregated_readings[i].index[-1] < houses[house]["beginning"] and app_readings[i].index[-1] < houses[house]["beginning"]:
+            elif aggregated_readings[i].index[-1] < houses[house]["beginning"] or app_readings[i].index[-1] < houses[house]["beginning"]:
                 raise Exception("Beginning Time after the end of the house dataset, use None instead.")
             else:
                 beginning = houses[house]["beginning"]
@@ -56,9 +56,9 @@ def load_data(dataset_folder, appliance, houses):
             else:
                 end = app_readings[i].index[-1]
         else:
-            if aggregated_readings[i].index[-1] < houses[house]["end"] and app_readings[i].index[-1] < houses[house]["end"]:
+            if aggregated_readings[i].index[-1] < houses[house]["end"] or app_readings[i].index[-1] < houses[house]["end"]:
                 raise Exception("End Time after the end of the house dataset, use None instead.")
-            elif aggregated_readings[i].index[0] > houses[house]["end"] and app_readings[i].index[0] > houses[house]["end"]:
+            elif aggregated_readings[i].index[0] > houses[house]["end"] or app_readings[i].index[0] > houses[house]["end"]:
                 raise Exception("End Time before the beginning of the house dataset, use None instead.")
             else:
                 end = houses[house]["end"]

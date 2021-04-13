@@ -123,6 +123,17 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep
                 dfs.append(df)
 
             #Concatenate the multiple dataframes ( only relevant when multiple measures are present)
+            if len(dfs) > 1:
+                beginning = dfs[0].index[0]
+                end = dfs[0].index[-1]
+                for df in dfs:
+                    if beginning < df.index[0]:
+                        beginning = df.index[0]
+                    if end > df.index[-1]:
+                        end = df.index[-1]
+                for i in range(0, len(dfs)):
+                    dfs[i] = dfs[i][ dfs[i].index.get_loc(beginning, method="nearest"): dfs[i].index.get_loc(end, method="nearest")]
+
             df = pd.concat(dfs, axis=1)
 
             df = clean_data(df, timestep, interpolate)

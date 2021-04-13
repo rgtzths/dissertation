@@ -8,6 +8,7 @@ def run(experiment):
     for app in experiment:
         X_train = []
         y_train = []
+
         X_test = []
         y_test = []
 
@@ -24,6 +25,14 @@ def run(experiment):
                 X_train.append(x[i])
                 y_train.append(y[i])
                 
+        
+
+        for method in experiment[app]["methods"]:
+            print("Training %s" % (method))
+            experiment[app]["methods"][method].partial_fit(X_train, [(app, y_train)])
+
+            experiment[app]["methods"][method].save_model(experiment[app]["model_path"] + method.lower())
+
         print("Loading Test Data for %s" % (app))
         for dataset in experiment[app]["test"]:
             x, y = dataset_loader.load_data(
@@ -34,13 +43,8 @@ def run(experiment):
             for i in range(0, len(x)):
                 X_test.append(x[i])
                 y_test.append(y[i])
-    
+                
         for method in experiment[app]["methods"]:
-            print("Training %s" % (method))
-            experiment[app]["methods"][method].partial_fit(X_train, [(app, y_train)])
-
-            experiment[app]["methods"][method].save_model(experiment[app]["model_path"] + method.split("_")[0].lower())
-
             print("Testing %s" % (method))
             res = experiment[app]["methods"][method].disaggregate_chunk(X_test, [(app, y_test)])
 

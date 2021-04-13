@@ -41,41 +41,25 @@ def run_experiment():
                             "examples_timewindow" : 300,
                             "epochs" : 1,
                             "batch_size" : 2000,
+                            "wavelet": 'bior2.2'
                         }
                     },
+                    "training_results_path" : "./models/gru_dwt/",
                     "predicted_column": ("power", "apparent"), 
                     "randomsearch": True,
                     "randomsearch_params": {
-                        "dwt_timewindow" : [8, 12, 24, 48, 60],
-                        "examples_timewindow": [150, 300, 600, 1300, 2700, 3600],
-                        "wavelets" : ['bior2.2', 'coif2', 'db2', 'dmey', 'haar', 'sym2', 'rbio2.2'],
-                        "timestep" : 2,
-                        "dwt_overlap" : {
-                            12 : 6,
-                            8 : 4,
-                            24 : 12,
-                            48 : 24,
-                            60 : 30
-                        },
-                        "examples_overlap" : {
-                            300 : 150,
-                            150 : 75,
-                            600 : 300,
-                            1300 : 650,
-                            2700 : 1350,
-                            3600 : 1300
-                        },
+                        "file_path" : "./random_search_results/randomsearch_results.csv",
                         "n_nodes" : (0.5, 2),
-                        "n_iter" : 1,
+                        "n_iter" : 3,
                         "n_jobs" : -1,
                         "cv" : 5,
                         "model": {
-                            "epochs" : randint(10,50),
-                            "batch_size" : randint(10,1000),
+                            "epochs" : randint(1,2),
+                            "batch_size" : randint(500,1000),
                         }
                     }
                 }),
-                #"LSTM" : LSTM_RNN( {
+                #"LSTM" : LSTM( {
                 #    "verbose" : 2,
                 #    "timewindow": {"heatpump" : 5}, 
                 #    "timestep": {"heatpump" : 2},
@@ -96,7 +80,7 @@ def run_experiment():
                 #        }
                 #    }
                 #}),
-                #"GRU" : GRU_RNN( {
+                #"GRU" : GRU( {
                 #    "verbose" : 2,
                 #    "timewindow": {"heatpump" : 5}, 
                 #    "timestep": {"heatpump" : 2},
@@ -205,7 +189,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" : datetime.datetime(2020, 10, 3)
+                            "end" : datetime.datetime(2020, 10, 2)
                         }
                     }
                 },
@@ -216,7 +200,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2021, 1, 15),
-                            "end" : datetime.datetime(2021, 1, 17)
+                            "end" : datetime.datetime(2021, 1, 16)
                         }
                     }
                 }

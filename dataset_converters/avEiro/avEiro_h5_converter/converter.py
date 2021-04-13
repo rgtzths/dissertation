@@ -68,6 +68,16 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                     #Store the dataframe into an array
                     dfs.append(df)
 
+                beginning = dfs[0].index[0]
+                end = dfs[0].index[-1]
+                for df in dfs:
+                    if beginning < df.index[0]:
+                        beginning = df.index[0]
+                    if end > df.index[-1]:
+                        end = df.index[-1]
+                for i in range(0, len(dfs)):
+                    dfs[i] = dfs[i][ dfs[i].index.get_loc(beginning, method="nearest"): dfs[i].index.get_loc(end, method="nearest")]
+
                 #Concatenate the multiple dataframes ( only relevant when multiple measures are present)
                 total = pd.concat(dfs, axis=1)
 
@@ -101,7 +111,6 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                 df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
                 df.columns.set_names(LEVEL_NAMES, inplace=True)
                 
-                print(df)
                 store.put(str(key), df)
         print()
 

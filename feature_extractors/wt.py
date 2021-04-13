@@ -2,6 +2,8 @@ import numpy as np
 import pywt
 from collections import Counter
 from scipy import stats
+import math
+
 from seasonality import get_seasonality
 
 def calculate_entropy(list_values):
@@ -86,7 +88,7 @@ def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overla
             window_vectors.append(list(np.zeros(15*n_columns + 9)))
 
         if dwt_overlap != 0:
-            values = np.zeros((int(dwt_overlap/timestep), n_columns))
+            values = np.zeros((math.ceil(dwt_overlap/timestep), n_columns))
         else:
             values = np.zeros((0, n_columns))
 

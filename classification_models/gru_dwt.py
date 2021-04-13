@@ -16,9 +16,12 @@ from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.utils import shuffle
 import numpy as np
-
+import pandas as pd
 import sys
+import csv
+
 sys.path.insert(1, "../feature_extractors")
 from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
@@ -30,7 +33,7 @@ class GRU_DWT():
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'GRU DWT')
+        self.MODEL_NAME = params.get('model_name', 'GRU_DWT')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
         #Column used to obtain the classification values (y). 
@@ -44,10 +47,24 @@ class GRU_DWT():
        
         #Decides if the model runs randomsearch
         self.randomsearch = params.get('randomsearch', False)
+
         #In case of randomsearch = True this variable contains the information
         #to run the randomsearch (hyperparameter range definition).
         self.randomsearch_params = params.get('randomsearch_params', None)
-        #Wavelet name used for DWT
+
+        self.default_appliance = {
+            "dwt_timewindow": 12,
+            "dwt_overlap": 6,
+            "timestep": 2,
+            "examples_timewindow": 300,
+            "examples_overlap": 150,
+            "wavelet": 'db4',
+            "batch_size": 500,
+            "epochs": 300,
+            "n_nodes":1
+        }
+
+        self.training_results_path = params.get("training_results_path", None)
 
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
@@ -64,16 +81,17 @@ class GRU_DWT():
 
                 appliance_model = self.appliances.get(app_name)
 
-                dwt_timewindow = appliance_model.get("dwt_timewindow", 12)
-                dwt_overlap = appliance_model.get("dwt_overlap", 6)
-                timestep = appliance_model.get("timestep", 2)
-                examples_timewindow = appliance_model.get("examples_timewindow", 300)
-                examples_overlap = appliance_model.get("examples_overlap", 150)
-                waveletname = appliance_model.get("waveletname", 'db4')
-                batch_size = appliance_model.get("batch_size", 500)
-                epochs = appliance_model.get("epochs", 300)
+                dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+                dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
+                examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
-                X_train = get_discrete_features(train_mains, waveletname, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+                X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
                 y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
@@ -86,7 +104,7 @@ class GRU_DWT():
                 if app_name in self.model:
                     model = self.model[app_name]
                 else:
-                    model = self.create_model((X_train.shape[1], X_train.shape[2]))
+                    model = self.create_model(int(n_nodes * X_train.shape[1]), (X_train.shape[1], X_train.shape[2]))
 
                 history = model.fit(BalancedGenerator(X_train, y_train, batch_size), 
                         steps_per_epoch=math.ceil(X_train.shape[0]/batch_size),
@@ -98,9 +116,10 @@ class GRU_DWT():
 
                 history = json.dumps(history.history)
 
-                f = open("./models/gru_dwt/history.json", "w")
-                f.write(history)
-                f.close()
+                if self.training_results_path is not None:
+                    f = open(self.training_results_path + "history_"+app_name+".json", "w")
+                    f.write(history)
+                    f.close()
 
                 #Stores the trained model.
                 self.model[app_name] = model
@@ -108,15 +127,6 @@ class GRU_DWT():
             if self.verbose != 0:
                 print("Executing RandomSearch")
             results = self.random_search(train_mains, train_appliances)
-
-            if self.verbose == 2:
-                for app in results:
-                    print("\nResults for appliance: ", app)
-                    print("\t Score Obtained: ", str(results[app][0]))
-                    print("\t Best Parameters: ", str(results[app][1]))
-                    print("\t Time Window: ", str(results[app][2]))
-                    print("\t Time Step: ", str(results[app][3]))
-                    print("\n")
 
     def disaggregate_chunk(self, test_mains, test_appliances):
 
@@ -127,14 +137,14 @@ class GRU_DWT():
                 print("Preparing the Test Data for %s" % app_name)
 
             appliance_model = self.appliances.get(app_name)
-            dwt_timewindow = appliance_model.get("dwt_timewindow", 12)
-            dwt_overlap = appliance_model.get("dwt_overlap", 6)
-            timestep = appliance_model.get("timestep", 2)
-            examples_timewindow = appliance_model.get("examples_timewindow", 300)
-            examples_overlap = appliance_model.get("examples_overlap", 150)
-            waveletname = appliance_model.get("waveletname", 'db4')
+            dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+            dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
+            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
+            examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
+            wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
             
-            X_test = get_discrete_features(test_mains, waveletname, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+            X_test = get_discrete_features(test_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
             y_test = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
@@ -170,102 +180,108 @@ class GRU_DWT():
         for app in app_models:
             self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
-    def create_model(self, input_shape):
+    def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        model.add(Dense(64, input_shape=input_shape, activation='relu'))
-        model.add(GRU(128, return_sequences=True, activation='relu'))
-        model.add(GRU(128, activation='relu'))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(units=1, activation='sigmoid'))
+        model.add(Dense(n_nodes, input_shape=input_shape, activation='relu'))
+        model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
+        model.add(GRU(n_nodes*2, activation='relu'))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
 
         return model
 
     def random_search(self, train_mains, train_appliances):
 
-        #Stores the parameters for the best model for each appliance
-        test_results = {}
-
-        for timewindow in self.randomsearch_params['timewindow']:
-            for timestep in self.randomsearch_params['timestep']:
-
-                gru_timewindow = self.gru_timewindow.get("heatpump", 60)
-                
-                #Obtains de X training data acording to the timewindow and timestep
-                train_data = generate_main_timeseries(train_mains, False, timewindow, timestep)
-                train_data.reshape(train_data.shape[0], int(timewindow/timestep), len(train_main[0].columns.values))
-
-            
-                X_train = get_discrete_features(train_data, self.waveletname)
-
-                X_train = X_train[: int(X_train.shape[0]/5) * 5 ]
-
-                X_train = X_train.reshape(int(X_train.shape[0]/5), 5, X_train.shape[1])
-
-                X_train = X_train.reshape(int(X_train.shape[0]/(gru_timewindow / timewindow)), int(gru_timewindow / timewindow), X_train.shape[1])
-
-                #Defines the input shape according to the timewindow and timestep.
-                self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
-
-                self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] *0.5), int(X_train.shape[1]*2))
-                
-                for app_name, appliance_power in train_appliances:
-                    #Generate the appliance timeseries acording to the timewindow and timestep
-                    y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column)
-
-                    y_train = y_train[np.arange(int(gru_timewindow/timewindow) -1, len(y_train), int(gru_timewindow/timewindow))]
-
-                    model = KerasClassifier(build_fn = self.create_model, verbose=0)
-                    
-                    randomsearch = RandomizedSearchCV(
-                        estimator=model,
-                        param_distributions=self.randomsearch_params['model'], 
-                        cv=self.randomsearch_params['cv'], 
-                        n_iter=self.randomsearch_params['n_iter'],
-                        n_jobs=self.randomsearch_params['n_jobs'], 
-                        scoring=make_scorer(matthews_corrcoef),
-                        verbose=self.verbose,
-                        refit = False
-                    )
-
-                    fitted_model = randomsearch.fit(X_train, y_train)
-
-                    #Store the best result, if it is actualy the best and the X and y used for the final training.
-                    if app_name not in test_results :
-                        test_results[app_name] = (fitted_model.best_score_, fitted_model.best_params_, timewindow, timestep)
-
-                    elif test_results[app_name][0] < fitted_model.best_score_:
-                        test_results[app_name] = (fitted_model.best_score_, fitted_model.best_params_, timewindow, timestep)
-
-        #Train the final model with the best hyperparameters for each appliance
-        for app_name in test_results:
-
-            X_train = X_train = generate_main_timeseries(train_mains, False, test_results[app_name][2], test_results[app_name][3])
+        for app_name, appliance_power in train_appliances:
+            appliance_model = self.appliances.get(app_name)
                         
-            X_cv = X_train[int(len(X_train)*(1-self.cv)):]
-            X_train = X_train[0:int(len(X_train)*(1-self.cv))]
+            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
 
-            y_train = generate_appliance_timeseries(appliance_power, True, test_results[app_name][2], test_results[app_name][3], self.column)
+            dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+            dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
+            
+            examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
+            examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
+            
+            wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
 
-            y_cv = y_train[int(len(y_train)*(1-self.cv)):]
-            y_train = y_train[0:int(len(y_train)*(1-self.cv))]
+            X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+
+            n_nodes = self.randomsearch_params['n_nodes']
+            
+            #Defines the input shape according to the timewindow and timestep.
+            self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
+
+            self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] * n_nodes[0]), int(X_train.shape[1]*n_nodes[1]))
+        
+
+            #Generate the appliance timeseries acording to the timewindow and timestep
+            y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+
+            X_train_rc, y_train_rc = shuffle(X_train, y_train, random_state=0)
+
+            model = KerasClassifier(build_fn=self.create_model, verbose=0)
+            
+            randomsearch = RandomizedSearchCV(
+                estimator=model,
+                param_distributions=self.randomsearch_params['model'], 
+                cv=self.randomsearch_params['cv'], 
+                n_iter=self.randomsearch_params['n_iter'],
+                n_jobs=self.randomsearch_params['n_jobs'], 
+                scoring=make_scorer(matthews_corrcoef),
+                verbose=self.verbose,
+                refit = True
+            )
+
+            fitted_model = randomsearch.fit(X_train_rc, y_train_rc)
+
+            result = pd.DataFrame(fitted_model.cv_results_)
+            result['param_dwt_timewindow'] = dwt_timewindow
+            result['param_examples_timewindow'] = examples_timewindow
+            result['param_wavelet'] = wavelet
+            print(result)
+            if self.randomsearch_params['file_path']:
+                results = open(self.randomsearch_params['file_path'], "a")
+                writer = csv.writer(results, delimiter=",")
+                for line in result.values:
+                    writer.writerow(line)
+                results.close()
+      
+            X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
 
             print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-            model = self.create_model( test_results[app_name][1]['n_nodes'], test_results[app_name][1]['input_shape'])
+            
+            model = self.create_model(fitted_model.best_params_['n_nodes'], fitted_model.best_params_['input_shape'])
 
-            model.fit(X_train, y_train, epochs=test_results[app_name][1]['epochs'], batch_size=test_results[app_name][1]['batch_size'], validation_data=(X_cv, y_cv), verbose=self.verbose)
+            history = model.fit(BalancedGenerator(X_train, y_train, batch_size=fitted_model.best_params_['batch_size']), 
+                        steps_per_epoch=math.ceil(X_train.shape[0]/fitted_model.best_params_['batch_size']),
+                        epochs=fitted_model.best_params_['epochs'], 
+                        batch_size=fitted_model.best_params_['batch_size'],
+                        validation_data=(X_cv, y_cv),
+                        verbose=self.verbose
+                        )       
+
+            history = json.dumps(history.history)
+
+            if self.training_results_path is not None:
+                f = open(self.training_results_path + "history_"+app_name+"_" +str(dwt_timewindow) +"_" + str(examples_timewindow) +"_"+ wavelet+ ".json", "w")
+                f.write(history)
+                f.close()
 
             self.model[app_name] = model
 
-            self.timewindow[app_name] = test_results[app_name][2]
-
-            self.timestep[app_name] = test_results[app_name][3]
-            
-        return test_results
+            self.appliances[app_name] = {
+                'dwt_timewindow' : dwt_timewindow,
+                'dwt_overlap' : dwt_overlap,
+                'examples_timewindow' : examples_timewindow,
+                'examples_overlap' : examples_overlap,
+                'timestep' : timestep,
+                'wavelet' : wavelet
+            }
 
     def generate_y(self, dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
-        #train_class = generate_appliance_timeseries(appliance_power, True, dwt_timewindow, timestep, self.column, dwt_overlap)   
         
         y = []
         examples_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow- dwt_overlap))
