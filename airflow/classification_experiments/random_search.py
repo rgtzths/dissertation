@@ -57,7 +57,7 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" : datetime.datetime(2021, 1, 15)
+                            "end" : datetime.datetime(2029, 11, 30)
                         }
                     }
                 },
