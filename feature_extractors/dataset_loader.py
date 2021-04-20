@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from nilmtk.measurement import LEVEL_NAMES
 
-def load_data(dataset_folder, appliance, houses):
+def load_data(dataset_folder, appliance, houses, timestep):
     #Array that contains the aggragate readings in dataframes
     aggregated_readings = []
 

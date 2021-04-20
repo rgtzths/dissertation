@@ -83,8 +83,6 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
 
                 total = clean_data(total, timestep, interpolate)
 
-                #Convert datetime to time aware datetime 
-                total = total.tz_localize('UTC').tz_convert('Europe/London')
                 total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values])
                 total.columns.set_names(LEVEL_NAMES, inplace=True)
                 print(total)
@@ -107,7 +105,6 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                     df = df[~dups_in_index]
                 df = clean_data(df, timestep, interpolate)
 
-                df = df.tz_localize('UTC').tz_convert('Europe/London')
                 df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
                 df.columns.set_names(LEVEL_NAMES, inplace=True)
                 

@@ -41,7 +41,7 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap):
             values = np.zeros(0)
 
         while current_index + step < len(df):
-
+            
             values = np.append(values, df.loc[df.index[current_index:current_index + step ].values].values)
 
             if len(values) != int(timewindow*n_columns/timestep):

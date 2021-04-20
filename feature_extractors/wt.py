@@ -78,13 +78,11 @@ def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overla
     window_size = int(examples_timewindow / (dwt_timewindow - dwt_overlap))
 
     overlap_index = int((examples_timewindow - examples_overlap) / (dwt_timewindow- dwt_overlap))
-    
     for df in dfs:
         current_index = 0
 
-
         window_vectors = []
-        for i in range(0, int( examples_overlap / (dwt_timewindow- dwt_overlap))):
+        for i in range(0, math.ceil( examples_overlap / (dwt_timewindow - dwt_overlap))):
             window_vectors.append(list(np.zeros(15*n_columns + 9)))
 
         if dwt_overlap != 0:
@@ -92,7 +90,7 @@ def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overla
         else:
             values = np.zeros((0, n_columns))
 
-        while current_index + step < len(df):
+        while current_index + step < len(df) or (step == 1 and current_index < len(df)):
 
             values = np.append(values, df.loc[df.index[current_index:current_index + step].values].values, axis=0)
 
@@ -112,7 +110,6 @@ def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overla
             feature_vector += get_seasonality(df.index[current_index + step -1])
             
             window_vectors.append(feature_vector)
-
             if len(window_vectors) == window_size:
 
                 X.append(window_vectors)
