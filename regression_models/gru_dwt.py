@@ -22,7 +22,7 @@ import pandas as pd
 import sys
 import csv
 
-sys.path.insert(1, "../feature_extractors")
+sys.path.insert(1, "../../feature_extractors")
 from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 from wt import get_discrete_features

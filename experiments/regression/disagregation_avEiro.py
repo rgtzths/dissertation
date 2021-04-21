@@ -2,7 +2,8 @@
 from nilmtk.api import API
 
 import sys
-sys.path.insert(1, "../nilmtk-contrib")
+sys.path.insert(1, "../../nilmtk-contrib")
+sys.path.insert(1, "../../regression_models")
 
 from dae import DAE
 from seq2point import Seq2Point
@@ -27,7 +28,7 @@ experiment1 = {
             "verbose" : 2,
             "appliances" : {
                 "heat pump" : {
-                    "epochs" : 2000,
+                    "epochs" : 500,
                 }
             },
             "predicted_column": ("power", "apparent"), 
@@ -36,12 +37,12 @@ experiment1 = {
     'train': {    
         'datasets': {
             'avEiro': {
-                'path': '../../datasets/avEiro_h5/avEiro.h5',
+                'path': '../../../datasets/avEiro_h5/avEiro.h5',
                 'buildings': {
                     1: {
                         'start_time': '2020-10-01',
-                        'end_time': '2020-12-01'
-                        #'end_time': '2020-10-02T12:00'
+                        #'end_time': '2020-01-15'
+                        'end_time': '2020-10-02T12:00'
                     }
                 }                
             }
@@ -50,12 +51,12 @@ experiment1 = {
     'test': {
         'datasets': {
             'avEiro': {
-                'path': '../../datasets/avEiro_h5/avEiro.h5',
+                'path': '../../../datasets/avEiro_h5/avEiro.h5',
                 'buildings': {
                     1: {
                         'start_time': '2021-01-15',
-                        'end_time': '2021-02-05'
-                        #'end_time': '2021-01-15T12:00'
+                        #'end_time': '2021-02-05'
+                        'end_time': '2021-01-15T12:00'
                     }
                 }
             }
@@ -64,7 +65,6 @@ experiment1 = {
     }
 }
 
-models_folder = "./models/"
 
 api_results_experiment_1 = API(experiment1)
 
