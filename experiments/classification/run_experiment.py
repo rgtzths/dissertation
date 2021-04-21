@@ -19,7 +19,8 @@ def run(experiment):
             x, y = dataset_loader.load_data(
                         experiment[app]["train"][dataset]["location"],
                         app, 
-                        experiment[app]["train"][dataset]["houses"]
+                        experiment[app]["train"][dataset]["houses"],
+                        experiment[app]["timestep"]
                     )
             for i in range(0, len(x)):
                 X_train.append(x[i])

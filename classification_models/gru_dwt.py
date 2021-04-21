@@ -215,7 +215,6 @@ class GRU_DWT():
             self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
 
             self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] * n_nodes[0]), int(X_train.shape[1]*n_nodes[1]))
-        
 
             #Generate the appliance timeseries acording to the timewindow and timestep
             y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
@@ -241,7 +240,7 @@ class GRU_DWT():
             result['param_dwt_timewindow'] = dwt_timewindow
             result['param_examples_timewindow'] = examples_timewindow
             result['param_wavelet'] = wavelet
-            print(result)
+
             if self.randomsearch_params['file_path']:
                 results = open(self.randomsearch_params['file_path'], "a")
                 writer = csv.writer(results, delimiter=",")
