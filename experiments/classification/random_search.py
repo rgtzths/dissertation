@@ -26,11 +26,10 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                             "wavelet": wavelet
                         }
                     },
-                    "training_results_path" : "./models/gru_dwt/",
                     "predicted_column": ("power", "apparent"), 
                     "randomsearch": True,
                     "randomsearch_params": {
-                        "file_path" : "./random_search_results/randomsearch_results.csv",
+                        "file_path" : "/home/user/thesis_results/random_search_results/randomsearch_results.csv",
                         "n_iter" : 5,
                         "n_jobs" : -1,
                         "cv" : 5,

@@ -32,7 +32,7 @@ def run_experiment():
                     "predicted_column": ("power", "apparent"), 
                 }),
             },
-            "model_path" : "./models/",
+            "model_path" : "~/thesis_results/models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {

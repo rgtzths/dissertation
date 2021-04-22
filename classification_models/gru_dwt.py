@@ -238,7 +238,7 @@ class GRU_DWT():
             result['param_dwt_timewindow'] = dwt_timewindow
             result['param_examples_timewindow'] = examples_timewindow
             result['param_wavelet'] = wavelet
-            print(result.columns.values)
+
             if self.randomsearch_params['file_path']:
                 results = open(self.randomsearch_params['file_path'], "a")
                 writer = csv.writer(results, delimiter=",")
