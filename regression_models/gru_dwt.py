@@ -284,7 +284,7 @@ class GRU_DWT():
         for df in dfs:
             data = []
             
-            current_index = 0
+            current_index = step - 1
 
             while current_index < len(df):
                     
@@ -292,7 +292,7 @@ class GRU_DWT():
 
                 current_index += step
             
-            current_index = 0
+            current_index = step - 1
 
             while current_index < len(data):
                 y.append(data[current_index])

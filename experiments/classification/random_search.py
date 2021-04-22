@@ -1,22 +1,12 @@
 import datetime
-import warnings
-warnings.filterwarnings("ignore")
-
 from scipy.stats import randint, loguniform
 
-from lstm import LSTM_RNN
-from gru import GRU_RNN
-from gradient import GradientBoosting
-from cnn import CNN
-from svm import SVM
-from gru_dwt import GRU_DWT
-
 import sys
-sys.path.insert(1, "../feature_extractors")
+sys.path.insert(1, "../../feature_extractors")
+sys.path.insert(1, "../../classification_models")
+
 import dataset_loader
-
-import sys
-import logging
+from gru_dwt import GRU_DWT
 
 def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timewindow, wavelet):
 
@@ -33,9 +23,7 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                             "dwt_overlap" : dwt_overlap,
                             "examples_overlap" : examples_overlap,
                             "examples_timewindow" : examples_timewindow,
-                            "epochs" : 200,
-                            "batch_size" : 2000,
-                            "wavelet": 'bior2.2'
+                            "wavelet": wavelet
                         }
                     },
                     "training_results_path" : "./models/gru_dwt/",
@@ -43,40 +31,29 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
                     "randomsearch": True,
                     "randomsearch_params": {
                         "file_path" : "./random_search_results/randomsearch_results.csv",
-                        "n_nodes" : (0.5, 2),
-                        "n_iter" : 50,
+                        "n_iter" : 5,
                         "n_jobs" : -1,
                         "cv" : 5,
                         "model": {
-                            "epochs" : randint(1,200),
+                            "epochs" : randint(1,2),
                             "batch_size" : randint(500,1000),
+                            "n_nodes" : randint(32,64),
                         }
                     }
                 }),
             },
-            "model_path" : "./models/",
+            "timestep" : 2,
             "train" : {
                 "ukdale" : {
-                    "location" : "../../datasets/avEiro_classification/",
+                    "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2020, 10, 1),
-                            "end" : datetime.datetime(2020, 12, 1)
+                            "end" : datetime.datetime(2020, 10, 2)
                         }
                     }
                 },
             },
-            "test" : {
-                "ukdale" : {
-                    "location" : "../../datasets/avEiro_classification/",
-                    "houses" : {
-                        "house_1" : {
-                            "beginning" : datetime.datetime(2021, 1, 15),
-                            "end" : datetime.datetime(2021, 1, 16)
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -95,44 +72,18 @@ def run_experiment(dwt_timewindow, dwt_overlap, examples_overlap, examples_timew
             x, y = dataset_loader.load_data(
                         experiment[app]["train"][dataset]["location"],
                         app, 
-                        experiment[app]["train"][dataset]["houses"]
+                        experiment[app]["train"][dataset]["houses"],
+                        experiment[app]["timestep"]
                     )
             for i in range(0, len(x)):
                 X_train.append(x[i])
                 y_train.append(y[i])
                 
-        
-
         for method in experiment[app]["methods"]:
-            print("Training %s" % (method))
+            print("Preparing %s" % (method))
             experiment[app]["methods"][method].partial_fit(X_train, [(app, y_train)])
 
-            experiment[app]["methods"][method].save_model(experiment[app]["model_path"] + method.lower())
-
-        print("Loading Test Data for %s" % (app))
-        for dataset in experiment[app]["test"]:
-            x, y = dataset_loader.load_data(
-                        experiment[app]["test"][dataset]["location"],
-                        app, 
-                        experiment[app]["test"][dataset]["houses"]
-            )
-            for i in range(0, len(x)):
-                X_test.append(x[i])
-                y_test.append(y[i])
-                
-        for method in experiment[app]["methods"]:
-            print("Testing %s" % (method))
-            res = experiment[app]["methods"][method].disaggregate_chunk(X_test, [(app, y_test)])
-
-            results[app][method] = res
-
-    for app in experiment:
-        print("Results Obtained for %s" % (app))
-        for method in results[app]:
-            print("%10s" % (method), end="")
-            print("%10.2f" % (results[app][method][app]), end="")
-            print()
-        print()
+            print("Finished Doing RandomSearch for %s" % (app))
 
 if __name__ == "__main__":
     run_experiment(8, 0, 150, 300, 'bior2.2')

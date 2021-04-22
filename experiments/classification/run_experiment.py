@@ -1,6 +1,6 @@
 
 import sys
-sys.path.insert(1, "../feature_extractors")
+sys.path.insert(1, "../../feature_extractors")
 import dataset_loader
 
 def run(experiment):
@@ -39,7 +39,8 @@ def run(experiment):
             x, y = dataset_loader.load_data(
                         experiment[app]["test"][dataset]["location"],
                         app, 
-                        experiment[app]["test"][dataset]["houses"]
+                        experiment[app]["test"][dataset]["houses"],
+                        experiment[app]["timestep"]
             )
             for i in range(0, len(x)):
                 X_test.append(x[i])

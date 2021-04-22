@@ -7,10 +7,10 @@ from os import listdir
 import math
 import json
 
-from keras.models import Sequential, load_model
-from keras.layers import Dense, GRU
-from keras.wrappers.scikit_learn import KerasClassifier
-from keras.utils import Sequence
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Dense, GRU
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.utils import Sequence
 
 from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
@@ -22,7 +22,7 @@ import pandas as pd
 import sys
 import csv
 
-sys.path.insert(1, "../feature_extractors")
+sys.path.insert(1, "../../feature_extractors")
 from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 from wt import get_discrete_features
@@ -61,7 +61,7 @@ class GRU_DWT():
             "wavelet": 'db4',
             "batch_size": 500,
             "epochs": 300,
-            "n_nodes":1
+            "n_nodes":32
         }
 
         self.training_results_path = params.get("training_results_path", None)
@@ -104,7 +104,7 @@ class GRU_DWT():
                 if app_name in self.model:
                     model = self.model[app_name]
                 else:
-                    model = self.create_model(int(n_nodes * X_train.shape[1]), (X_train.shape[1], X_train.shape[2]))
+                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
                 history = model.fit(BalancedGenerator(X_train, y_train, batch_size), 
                         steps_per_epoch=math.ceil(X_train.shape[0]/batch_size),
@@ -207,14 +207,11 @@ class GRU_DWT():
             
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
 
+            print("Loading Data")
             X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
-            n_nodes = self.randomsearch_params['n_nodes']
             
             #Defines the input shape according to the timewindow and timestep.
             self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
-
-            self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] * n_nodes[0]), int(X_train.shape[1]*n_nodes[1]))
 
             #Generate the appliance timeseries acording to the timewindow and timestep
             y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
@@ -222,7 +219,7 @@ class GRU_DWT():
             X_train_rc, y_train_rc = shuffle(X_train, y_train, random_state=0)
 
             model = KerasClassifier(build_fn=self.create_model, verbose=0)
-            
+            print("Doing the iterations...")
             randomsearch = RandomizedSearchCV(
                 estimator=model,
                 param_distributions=self.randomsearch_params['model'], 
@@ -236,49 +233,18 @@ class GRU_DWT():
 
             fitted_model = randomsearch.fit(X_train_rc, y_train_rc)
 
+            print("Saving Results")
             result = pd.DataFrame(fitted_model.cv_results_)
             result['param_dwt_timewindow'] = dwt_timewindow
             result['param_examples_timewindow'] = examples_timewindow
             result['param_wavelet'] = wavelet
-
+            print(result.columns.values)
             if self.randomsearch_params['file_path']:
                 results = open(self.randomsearch_params['file_path'], "a")
                 writer = csv.writer(results, delimiter=",")
                 for line in result.values:
                     writer.writerow(line)
                 results.close()
-      
-            X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
-
-            print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-            
-            model = self.create_model(fitted_model.best_params_['n_nodes'], fitted_model.best_params_['input_shape'])
-
-            history = model.fit(BalancedGenerator(X_train, y_train, batch_size=fitted_model.best_params_['batch_size']), 
-                        steps_per_epoch=math.ceil(X_train.shape[0]/fitted_model.best_params_['batch_size']),
-                        epochs=fitted_model.best_params_['epochs'], 
-                        batch_size=fitted_model.best_params_['batch_size'],
-                        validation_data=(X_cv, y_cv),
-                        verbose=self.verbose
-                        )       
-
-            history = json.dumps(history.history)
-
-            if self.training_results_path is not None:
-                f = open(self.training_results_path + "history_"+app_name+"_" +str(dwt_timewindow) +"_" + str(examples_timewindow) +"_"+ wavelet+ ".json", "w")
-                f.write(history)
-                f.close()
-
-            self.model[app_name] = model
-
-            self.appliances[app_name] = {
-                'dwt_timewindow' : dwt_timewindow,
-                'dwt_overlap' : dwt_overlap,
-                'examples_timewindow' : examples_timewindow,
-                'examples_overlap' : examples_overlap,
-                'timestep' : timestep,
-                'wavelet' : wavelet
-            }
 
     def generate_y(self, dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
         
@@ -291,7 +257,7 @@ class GRU_DWT():
         for df in dfs:
             data = []
             
-            current_index = step
+            current_index = step - 1
 
             while current_index < len(df):
                     
@@ -299,7 +265,7 @@ class GRU_DWT():
 
                 current_index += step
             
-            current_index = examples_step
+            current_index = examples_step - 1
 
             while current_index < len(data):
                 y.append(data[current_index])

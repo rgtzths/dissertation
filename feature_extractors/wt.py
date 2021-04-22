@@ -90,7 +90,7 @@ def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overla
         else:
             values = np.zeros((0, n_columns))
 
-        while current_index + step < len(df) or (step == 1 and current_index < len(df)):
+        while current_index + step <= len(df):
 
             values = np.append(values, df.loc[df.index[current_index:current_index + step].values].values, axis=0)
 
