@@ -8,7 +8,7 @@ import math
 import json
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU
+from tensorflow.keras.layers import Dense, GRU, Conv1D, Attention
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.utils import Sequence
 
@@ -28,12 +28,12 @@ from matthews_correlation import matthews_correlation
 from wt import get_discrete_features
 
 
-class GRU_DWT():
+class GACD():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'GRU_DWT')
+        self.MODEL_NAME = params.get('model_name', 'GACD')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
         #Column used to obtain the classification values (y). 
@@ -56,8 +56,8 @@ class GRU_DWT():
             "dwt_timewindow": 12,
             "dwt_overlap": 6,
             "timestep": 2,
-            "examples_timewindow": 300,
-            "examples_overlap": 150,
+            "examples_overlap" : 150,
+            "examples_timewindow" : 300,
             "wavelet": 'db4',
             "batch_size": 500,
             "epochs": 300,
@@ -92,9 +92,10 @@ class GRU_DWT():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
                 X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
+                print("X_train shape ", X_train.shape)
                 y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
+                print("Positivos ", sum(y_train))
+                print("Negativos ", y_train.shape[0]-sum(y_train))
                 X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
                 
                 if self.verbose != 0:
@@ -142,13 +143,13 @@ class GRU_DWT():
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
             #examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
-            examples_overlap = examples_timewindow-timestep
+            examples_overlap = examples_timewindow - timestep
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
             
             X_test = get_discrete_features(test_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
+            print("X test shape ", X_test.shape)
             y_test = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
+            
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
@@ -183,7 +184,8 @@ class GRU_DWT():
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        model.add(Dense(n_nodes, input_shape=input_shape, activation='relu'))
+        model.add(Conv1D(n_nodes, 3, input_shape=input_shape, activation='relu'))
+        #model.add(Attention())
         model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
         model.add(GRU(n_nodes*2, activation='relu'))
         model.add(Dense(n_nodes, activation='relu'))

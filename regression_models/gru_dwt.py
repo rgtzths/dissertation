@@ -22,7 +22,7 @@ import pandas as pd
 import sys
 import csv
 
-sys.path.insert(1, "../../feature_extractors")
+sys.path.insert(1, "/home/user/Desktop/ZiTh0s/Uni/Tese/codigo/thesis/feature_extractors")
 from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 from wt import get_discrete_features
@@ -54,14 +54,12 @@ class GRU_DWT():
 
         self.default_appliance = {
             "dwt_timewindow": 12,
-            "dwt_overlap": 0,
             "timestep": 2,
             "examples_timewindow": 300,
-            "examples_overlap": 150,
             "wavelet": 'db4',
             "batch_size": 1024,
-            "epochs": 1500,
-            "n_nodes":0.25
+            "epochs": 1000,
+            "n_nodes":32
         }
 
         self.training_results_path = params.get("training_results_path", None)
@@ -85,7 +83,7 @@ class GRU_DWT():
                 dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
                 dwt_overlap = dwt_overlap = dwt_timewindow - timestep
                 examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
-                examples_overlap = examples_timewindow - timestep
+                examples_overlap = 0
                 wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
                 batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
@@ -95,8 +93,6 @@ class GRU_DWT():
 
                 y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
-                X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
-                
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
@@ -104,13 +100,14 @@ class GRU_DWT():
                 if app_name in self.model:
                     model = self.model[app_name]
                 else:
-                    model = self.create_model(int(n_nodes * X_train.shape[1]), (X_train.shape[1], X_train.shape[2]))
+                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
                 history = model.fit(X_train, y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
-                        validation_data=(X_cv, y_cv),
-                        verbose=self.verbose
+                        validation_split=0.15,
+                        verbose=self.verbose,
+                        shuffle=True
                         )       
 
                 history = json.dumps(history.history)
@@ -136,7 +133,7 @@ class GRU_DWT():
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
 
-            appliance_model = self.appliances.get(app_name)
+            appliance_model = self.appliances.get(app_name, {})
 
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
@@ -146,7 +143,6 @@ class GRU_DWT():
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
             
             X_test = get_discrete_features(test_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 

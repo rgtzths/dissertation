@@ -23,16 +23,17 @@ experiment1 = {
         'DAE':DAE({'n_epochs':50,'batch_size':1024}),
         'Seq2Point':Seq2Point({'n_epochs':50,'batch_size':1024}),
         'Seq2Seq':Seq2Seq({'n_epochs':50,'batch_size':1024}),
-        'AFHMM_SAC':AFHMM_SAC({}),
-        'GRU_DWT':GRU_DWT({
-            "verbose" : 2,
-            "appliances" : {
-                "heat pump" : {
-                    "epochs" : 500,
-                }
-            },
-            "predicted_column": ("power", "apparent"), 
-        })
+        #'AFHMM_SAC':AFHMM_SAC({}),
+        #'GRU_DWT':GRU_DWT({
+        #    "verbose" : 2,
+        #    "appliances" : {
+        #        "heat pump" : {
+        #            "epochs" : 1,
+        #            "verbose" : 2
+        #        }
+        #    },
+        #    "predicted_column": ("power", "apparent"), 
+        #})
     },
     'train': {    
         'datasets': {
@@ -41,8 +42,8 @@ experiment1 = {
                 'buildings': {
                     1: {
                         'start_time': '2020-10-01',
-                        #'end_time': '2020-01-15'
-                        'end_time': '2020-10-02T12:00'
+                        'end_time': '2021-01-15'
+                        #'end_time': '2020-10-02'
                     }
                 }                
             }
@@ -55,8 +56,8 @@ experiment1 = {
                 'buildings': {
                     1: {
                         'start_time': '2021-01-15',
-                        #'end_time': '2021-02-05'
-                        'end_time': '2021-01-15T12:00'
+                        'end_time': '2021-02-05'
+                        #'end_time': '2021-01-17'
                     }
                 }
             }
@@ -75,3 +76,8 @@ for i in range(len(errors)):
     print (errors_keys[i])
     print (errors[i])
     print ("\n\n")
+
+#Get all methods used in the experiment and save the models
+for m in api_results_experiment_1.methods:
+    if m in ["GRU_DWT"]:
+        api_results_experiment_1.methods[m].save_model("/home/user/thesis_results/models/" + m)

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from nilmtk.measurement import LEVEL_NAMES
 
-def load_data(dataset_folder, appliance, houses, timestep):
+def load_data(dataset_folder, appliance, houses, timestep, mains_columns, appliance_columns):
     #Array that contains the aggragate readings in dataframes
     aggregated_readings = []
 
@@ -24,6 +24,9 @@ def load_data(dataset_folder, appliance, houses, timestep):
         df.columns = pd.MultiIndex.from_tuples([column_mapping["power"], column_mapping["vrms"]])
         df.columns.set_names(LEVEL_NAMES, inplace=True)
         #appends that dataframe to an array
+        for c in df.columns:
+            if c not in mains_columns:
+                df = df.drop(c, axis=1)
         aggregated_readings.append(df)
 
         #Loads the appliance to be used from that house using a similar logic.
@@ -32,6 +35,9 @@ def load_data(dataset_folder, appliance, houses, timestep):
         df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
         df.columns.set_names(LEVEL_NAMES, inplace=True)
         #Stores the dataframe in a dictionary
+        for c in df.columns:
+            if c not in appliance_columns:
+                df = df.drop(c, axis=1)
         app_readings.append(df)
     
     #Goes through all the houses.
