@@ -12,9 +12,6 @@ from gacd import GACD
 from seq2point import Seq2Point
 from gru_dwt import GRU_DWT
 
-#log = open("./output.log", "w")
-#sys.stdout = log
-
 def run_experiment():
 
     #Experiment Definition

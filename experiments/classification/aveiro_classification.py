@@ -12,9 +12,6 @@ from gacd import GACD
 from seq2point import Seq2Point
 from gru_dwt import GRU_DWT
 
-log = open("./output.log", "w")
-sys.stdout = log
-
 def run_experiment():
 
     #Experiment Definition
@@ -96,7 +93,7 @@ def run_experiment():
                         "carcharger" : {
                             "dwt_timewindow" : 12,
                             "dwt_overlap" : 10,
-                            "examples_overlap" : 0,
+                            "examples_overlap" : 150,
                             "examples_timewindow" : 300,
                             "epochs" : 1,
                             "batch_size" : 1024,
@@ -112,7 +109,7 @@ def run_experiment():
                         "carcharger" : {
                             "dwt_timewindow" : 12,
                             "dwt_overlap" : 10,
-                            "examples_overlap" : 0,
+                            "examples_overlap" : 150,
                             "examples_timewindow" : 300,
                             "epochs" : 1,
                             "batch_size" : 1024,
@@ -143,7 +140,7 @@ def run_experiment():
                     "houses" : {
                         "house_1" : {
                             "beginning" : datetime.datetime(2021, 1, 25),
-                            #"end" : datetime.datetime(2021, 2, 8)
+                            #"end" : datetime.datetime(2021, 2, 6)
                             "end" : datetime.datetime(2021, 1, 25, 12)
                         }
                     }
