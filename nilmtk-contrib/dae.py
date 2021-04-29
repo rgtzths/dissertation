@@ -12,7 +12,12 @@ import tensorflow.keras.backend as K
 from statistics import mean
 import os
 import json
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
 
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 class DAE(Disaggregator):
 

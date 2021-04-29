@@ -5,7 +5,12 @@ from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Reshape, Flatten
 from tensorflow.keras.models import Sequential
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
 
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 class SequenceLengthError(Exception):
     pass
