@@ -158,7 +158,7 @@ class Seq2Point(Disaggregator):
         model.add(Flatten())
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(.2))
-        model.add(Dense(1))
+        model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
         return model
 

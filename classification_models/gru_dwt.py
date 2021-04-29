@@ -106,8 +106,7 @@ class GRU_DWT():
                 else:
                     model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                history = model.fit(BalancedGenerator(X_train, y_train, batch_size), 
-                        steps_per_epoch=math.ceil(X_train.shape[0]/batch_size),
+                history = model.fit(X_train, y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
                         validation_data=(X_cv, y_cv),

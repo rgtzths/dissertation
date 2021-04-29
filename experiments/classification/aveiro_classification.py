@@ -30,7 +30,7 @@ def run_experiment():
                         "heatpump" : {
                             "dwt_timewindow" : 12,
                             "dwt_overlap" : 10,
-                            "examples_overlap" : 0,
+                            "examples_overlap" : 150,
                             "examples_timewindow" : 300,
                             "epochs" : 1,
                             "batch_size" : 1024,
@@ -46,7 +46,7 @@ def run_experiment():
                         "heatpump" : {
                             "dwt_timewindow" : 12,
                             "dwt_overlap" : 10,
-                            "examples_overlap" : 0,
+                            "examples_overlap" : 150,
                             "examples_timewindow" : 300,
                             "epochs" : 1,
                             "batch_size" : 1024,
@@ -60,7 +60,7 @@ def run_experiment():
             "model_path" : "/home/user/thesis_results/models/",
             "timestep" : 2,
             "train" : {
-                "ukdale" : {
+                "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
                         "house_1" : {
@@ -72,7 +72,7 @@ def run_experiment():
                 },
             },
             "test" : {
-                "ukdale" : {
+                "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
                         "house_1" : {

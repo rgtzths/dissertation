@@ -7,10 +7,10 @@ from os import listdir
 import math
 import json
 
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, Conv1D, Attention
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.keras.utils import Sequence
+from keras.models import Sequential, load_model
+from keras.layers import Dense, GRU, Conv1D
+from keras.wrappers.scikit_learn import KerasClassifier
+from keras.utils import Sequence
 
 from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
@@ -54,13 +54,12 @@ class GACD():
 
         self.default_appliance = {
             "dwt_timewindow": 12,
-            "dwt_overlap": 6,
             "timestep": 2,
-            "examples_overlap" : 150,
-            "examples_timewindow" : 300,
+            "examples_timewindow": 300,
+            "examples_overlap":0,
             "wavelet": 'db4',
-            "batch_size": 500,
-            "epochs": 300,
+            "batch_size": 1024,
+            "epochs": 1000,
             "n_nodes":32
         }
 
@@ -81,9 +80,9 @@ class GACD():
 
                 appliance_model = self.appliances.get(app_name, {})
 
-                dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
-                dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
                 timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+                dwt_overlap = dwt_overlap = dwt_timewindow - timestep
                 examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
                 examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
                 wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
@@ -92,12 +91,9 @@ class GACD():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
                 X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-                print("X_train shape ", X_train.shape)
+
                 y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-                print("Positivos ", sum(y_train))
-                print("Negativos ", y_train.shape[0]-sum(y_train))
-                X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
-                
+
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
@@ -110,14 +106,15 @@ class GACD():
                 history = model.fit(X_train, y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
-                        validation_data=(X_cv, y_cv),
-                        verbose=self.verbose
-                        )          
+                        validation_split=0.15,
+                        verbose=self.verbose,
+                        shuffle=True
+                        )       
 
                 history = json.dumps(history.history)
 
                 if self.training_results_path is not None:
-                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                    f = open(self.training_results_path + "history_"+app_name+".json", "w")
                     f.write(history)
                     f.close()
 
@@ -128,45 +125,38 @@ class GACD():
                 print("Executing RandomSearch")
             results = self.random_search(train_mains, train_appliances)
 
-    def disaggregate_chunk(self, test_mains, test_appliances):
+    def disaggregate_chunk(self, test_mains):
+        test_predictions_list = []
 
         appliance_powers_dict = {}
         
-        for app_name, appliance_power in test_appliances:
+        for i, app_name in enumerate(self.model):
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
 
-            appliance_model = self.appliances.get(app_name)
-            dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
-            dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
+            appliance_model = self.appliances.get(app_name, {})
+
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+            dwt_overlap = dwt_timewindow - timestep
             examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
-            #examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
             examples_overlap = examples_timewindow - timestep
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
             
             X_test = get_discrete_features(test_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-            print("X test shape ", X_test.shape)
-            y_test = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-            
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
             pred = self.model[app_name].predict(X_test)
-            pred = [ 0 if p < 0.5 else 1 for p in pred ]
+            pred = [p[0] for p in pred]
+
+            column = pd.Series(
+                    pred, index=test_mains[0].index, name=i)
+            appliance_powers_dict[app_name] = column
         
-            y_test = y_test.reshape(len(y_test),)
-            tn, fp, fn, tp = confusion_matrix(y_test, pred).ravel()
+        test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
-            if self.verbose == 2:
-                print("True Positives: ", tp)
-                print("True Negatives: ", tn)  
-                print("False Negatives: ", fn)  
-                print("False Positives: ", fp)        
-                print( "MCC: ", matthews_corrcoef(y_test, pred))
-
-            appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
-        return appliance_powers_dict
+        return test_predictions_list
 
     def save_model(self, folder_name):
         #For each appliance trained store its model
@@ -174,22 +164,21 @@ class GACD():
             self.model[app].save(join(folder_name, app + "_" + self.MODEL_NAME + ".h5"))
 
     def load_model(self, folder_name):
-        #Get all the models trained in the given folder and load them.
+                #Get all the models trained in the given folder and load them.
 
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
         model.add(Conv1D(n_nodes, 3, input_shape=input_shape, activation='relu'))
-        #model.add(Attention())
         model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
         model.add(GRU(n_nodes*2, activation='relu'))
         model.add(Dense(n_nodes, activation='relu'))
-        model.add(Dense(1, activation='sigmoid'))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=["RootMeanSquaredError"])
 
         return model
 
@@ -208,11 +197,14 @@ class GACD():
             
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
 
-            print("Loading Data")
             X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+
+            n_nodes = self.randomsearch_params['n_nodes']
             
             #Defines the input shape according to the timewindow and timestep.
             self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
+
+            self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] * n_nodes[0]), int(X_train.shape[1]*n_nodes[1]))
 
             #Generate the appliance timeseries acording to the timewindow and timestep
             y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
@@ -220,7 +212,7 @@ class GACD():
             X_train_rc, y_train_rc = shuffle(X_train, y_train, random_state=0)
 
             model = KerasClassifier(build_fn=self.create_model, verbose=0)
-            print("Doing the iterations...")
+            
             randomsearch = RandomizedSearchCV(
                 estimator=model,
                 param_distributions=self.randomsearch_params['model'], 
@@ -234,7 +226,6 @@ class GACD():
 
             fitted_model = randomsearch.fit(X_train_rc, y_train_rc)
 
-            print("Saving Results")
             result = pd.DataFrame(fitted_model.cv_results_)
             result['param_dwt_timewindow'] = dwt_timewindow
             result['param_examples_timewindow'] = examples_timewindow
@@ -246,11 +237,43 @@ class GACD():
                 for line in result.values:
                     writer.writerow(line)
                 results.close()
+      
+            X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
+
+            print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+            
+            model = self.create_model(fitted_model.best_params_['n_nodes'], fitted_model.best_params_['input_shape'])
+
+            history = model.fit(BalancedGenerator(X_train, y_train, batch_size=fitted_model.best_params_['batch_size']), 
+                        steps_per_epoch=math.ceil(X_train.shape[0]/fitted_model.best_params_['batch_size']),
+                        epochs=fitted_model.best_params_['epochs'], 
+                        batch_size=fitted_model.best_params_['batch_size'],
+                        validation_data=(X_cv, y_cv),
+                        verbose=self.verbose
+                        )       
+
+            history = json.dumps(history.history)
+
+            if self.training_results_path is not None:
+                f = open(self.training_results_path + "history_"+app_name+"_" +str(dwt_timewindow) +"_" + str(examples_timewindow) +"_"+ wavelet+ ".json", "w")
+                f.write(history)
+                f.close()
+
+            self.model[app_name] = model
+
+            self.appliances[app_name] = {
+                'dwt_timewindow' : dwt_timewindow,
+                'dwt_overlap' : dwt_overlap,
+                'examples_timewindow' : examples_timewindow,
+                'examples_overlap' : examples_overlap,
+                'timestep' : timestep,
+                'wavelet' : wavelet
+            }
 
     def generate_y(self, dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
         
         y = []
-        examples_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow- dwt_overlap))
+        examples_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow - dwt_overlap))
 
         step = int((dwt_timewindow-dwt_overlap)/timestep)
 
@@ -262,11 +285,11 @@ class GACD():
 
             while current_index < len(df):
                     
-                data.append(1) if df.loc[df.index[current_index], self.column] > 20 else data.append(0)
+                data.append(df.loc[df.index[current_index], self.column])
 
                 current_index += step
             
-            current_index = examples_step - 1
+            current_index = step - 1
 
             while current_index < len(data):
                 y.append(data[current_index])
@@ -274,24 +297,3 @@ class GACD():
                 current_index += examples_step
             
         return np.array(y)
-
-
-class BalancedGenerator(Sequence):
-
-    def __init__(self, x_set, y_set, batch_size):
-        self.x, self.y = x_set, y_set
-        self.batch_size = batch_size
-
-    def __len__(self):
-        return math.ceil(len(self.x) / self.batch_size)
-
-    def __getitem__(self, idx):
-
-        i_0 = np.random.choice( np.where(self.y == 0)[0], size=int(self.batch_size/2), replace = True)
-
-        i_1 = np.random.choice( np.where(self.y == 1)[0], size=int(self.batch_size/2), replace = True)
-
-        i = np.append(i_0, i_1)
-
-        
-        return (self.x[i,:,:], self.y[i])

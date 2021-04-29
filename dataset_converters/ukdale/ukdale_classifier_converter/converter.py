@@ -60,7 +60,7 @@ def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
             df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
             df.columns.set_names(LEVEL_NAMES, inplace=True)            
             
-            df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance), header=False)
+            df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
             
         print()
 

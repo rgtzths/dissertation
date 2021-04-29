@@ -58,6 +58,7 @@ class GRU_DWT():
             "examples_timewindow": 300,
             "wavelet": 'db4',
             "batch_size": 1024,
+            "examples_overlap" : 0,
             "epochs": 1000,
             "n_nodes":32
         }
@@ -78,12 +79,11 @@ class GRU_DWT():
                     print("Preparing Dataset for %s" % app_name)
 
                 appliance_model = self.appliances.get(app_name, {})
-
                 timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
                 dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
                 dwt_overlap = dwt_overlap = dwt_timewindow - timestep
                 examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
-                examples_overlap = 0
+                examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
                 wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
                 batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
