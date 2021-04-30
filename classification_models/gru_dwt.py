@@ -27,6 +27,13 @@ from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 from wt import get_discrete_features
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
 
 class GRU_DWT():
     def __init__(self, params):

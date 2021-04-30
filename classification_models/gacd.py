@@ -27,6 +27,12 @@ from generate_timeseries import generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 from wt import get_discrete_features
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 class GACD():
     def __init__(self, params):
@@ -92,8 +98,8 @@ class GACD():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
                 X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-                print("X_train shape ", X_train.shape)
                 y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+                print("X_train shape ", X_train.shape)
                 print("Positivos ", sum(y_train))
                 print("Negativos ", y_train.shape[0]-sum(y_train))
                 X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
@@ -188,6 +194,7 @@ class GACD():
         model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
         model.add(GRU(n_nodes*2, activation='relu'))
         model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/2), activation='relu'))
         model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
 
