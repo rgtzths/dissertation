@@ -13,6 +13,7 @@ from seq2point import Seq2Point
 from gru_dwt import GRU_DWT
 from gru import GRU_RNN
 from lstm import LSTM_RNN
+from resnet import ResNet
 
 def run_experiment():
 
@@ -22,66 +23,82 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "GACD" :GACD( {
+                #"GACD" :GACD( {
+                #    "verbose" : 2,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GACD/results_heatpump.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GACD/model_checkpoint_heatpump.h5",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            "dwt_timewindow" : 12,
+                #            "dwt_overlap" : 10,
+                #            "examples_overlap" : 150,
+                #            "examples_timewindow" : 300,
+                #            "epochs" : 1,
+                #            "batch_size" : 1024,
+                #            "wavelet": 'bior2.2',
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
+                #"GRU_DWT" : GRU_DWT( {
+                #    "verbose" : 2,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GRU_DWT/results_heatpump.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GRU_DWT/model_checkpoint_heatpump.h5",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            "dwt_timewindow" : 12,
+                #            "dwt_overlap" : 10,
+                #            "examples_overlap" : 60,
+                #            "examples_timewindow" : 120,
+                #            "epochs" : 1,
+                #            "batch_size" : 1024,
+                #            "wavelet": 'db4',
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
+                #"LSTM" : LSTM_RNN({
+                #    'timewindow' : 180,
+                #    'timestep' : 2,
+                #    'overlap' : 178,
+                #    'verbose' : 2,
+                #    'n_nodes' : 90,
+                #    'epochs' : 5,
+                #    'batch_size' : 1024,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/LSTM/results_heatpump.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_heatpump.h5"
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'timewindow' : 180,
+                #    'timestep' : 2,
+                #    'overlap' : 178,
+                #    'verbose' : 2,
+                #    'n_nodes' : 90,
+                #    'epochs' : 1,
+                #    'batch_size' : 1024,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GRU/results_heatpump.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_heatpump.h5"
+                #}),
+                "ResNet" : ResNet( {
                     "verbose" : 2,
                     "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GACD/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GACD/model_checkpoint_heatpump.h5",
+                    "results_path" : "/home/user/thesis_results/results/ResNet/results_heatpump.txt",
+                    "checkpoint_file" : "/home/user/thesis_results/models/ResNet/model_checkpoint_heatpump.h5",
                     "appliances" : {
                         "heatpump" : {
-                            "dwt_timewindow" : 12,
-                            "dwt_overlap" : 10,
-                            "examples_overlap" : 150,
-                            "examples_timewindow" : 300,
-                            "epochs" : 1,
-                            "batch_size" : 1024,
-                            "wavelet": 'bior2.2',
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : 1,
+                            'batch_size' : 1024,
                         }
                     },
                     "predicted_column": ("power", "apparent"), 
                 }),
-                "GRU_DWT" : GRU_DWT( {
-                    "verbose" : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU_DWT/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU_DWT/model_checkpoint_heatpump.h5",
-                    "appliances" : {
-                        "heatpump" : {
-                            "dwt_timewindow" : 12,
-                            "dwt_overlap" : 10,
-                            "examples_overlap" : 60,
-                            "examples_timewindow" : 120,
-                            "epochs" : 1,
-                            "batch_size" : 1024,
-                            "wavelet": 'db4',
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
-                "LSTM" : LSTM_RNN({
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
-                    'verbose' : 2,
-                    'n_nodes' : 90,
-                    'epochs' : 5,
-                    'batch_size' : 1024,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/LSTM/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_heatpump.h5"
-                }),
-                "GRU" : GRU_RNN({
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
-                    'verbose' : 2,
-                    'n_nodes' : 90,
-                    'epochs' : 1,
-                    'batch_size' : 1024,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_heatpump.h5"
-                })
             },
             "model_path" : "/home/user/thesis_results/models/",
             "timestep" : 2,
@@ -117,66 +134,82 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "GACD" :GACD( {
+                #"GACD" :GACD( {
+                #    "verbose" : 2,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GACD/results_carcharger.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GACD/model_checkpoint_carcharger.h5",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            "dwt_timewindow" : 12,
+                #            "dwt_overlap" : 10,
+                #            "examples_overlap" : 150,
+                #            "examples_timewindow" : 300,
+                #            "epochs" : 1,
+                #            "batch_size" : 1024,
+                #            "wavelet": 'bior2.2',
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
+                #"GRU_DWT" : GRU_DWT( {
+                #    "verbose" : 2,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GRU_DWT/results_carcharger.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GRU_DWT/model_checkpoint_carcharger.h5",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            "dwt_timewindow" : 12,
+                #            "dwt_overlap" : 10,
+                #            "examples_overlap" : 60,
+                #            "examples_timewindow" : 120,
+                #            "epochs" : 1,
+                #            "batch_size" : 1024,
+                #            "wavelet": 'db4',
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
+                #"LSTM" : LSTM_RNN({
+                #    'timewindow' : 180,
+                #    'timestep' : 2,
+                #    'overlap' : 178,
+                #    'verbose' : 2,
+                #    'n_nodes' : 90,
+                #    'epochs' : 1,
+                #    'batch_size' : 1024,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/LSTM/results_carcharger.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_carcharger.h5"
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'timewindow' : 180,
+                #    'timestep' : 2,
+                #    'overlap' : 178,
+                #    'verbose' : 2,
+                #    'n_nodes' : 90,
+                #    'epochs' : 1,
+                #    'batch_size' : 1024,
+                #    "training_results_path" : "/home/user/thesis_results/history/",
+                #    "results_path" : "/home/user/thesis_results/results/GRU/results_carcharger.txt",
+                #    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_carcharger.h5"
+                #}),
+                "ResNet" : ResNet( {
                     "verbose" : 2,
                     "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GACD/results_carcharger.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GACD/model_checkpoint_carcharger.h5",
+                    "results_path" : "/home/user/thesis_results/results/ResNet/results_carcharger.txt",
+                    "checkpoint_file" : "/home/user/thesis_results/models/ResNet/model_checkpoint_carcharger.h5",
                     "appliances" : {
                         "carcharger" : {
-                            "dwt_timewindow" : 12,
-                            "dwt_overlap" : 10,
-                            "examples_overlap" : 150,
-                            "examples_timewindow" : 300,
-                            "epochs" : 1,
-                            "batch_size" : 1024,
-                            "wavelet": 'bior2.2',
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : 1,
+                            'batch_size' : 1024,
                         }
                     },
                     "predicted_column": ("power", "apparent"), 
                 }),
-                "GRU_DWT" : GRU_DWT( {
-                    "verbose" : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU_DWT/results_carcharger.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU_DWT/model_checkpoint_carcharger.h5",
-                    "appliances" : {
-                        "carcharger" : {
-                            "dwt_timewindow" : 12,
-                            "dwt_overlap" : 10,
-                            "examples_overlap" : 60,
-                            "examples_timewindow" : 120,
-                            "epochs" : 1,
-                            "batch_size" : 1024,
-                            "wavelet": 'db4',
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
-                "LSTM" : LSTM_RNN({
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
-                    'verbose' : 2,
-                    'n_nodes' : 90,
-                    'epochs' : 1,
-                    'batch_size' : 1024,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/LSTM/results_carcharger.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_carcharger.h5"
-                }),
-                "GRU" : GRU_RNN({
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
-                    'verbose' : 2,
-                    'n_nodes' : 90,
-                    'epochs' : 1,
-                    'batch_size' : 1024,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU/results_carcharger.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_carcharger.h5"
-                })
             },
             "model_path" : "/home/user/thesis_results/models/",
             "timestep" : 2,
