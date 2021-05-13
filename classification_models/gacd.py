@@ -8,9 +8,11 @@ import math
 import json
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, Conv1D, Attention
+from tensorflow.keras.layers import Dense, GRU, Conv1D
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.utils import Sequence
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
@@ -23,9 +25,8 @@ import sys
 import csv
 
 sys.path.insert(1, "/home/rteixeira/thesis/feature_extractors")
-from generate_timeseries import generate_appliance_timeseries
+from wt import get_discrete_features, get_appliance_classification
 from matthews_correlation import matthews_correlation
-from wt import get_discrete_features
 
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -71,6 +72,8 @@ class GACD():
         }
 
         self.training_results_path = params.get("training_results_path", None)
+        self.results_file = params.get("results_path", None)
+        self.checkpoint_file = params.get("checkpoint_file", None)
 
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
@@ -97,12 +100,14 @@ class GACD():
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
+
                 X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-                y_train = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-                print("X_train shape ", X_train.shape)
-                print("Positivos ", sum(y_train))
-                print("Negativos ", y_train.shape[0]-sum(y_train))
-                X_train, X_cv, y_train, y_cv  = train_test_split(X_train, y_train, stratify=y_train, test_size=self.cv, random_state=0)
+
+                y_train = get_appliance_classification(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+
+                if( self.verbose != 0):
+                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
                 
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -113,12 +118,17 @@ class GACD():
                 else:
                     model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                history = model.fit(X_train, y_train,
+                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
+
+                history = model.fit(X_train, 
+                        y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
-                        validation_data=(X_cv, y_cv),
+                        shuffle=True,
+                        callbacks=[checkpoint],
+                        validation_split=self.cv,
                         verbose=self.verbose
-                        )          
+                        )         
 
                 history = json.dumps(history.history)
 
@@ -127,8 +137,16 @@ class GACD():
                     f.write(history)
                     f.close()
 
+                model.load_weights(self.checkpoint_file)
+
                 #Stores the trained model.
                 self.model[app_name] = model
+
+                if self.results_file is not None:
+                    f = open(self.results_file, "w")
+                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.close()
         else:
             if self.verbose != 0:
                 print("Executing RandomSearch")
@@ -147,21 +165,24 @@ class GACD():
             dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
-            #examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
             examples_overlap = examples_timewindow - timestep
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
             
             X_test = get_discrete_features(test_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
-            print("X test shape ", X_test.shape)
-            y_test = self.generate_y(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+
+            y_test = get_appliance_classification(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
             
+            if( self.verbose != 0):
+                print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº de Negativos ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
             pred = self.model[app_name].predict(X_test)
-            pred = [ 0 if p < 0.5 else 1 for p in pred ]
-        
-            y_test = y_test.reshape(len(y_test),)
+            pred = [ np.where(p == max(p))[0][0]  for p in pred ]
+            
+            y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
             tn, fp, fn, tp = confusion_matrix(y_test, pred).ravel()
 
             if self.verbose == 2:
@@ -170,6 +191,17 @@ class GACD():
                 print("False Negatives: ", fn)  
                 print("False Positives: ", fp)        
                 print( "MCC: ", matthews_corrcoef(y_test, pred))
+            
+            if self.results_file is not None:
+                f = open(self.results_file, "a")
+                f.write("Nº de Positivos para teste: " + str(sum(y_test)) + "\n")
+                f.write("Nº de Negativos para teste: " + str(len(y_test)- sum(y_test)) + "\n")
+                f.write("MCC: "+str(matthews_corrcoef(y_test, pred))+ "\n")
+                f.write("True Positives: "+str(tp)+ "\n")
+                f.write("True Negatives: "+str(tn)+ "\n")
+                f.write("False Positives: "+str(fp)+ "\n")
+                f.write("False Negatives: "+str(fn)+ "\n")
+                f.close()
 
             appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
         return appliance_powers_dict
@@ -190,13 +222,12 @@ class GACD():
         #Creates a specific model.
         model = Sequential()
         model.add(Conv1D(n_nodes, 3, input_shape=input_shape, activation='relu'))
-        #model.add(Attention())
         model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
-        model.add(GRU(n_nodes*2, activation='relu'))
-        model.add(Dense(n_nodes, activation='relu'))
-        model.add(Dense(int(n_nodes/2), activation='relu'))
-        model.add(Dense(1, activation='sigmoid'))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
+        model.add(GRU(n_nodes, return_sequences=True,  activation='relu'))
+        model.add(GRU(int(n_nodes/2), activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(2, activation='softmax'))
+        model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
         return model
 
@@ -253,35 +284,6 @@ class GACD():
                 for line in result.values:
                     writer.writerow(line)
                 results.close()
-
-    def generate_y(self, dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
-        
-        y = []
-        examples_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow- dwt_overlap))
-
-        step = int((dwt_timewindow-dwt_overlap)/timestep)
-
-        #Starting the conversion (goes through all the dataframes)
-        for df in dfs:
-            data = []
-            
-            current_index = step - 1
-
-            while current_index < len(df):
-                    
-                data.append(1) if df.loc[df.index[current_index], self.column] > 20 else data.append(0)
-
-                current_index += step
-            
-            current_index = examples_step - 1
-
-            while current_index < len(data):
-                y.append(data[current_index])
-
-                current_index += examples_step
-            
-        return np.array(y)
-
 
 class BalancedGenerator(Sequence):
 

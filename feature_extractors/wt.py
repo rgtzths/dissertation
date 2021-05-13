@@ -1,10 +1,12 @@
 import numpy as np
+import pandas as pd
 import pywt
 from collections import Counter
 from scipy import stats
 import math
 
 from seasonality import get_seasonality
+
 
 def calculate_entropy(list_values):
     counter_values = Counter(list_values).most_common()
@@ -38,88 +40,57 @@ def calculate_crossings(list_values):
     no_mean_crossings = len(mean_crossing_indices)
     return [no_mean_crossings]
  
-#def get_discrete_features(data, waveletname):
-#    X = []
-#
-#    for signal_no in range(0, len(data)):
-#        features = []
-#        for signal_comp in range(0,data.shape[2]):
-#            signal = data[signal_no, :, signal_comp]
-#            list_coeff = pywt.wavedec(signal, waveletname)
-#            for coeff in list_coeff:
-#                entropy = calculate_entropy(coeff)
-#                crossings = calculate_crossings(coeff)
-#                statistics = calculate_statistics(coeff)
-#                features += [entropy] + crossings + statistics
-#        X.append(features)
-#    return np.array(X)
-#
-#def get_continuous_features(data, waveletname):
-#
-#    X = np.ndarray(shape=(data.shape[0], data.shape[1]-1, data.shape[1]-1, data.shape[2]))
-#
-#    for i in range(0, data.shape[0]):
-#        for j in range(0, data.shape[2]):
-#            signal = data[i, :, j]
-#            coeff, freq = pywt.cwt(signal, range(1, data.shape[1]), waveletname, 1)
-#            coeff_ = coeff[:,:data.shape[1]-1]
-#            X[i, :, :, j] = coeff_ 
-#    
-#    return X
 
 def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
+    X = []
     
     n_columns = len(dfs[0].columns.values)
 
-    step = int((dwt_timewindow-dwt_overlap)/timestep) 
-
-    X = []
-    
     window_size = int(examples_timewindow / (dwt_timewindow - dwt_overlap))
 
-    overlap_index = int((examples_timewindow - examples_overlap) / (dwt_timewindow- dwt_overlap))
+    window_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow - dwt_overlap))
+
+    window_pad = window_size - window_step
+
+    dwt_size = int(dwt_timewindow * n_columns / timestep)
+
+    step = int((dwt_timewindow - dwt_overlap)*n_columns/timestep)
+
+    pad = dwt_size - step
+    
     for df in dfs:
-        current_index = 0
+                
+        new_mains = df.values.flatten()
 
-        window_vectors = []
-        for i in range(0, math.ceil( examples_overlap / (dwt_timewindow - dwt_overlap))):
-            window_vectors.append(list(np.zeros(15*n_columns + 9)))
+        new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
+        
+        new_mains = np.array([ calculate_wavelet(new_mains[i : i + dwt_size], n_columns, waveletname) for i in range(0, len(new_mains) - dwt_size + 1, step)])
+        n_cols = new_mains.shape[1]
+        new_mains = new_mains.flatten()
+        new_mains = np.pad(new_mains, (window_pad*n_cols, 0),'constant', constant_values=(0,0))
+        new_mains = new_mains.reshape(-1, n_cols)
+        new_mains = np.array([ new_mains[i : i + window_size].flatten() for i in range(0, len(new_mains) - window_size +1, window_step)])
 
-        if dwt_overlap != 0:
-            values = np.zeros((math.ceil(dwt_overlap/timestep), n_columns))
-        else:
-            values = np.zeros((0, n_columns))
+        X.append(pd.DataFrame(new_mains))
 
-        while current_index + step <= len(df):
+    X = pd.concat(X, axis=0).values
 
-            values = np.append(values, df.loc[df.index[current_index:current_index + step].values].values, axis=0)
+    return X.reshape((X.shape[0], window_size, -1))
 
-            if values.shape[0] * values.shape[1] != int(dwt_timewindow*n_columns/timestep):
-                raise Exception("Invalid length of values ", values.shape[0] * values.shape[1], int(dwt_timewindow*n_columns/timestep))
+def calculate_wavelet(values, n_columns, waveletname):
+    values = values.reshape((-1, n_columns))
 
-            feature_vector = []
-            
-            for signal_comp in range(0,values.shape[1]):
-                list_coeff = pywt.wavedec(values[:, signal_comp], waveletname)
-                for coeff in list_coeff:
-                    entropy = calculate_entropy(coeff)
-                    crossings = calculate_crossings(coeff)
-                    statistics = calculate_statistics(coeff)
-                    feature_vector += entropy + crossings + statistics
+    feature_vector = []
+    
+    for signal_comp in range(0,values.shape[1]):
+        list_coeff = pywt.wavedec(values[:, signal_comp], waveletname)
+        for coeff in list_coeff:
+            entropy = calculate_entropy(coeff)
+            crossings = calculate_crossings(coeff)
+            statistics = calculate_statistics(coeff)
+            feature_vector += entropy + crossings + statistics
 
-            feature_vector += get_seasonality(df.index[current_index + step -1])
-            
-            window_vectors.append(feature_vector)
-            if len(window_vectors) == window_size:
-
-                X.append(window_vectors)
-
-                window_vectors = window_vectors[overlap_index:]
-            
-            values = values[step:,:]
-            current_index += step
-
-    return np.array(X)
+    return feature_vector
 
 def get_continuous_features(data, waveletname, timewindow, timestep, overlap):
 
@@ -165,3 +136,35 @@ def get_continuous_features(data, waveletname, timewindow, timestep, overlap):
             current_index += overlap
 
     return X
+
+def get_appliance_classification(dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
+        y = []
+
+        window_size = int(examples_timewindow / (dwt_timewindow - dwt_overlap))
+
+        window_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow - dwt_overlap))
+
+        window_pad = window_size - window_step
+
+        dwt_size = int(dwt_timewindow / timestep)
+
+        step = int((dwt_timewindow - dwt_overlap)/timestep)
+
+        pad = dwt_size - step
+        
+        #Starting the conversion (goes through all the dataframes)
+        for df in dfs:
+            app = df.values.flatten()
+
+            app = np.pad(app, (pad, 0),'constant', constant_values=(0,0))
+            
+            app = np.array([[0, 1] if app[i+dwt_size-pad] > 15 else [1, 0] for i in range(0, len(app) - dwt_size +1, step) ])
+            
+            app = app.flatten()
+
+            app = np.pad(app, (window_pad*2, 0), 'constant', constant_values=(0,0))
+            
+            app = app.reshape(-1, 2)
+            [y.append(app[i+window_size-window_pad]) for i in range(0, len(app) - window_size +1, window_step)]
+            
+        return np.array(y)

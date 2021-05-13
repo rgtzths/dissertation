@@ -263,16 +263,11 @@ experiment3 = {
             'UKDale': {
                 'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
+                    3: {
                         'start_time': "2013-03-01",
-                        #'end_time':  "2013-07-01"
+                        #'end_time':  "2013-04-08"
                         'end_time' : "2013-03-02"
-                    },
-                    #3: {
-                    #    'start_time': "2013-02-28",
-                    #    #'end_time':  "2013-04-08"
-                    #    'end_time' : "2013-02-29"
-                    #}
+                    }
                 
                 }
             }
@@ -374,7 +369,7 @@ experiment4 = {
 experiment5 = {
     'power': {'mains': ['apparent'],'appliance': ['active']},
     'sample_rate': 6,
-    'appliances': ['oven'],
+    'appliances': ['electric oven'],
     'methods': {
         'DAE':DAE({'n_epochs':1,'batch_size':1024}),
         'Seq2Point':Seq2Point({'n_epochs':1,'batch_size':1024}),
@@ -383,7 +378,7 @@ experiment5 = {
         #    "verbose" : 2,
         #    "training_results_path" : "/home/user/thesis_results/history/",
         #    "appliances" : {
-        #        "oven" : {
+        #        "electric oven" : {
         #            "dwt_timewindow" : 12,
         #            "dwt_overlap" : 10,
         #            "examples_overlap" : 0,
@@ -399,7 +394,7 @@ experiment5 = {
         #    "verbose" : 2,
         #    "training_results_path" : "/home/user/thesis_results/history/",
         #    "appliances" : {
-        #        "oven" : {
+        #        "electric oven" : {
         #            "dwt_timewindow" : 12,
         #            "dwt_overlap" : 10,
         #            "examples_overlap" : 0,
@@ -418,9 +413,9 @@ experiment5 = {
                 'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
-                        'start_time': "2014-06-29",
+                        'start_time': "2014-06-30",
                         #'end_time':  "2014-11-01"
-                        'end_time':  "2014-06-30"
+                        'end_time':  "2014-07-01"
                     }
                 }
             }
@@ -541,16 +536,16 @@ for i in range(len(errors)):
     print (errors[i])
     print ("\n\n")
 
-#api_results_experiment_3 = API(experiment3)
-#
-#
-##Get all the results in the experiment and print them.
-#errors_keys = api_results_experiment_3.errors_keys
-#errors = api_results_experiment_3.errors
-#for i in range(len(errors)):
-#    print (errors_keys[i])
-#    print (errors[i])
-#    print ("\n\n")
+api_results_experiment_3 = API(experiment3)
+
+
+#Get all the results in the experiment and print them.
+errors_keys = api_results_experiment_3.errors_keys
+errors = api_results_experiment_3.errors
+for i in range(len(errors)):
+    print (errors_keys[i])
+    print (errors[i])
+    print ("\n\n")
 
 api_results_experiment_4 = API(experiment4)
 
@@ -564,15 +559,15 @@ for i in range(len(errors)):
     print ("\n\n")
 
 
-#api_results_experiment_5 = API(experiment5)
-#
-##Get all the results in the experiment and print them.
-#errors_keys = api_results_experiment_5.errors_keys
-#errors = api_results_experiment_5.errors
-#for i in range(len(errors)):
-#    print (errors_keys[i])
-#    print (errors[i])
-#    print ("\n\n")
+api_results_experiment_5 = API(experiment5)
+
+#Get all the results in the experiment and print them.
+errors_keys = api_results_experiment_5.errors_keys
+errors = api_results_experiment_5.errors
+for i in range(len(errors)):
+    print (errors_keys[i])
+    print (errors[i])
+    print ("\n\n")
 
 api_results_experiment_6 = API(experiment6)
 

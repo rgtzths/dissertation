@@ -25,36 +25,27 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap):
     Numpy array of feature vectors
     """
     data = []
+
     n_columns = len(dfs[0].columns.values)
+    step = int((timewindow - overlap)*n_columns/timestep)
 
-    overlap_index = int((timewindow-overlap)*n_columns/timestep)
+    window_size = int(timewindow * n_columns /timestep)
 
-    step = int((timewindow - overlap)/timestep)
+    pad = window_size - step
 
     for df in dfs:
         
-        current_index = 0
+        new_mains = df.values.flatten()
 
-        if overlap != 0:
-            values = np.zeros(overlap_index)
-        else:
-            values = np.zeros(0)
+        new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
+        
+        new_mains = np.array([ new_mains[i : i + window_size] for i in range(0, len(new_mains) - window_size + 1, step)])
 
-        while current_index + step < len(df):
-            
-            values = np.append(values, df.loc[df.index[current_index:current_index + step ].values].values)
+        data.append(pd.DataFrame(new_mains))
 
-            if len(values) != int(timewindow*n_columns/timestep):
-                raise Exception("Invalid length of values ", len(values), int(timewindow*n_columns/timestep))
+    data = pd.concat(data, axis=0)
 
-            data.append(values)
-
-            values = values[overlap_index:]
-            
-            current_index += step
-
-    data = np.array(data)
-    return data
+    return data.values.reshape((-1, int(window_size/n_columns), n_columns))
 
 def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, column, overlap):
     """
@@ -79,22 +70,18 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
     data = []
     step = int((timewindow-overlap)/timestep)
 
+    window_size = int(timewindow/timestep)
+    
+    pad = window_size - step
+
     #Starting the conversion (goes through all the dataframes)
     for df in dfs:
-   
-        current_index = 0
+        app = df.values.flatten()
+        app = np.pad(app, (pad, 0),'constant', constant_values=(0,-1))
 
-        while current_index + step < len(df):
-
-            value = df.loc[df.index[current_index + step ], column]
-                
-            if is_classification:
-                
-                data.append(1) if value > 20 else data.append(0)
-                
-            else:
-                data.append(value)
-            
-            current_index += step    
+        if is_classification:
+            [data.append([0, 1]) if app[i+window_size-pad] > 15 else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
+        else:
+            [data.append(app[i+window_size]) for i in range(0, len(app), step)]
 
     return np.array(data)

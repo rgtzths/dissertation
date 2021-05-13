@@ -4,10 +4,13 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
+import json
 
 from keras.models import Sequential, load_model
 from keras.layers import Dense, LSTM
 from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
@@ -19,6 +22,12 @@ sys.path.insert(1, "../feature_extractors")
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 class LSTM_RNN():
     def __init__(self, params):
@@ -40,19 +49,28 @@ class LSTM_RNN():
         
         #Defines the step bertween each reading (in seconds)
         self.timestep = params.get('timestep', {})
+        self.overlap = params.get('overlap', {})
         
         #Defines the number of nodes in the GRU, 
         #Normaly varies between 0.5 and 2 time the input size.
         self.n_nodes = params.get('n_nodes', {})
+
         #Number of epochs that the models run
         self.epochs = params.get('epochs', {})
+
         #Number of examples presented per batch
         self.batch_size = params.get('batch_size', {})
+        
         #Decides if the model runs randomsearch
         self.randomsearch = params.get('randomsearch', False)
         #In case of randomsearch = True this variable contains the information
         #to run the randomsearch (hyperparameter range definition).
         self.randomsearch_params = params.get('randomsearch_params', None)
+
+        self.training_results_path = params.get("training_results_path", None)
+        self.checkpoint_file = params.get("checkpoint_file", None)
+        self.results_file = params.get("results_path", None)
+
 
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
@@ -67,20 +85,13 @@ class LSTM_RNN():
                 if( self.verbose != 0):
                     print("Preparing Dataset for %s" % app_name)
 
-                #Get the timewindow and timestep
-                timewindow = self.timewindow.get(app_name, 5)
-                timestep = self.timestep.get(app_name, 6)
-
-                X_train = generate_main_timeseries(train_mains, False, timewindow, timestep)
+                X_train = generate_main_timeseries(train_mains, self.timewindow, self.timestep, self.overlap)
                 
-                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column)
+                y_train = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
 
-                #Divides the training set into training and cross validations
-                X_cv = X_train[int(len(X_train)*(1-self.cv)):]
-                X_train = X_train[0:int(len(X_train)*(1-self.cv))]
-                
-                y_cv = y_train[int(len(y_train)*(1-self.cv)):]
-                y_train = y_train[0:int(len(y_train)*(1-self.cv))]
+                if( self.verbose != 0):
+                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
             
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -89,13 +100,37 @@ class LSTM_RNN():
                 if app_name in self.model:
                     model = self.model[app_name]
                 else:
-                    model = self.create_model(self.n_nodes.get(app_name, X_train.shape[1]),(X_train.shape[1], X_train.shape[2]))
+                    model = self.create_model(self.n_nodes, (X_train.shape[1], X_train.shape[2]))
 
+                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
                 #Fits the model to the training data.
-                model.fit(X_train, y_train, epochs=self.epochs.get(app_name, 200), batch_size=self.batch_size.get(app_name, 500), validation_data=(X_cv, y_cv), verbose=self.verbose, shuffle=False)
+                history = model.fit(X_train, 
+                        y_train, 
+                        epochs=self.epochs, 
+                        batch_size=self.batch_size,
+                        verbose=self.verbose,
+                        shuffle=True,
+                        callbacks=[checkpoint],
+                        validation_split=self.cv,
+                        )
                 
+                history = json.dumps(history.history)
+
+                if self.training_results_path is not None:
+                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                    f.write(history)
+                    f.close()
+
+                model.load_weights(self.checkpoint_file)
+
                 #Stores the trained model.
                 self.model[app_name] = model
+                
+                if self.results_file is not None:
+                    f = open(self.results_file, "w")
+                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.close()
         else:
             if self.verbose != 0:
                 print("Executing RandomSearch")
@@ -118,20 +153,21 @@ class LSTM_RNN():
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
 
-            timewindow = self.timewindow.get(app_name, 5)
-            timestep = self.timestep.get(app_name, 6)
+            X_test = generate_main_timeseries(test_mains, self.timewindow, self.timestep, self.overlap)
 
-            X_test = generate_main_timeseries(test_mains, False, timewindow, timestep)
+            y_test = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
 
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column)
+            if( self.verbose != 0):
+                print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº de Negativos ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
             pred = self.model[app_name].predict(X_test)
-            pred = [ 0 if p < 0.5 else 1 for p in pred ]
+            pred = [ np.where(p == max(p))[0][0]  for p in pred ]
         
-            y_test = y_test.reshape(len(y_test),)
+            y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
             
             tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
 
@@ -141,6 +177,17 @@ class LSTM_RNN():
                 print("False Negatives: ", fn)  
                 print("False Positives: ", fp)        
                 print( "MCC: ", matthews_corrcoef(y_test, pred))
+
+            if self.results_file is not None:
+                f = open(self.results_file, "a")
+                f.write("Nº de Positivos para teste: " + str(sum(y_test)) + "\n")
+                f.write("Nº de Negativos para teste: " + str(len(y_test)- sum(y_test)) + "\n")
+                f.write("MCC: "+str(matthews_corrcoef(y_test, pred))+ "\n")
+                f.write("True Positives: "+str(tp)+ "\n")
+                f.write("True Negatives: "+str(tn)+ "\n")
+                f.write("False Positives: "+str(fp)+ "\n")
+                f.write("False Negatives: "+str(fn)+ "\n")
+                f.close()
 
             appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
         return appliance_powers_dict
@@ -160,9 +207,9 @@ class LSTM_RNN():
     def create_model(self,n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        model.add(LSTM(n_nodes, input_shape=input_shape ))
-        model.add(Dense(units=1, activation='sigmoid'))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[matthews_correlation])
+        model.add(LSTM(n_nodes, input_shape=input_shape))
+        model.add(Dense(2, activation='softmax'))
+        model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
         return model
 

@@ -21,10 +21,9 @@ def load_data(dataset_folder, appliance, houses, timestep, mains_columns, applia
         df = pd.read_csv(dataset_folder+house+"/mains.csv", sep=',', header=[0,1], index_col=0)
         df.columns = pd.MultiIndex.from_tuples(df.columns)
         df.index = pd.to_datetime(df.index)
-        #df.columns = pd.MultiIndex.from_tuples([column_mapping[x[0]] for x in df.columns.values])
-        #df.columns.set_names(LEVEL_NAMES, inplace=True)
-        #appends that dataframe to an array
+        df.columns = pd.MultiIndex.from_tuples([column_mapping[x[0]] for x in df.columns.values])
 
+        #appends that dataframe to an array
         for c in df.columns:
             if c not in mains_columns:
                 df = df.drop(c, axis=1)
@@ -34,11 +33,8 @@ def load_data(dataset_folder, appliance, houses, timestep, mains_columns, applia
         df = pd.read_csv(dataset_folder+house+ "/"+ appliance + ".csv", sep=',', header=[0,1], index_col=0)
         df.index = pd.to_datetime(df.index)
         df.columns = pd.MultiIndex.from_tuples(df.columns)
-        #df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
-        #df.columns.set_names(LEVEL_NAMES, inplace=True)
 
         #Stores the dataframe in a dictionary
-
         for c in df.columns:
             if c not in appliance_columns:
                 df = df.drop(c, axis=1)

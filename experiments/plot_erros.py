@@ -1,7 +1,7 @@
 import json
 from matplotlib import pyplot as plt
 
-filename = "./models/gru_dwt/history.json"
+filename = "/home/user/thesis_results/history/history_heatpump_GRU_DWT_500_1.json"
 
 history = json.load(open(filename))
 
@@ -17,8 +17,8 @@ plt.legend()
 
 plt.show()
 
-plt.plot(range(1, n_epochs+1), history['matthews_correlation'], label="Training MCC")
-plt.plot(range(1, n_epochs+1), history['val_matthews_correlation'], label="Validation MCC")
+plt.plot(range(1, n_epochs+1), history['accuracy'], label="Training MCC")
+plt.plot(range(1, n_epochs+1), history['val_accuracy'], label="Validation MCC")
 
 plt.xlabel("Nº Epochs")
 plt.ylabel("Matthews Correlation Coeficient")
