@@ -82,72 +82,73 @@ class GACD():
     def partial_fit(self, train_mains, train_appliances):
          #Checks the need to do random search.
         if not self.randomsearch:
-            
+
             #For each appliance to be classified
             for app_name, appliance_power in train_appliances:
-                if( self.verbose != 0):
-                    print("Preparing Dataset for %s" % app_name)
+                if app_name not in self.model:
 
-                appliance_model = self.appliances.get(app_name, {})
+                    if( self.verbose != 0):
+                        print("Preparing Dataset for %s" % app_name)
 
-                dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
-                dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-                examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
-                examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
-                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
-                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
-                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+                    appliance_model = self.appliances.get(app_name, {})
+
+                    dwt_timewindow = appliance_model.get("dwt_timewindow", self.default_appliance['dwt_timewindow'])
+                    dwt_overlap = appliance_model.get("dwt_overlap", self.default_appliance['dwt_overlap'])
+                    timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                    examples_timewindow = appliance_model.get("examples_timewindow", self.default_appliance['examples_timewindow'])
+                    examples_overlap = appliance_model.get("examples_overlap", self.default_appliance['examples_overlap'])
+                    wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                    batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+                    epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                    n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
 
-                X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+                    X_train = get_discrete_features(train_mains, wavelet, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
-                y_train = get_appliance_classification(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
+                    y_train = get_appliance_classification(appliance_power, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap)
 
-                if( self.verbose != 0):
-                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
-                
-                if self.verbose != 0:
-                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                    if( self.verbose != 0):
+                        print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                        print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                    
+                    if self.verbose != 0:
+                        print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-                #Checks if the model already exists and if it doesn't creates a new one.          
-                if app_name in self.model:
-                    model = self.model[app_name]
-                else:
                     model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
+                    checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
 
-                history = model.fit(X_train, 
-                        y_train,
-                        epochs=epochs, 
-                        batch_size=batch_size,
-                        shuffle=True,
-                        callbacks=[checkpoint],
-                        validation_split=self.cv,
-                        verbose=self.verbose
-                        )         
+                    history = model.fit(X_train, 
+                            y_train,
+                            epochs=epochs, 
+                            batch_size=batch_size,
+                            shuffle=True,
+                            callbacks=[checkpoint],
+                            validation_split=self.cv,
+                            verbose=self.verbose
+                            )         
 
-                history = json.dumps(history.history)
+                    history = json.dumps(history.history)
 
-                if self.training_results_path is not None:
-                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
-                    f.write(history)
-                    f.close()
+                    if self.training_results_path is not None:
+                        f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                        f.write(history)
+                        f.close()
 
-                model.load_weights(self.checkpoint_file)
+                    model.load_weights(self.checkpoint_file)
 
-                #Stores the trained model.
-                self.model[app_name] = model
+                    #Stores the trained model.
+                    self.model[app_name] = model
 
-                if self.results_file is not None:
-                    f = open(self.results_file, "w")
-                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
-                    f.close()
-        else:
+                    if self.results_file is not None:
+                        f = open(self.results_file, "w")
+                        f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                        f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                        f.close()
+                else:
+                    print("Using Loaded Model")
+
+        elif self.random_search:
             if self.verbose != 0:
                 print("Executing RandomSearch")
             results = self.random_search(train_mains, train_appliances)
@@ -213,10 +214,9 @@ class GACD():
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
-
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.

@@ -6,9 +6,9 @@ from os.path import join, isfile
 from os import listdir
 import json
 
-from keras.models import Sequential, load_model
-from keras.layers import Dense, LSTM
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Dense, LSTM
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -82,55 +82,58 @@ class LSTM_RNN():
             
             #For each appliance to be classified
             for app_name, appliance_power in train_appliances:
-                if( self.verbose != 0):
-                    print("Preparing Dataset for %s" % app_name)
+                if app_name not in self.model:
+                    if( self.verbose != 0):
+                        print("Preparing Dataset for %s" % app_name)
 
-                X_train = generate_main_timeseries(train_mains, self.timewindow, self.timestep, self.overlap)
+                    X_train = generate_main_timeseries(train_mains, self.timewindow, self.timestep, self.overlap)
+                    
+                    y_train = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
+
+                    if( self.verbose != 0):
+                        print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                        print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
                 
-                y_train = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
+                    if self.verbose != 0:
+                        print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-                if( self.verbose != 0):
-                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
-            
-                if self.verbose != 0:
-                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                    #Checks if the model already exists and if it doesn't creates a new one.          
+                    if app_name in self.model:
+                        model = self.model[app_name]
+                    else:
+                        model = self.create_model(self.n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                #Checks if the model already exists and if it doesn't creates a new one.          
-                if app_name in self.model:
-                    model = self.model[app_name]
+                    checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+                    #Fits the model to the training data.
+                    history = model.fit(X_train, 
+                            y_train, 
+                            epochs=self.epochs, 
+                            batch_size=self.batch_size,
+                            verbose=self.verbose,
+                            shuffle=True,
+                            callbacks=[checkpoint],
+                            validation_split=self.cv,
+                            )
+                    
+                    history = json.dumps(history.history)
+
+                    if self.training_results_path is not None:
+                        f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                        f.write(history)
+                        f.close()
+
+                    model.load_weights(self.checkpoint_file)
+
+                    #Stores the trained model.
+                    self.model[app_name] = model
+                    
+                    if self.results_file is not None:
+                        f = open(self.results_file, "w")
+                        f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                        f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                        f.close()
                 else:
-                    model = self.create_model(self.n_nodes, (X_train.shape[1], X_train.shape[2]))
-
-                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-                #Fits the model to the training data.
-                history = model.fit(X_train, 
-                        y_train, 
-                        epochs=self.epochs, 
-                        batch_size=self.batch_size,
-                        verbose=self.verbose,
-                        shuffle=True,
-                        callbacks=[checkpoint],
-                        validation_split=self.cv,
-                        )
-                
-                history = json.dumps(history.history)
-
-                if self.training_results_path is not None:
-                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
-                    f.write(history)
-                    f.close()
-
-                model.load_weights(self.checkpoint_file)
-
-                #Stores the trained model.
-                self.model[app_name] = model
-                
-                if self.results_file is not None:
-                    f = open(self.results_file, "w")
-                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
-                    f.close()
+                    print("Using Loaded Model")
         else:
             if self.verbose != 0:
                 print("Executing RandomSearch")
@@ -198,11 +201,10 @@ class LSTM_RNN():
             self.model[app].save(join(folder_name, app + "_" + self.MODEL_NAME + ".h5"))
 
     def load_model(self, folder_name):
-                #Get all the models trained in the given folder and load them.
-
+        #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
+            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
 
     def create_model(self,n_nodes, input_shape):
         #Creates a specific model.

@@ -6,6 +6,7 @@ from os.path import join, isfile
 from os import listdir
 import json
 
+from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
 import tensorflow as tf
 
@@ -61,65 +62,68 @@ class ResNet():
             
         #For each appliance to be classified
         for app_name, appliance_power in train_appliances:
-            if( self.verbose != 0):
-                print("Preparing Dataset for %s" % app_name)
+            if app_name not in self.model:
+                if( self.verbose != 0):
+                    print("Preparing Dataset for %s" % app_name)
 
-            appliance_model = self.appliances.get(app_name, {})
+                appliance_model = self.appliances.get(app_name, {})
 
-            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-            batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
-            epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
 
-            X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
-            
-            y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column, overlap)
+                X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                
+                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column, overlap)
 
-            if( self.verbose != 0):
-                print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
-            
-            if self.verbose != 0:
-                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                if( self.verbose != 0):
+                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                
+                if self.verbose != 0:
+                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-            #Checks if the model already exists and if it doesn't creates a new one.          
-            if app_name in self.model:
-                model = self.model[app_name]
+                #Checks if the model already exists and if it doesn't creates a new one.          
+                if app_name in self.model:
+                    model = self.model[app_name]
+                else:
+                    model = self.create_model((X_train.shape[1], X_train.shape[2]))
+
+
+                reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
+
+                model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_file, monitor='val_loss', verbose=self.verbose,
+                                                            save_best_only=True, mode='min')
+
+                history = model.fit(X_train, 
+                        y_train,
+                        epochs=epochs, 
+                        batch_size=batch_size,
+                        shuffle=True,
+                        callbacks=[reduce_lr, model_checkpoint],
+                        validation_split=self.cv,
+                        verbose=self.verbose
+                        )         
+
+                if self.training_results_path is not None:
+                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                    f.write(str(history.history))
+                    f.close()
+
+                model.load_weights(self.checkpoint_file)
+
+                #Stores the trained model.
+                self.model[app_name] = model
+
+                if self.results_file is not None:
+                    f = open(self.results_file, "w")
+                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.close()
             else:
-                model = self.create_model((X_train.shape[1], X_train.shape[2]))
-
-
-            reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
-
-            model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_file, monitor='val_loss', verbose=self.verbose,
-                                                        save_best_only=True, mode='min')
-
-            history = model.fit(X_train, 
-                    y_train,
-                    epochs=epochs, 
-                    batch_size=batch_size,
-                    shuffle=True,
-                    callbacks=[reduce_lr, model_checkpoint],
-                    validation_split=self.cv,
-                    verbose=self.verbose
-                    )         
-
-            if self.training_results_path is not None:
-                f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
-                f.write(str(history.history))
-                f.close()
-
-            model.load_weights(self.checkpoint_file)
-
-            #Stores the trained model.
-            self.model[app_name] = model
-
-            if self.results_file is not None:
-                f = open(self.results_file, "w")
-                f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
-                f.close()
+                print("Using Loaded Model")
 
     def disaggregate_chunk(self, test_mains, test_appliances):
 
@@ -180,10 +184,9 @@ class ResNet():
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
-
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
 
     def create_model(self, input_shape):
         n_feature_maps = 64
