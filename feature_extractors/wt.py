@@ -39,47 +39,9 @@ def calculate_crossings(list_values):
     mean_crossing_indices = np.nonzero(np.diff(np.array(list_values) > np.nanmean(list_values)))[0]
     no_mean_crossings = len(mean_crossing_indices)
     return [no_mean_crossings]
- 
-
-def get_discrete_features(dfs, waveletname, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
-    X = []
-    
-    n_columns = len(dfs[0].columns.values)
-
-    window_size = int(examples_timewindow / (dwt_timewindow - dwt_overlap))
-
-    window_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow - dwt_overlap))
-
-    window_pad = window_size - window_step
-
-    dwt_size = int(dwt_timewindow * n_columns / timestep)
-
-    step = int((dwt_timewindow - dwt_overlap)*n_columns/timestep)
-
-    pad = dwt_size - step
-    
-    for df in dfs:
-                
-        new_mains = df.values.flatten()
-
-        new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
-        
-        new_mains = np.array([ calculate_wavelet(new_mains[i : i + dwt_size], n_columns, waveletname) for i in range(0, len(new_mains) - dwt_size + 1, step)])
-        n_cols = new_mains.shape[1]
-        new_mains = new_mains.flatten()
-        new_mains = np.pad(new_mains, (window_pad*n_cols, 0),'constant', constant_values=(0,0))
-        new_mains = new_mains.reshape(-1, n_cols)
-        new_mains = np.array([ new_mains[i : i + window_size].flatten() for i in range(0, len(new_mains) - window_size +1, window_step)])
-
-        X.append(pd.DataFrame(new_mains))
-
-    X = pd.concat(X, axis=0).values
-
-    return X.reshape((X.shape[0], window_size, -1))
 
 def calculate_wavelet(values, n_columns, waveletname):
     values = values.reshape((-1, n_columns))
-
     feature_vector = []
     
     for signal_comp in range(0,values.shape[1]):
@@ -89,8 +51,38 @@ def calculate_wavelet(values, n_columns, waveletname):
             crossings = calculate_crossings(coeff)
             statistics = calculate_statistics(coeff)
             feature_vector += entropy + crossings + statistics
-
     return feature_vector
+
+def get_discrete_features(dfs, waveletname, timestep, timewindow, overlap, mains_mean=None, mains_std=None):
+    X = []
+    
+    n_columns = len(dfs[0].columns.values)
+
+    step = int((timewindow - overlap)*n_columns/timestep)
+
+    window_size = int(timewindow * n_columns /timestep)
+
+    pad = window_size - step
+    
+    for df in dfs:
+                
+        new_mains = df.values.flatten()
+
+        new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
+        
+        new_mains = np.array([ calculate_wavelet(new_mains[i : i + window_size], n_columns, waveletname) for i in range(0, len(new_mains) - window_size + 1, step)])
+
+        X.append(pd.DataFrame(new_mains))
+
+    X = pd.concat(X, axis=0).values
+    
+    if mains_mean is None:
+        mains_mean = np.mean(X, axis=0)
+        mains_std = np.std(X, axis=0)
+
+    X = (X - mains_mean) / mains_std
+
+    return X, mains_mean, mains_std
 
 def get_continuous_features(data, waveletname, timewindow, timestep, overlap):
 
@@ -136,35 +128,3 @@ def get_continuous_features(data, waveletname, timewindow, timestep, overlap):
             current_index += overlap
 
     return X
-
-def get_appliance_classification(dfs, timestep, dwt_timewindow, dwt_overlap, examples_timewindow, examples_overlap):
-        y = []
-
-        window_size = int(examples_timewindow / (dwt_timewindow - dwt_overlap))
-
-        window_step = int((examples_timewindow - examples_overlap) / (dwt_timewindow - dwt_overlap))
-
-        window_pad = window_size - window_step
-
-        dwt_size = int(dwt_timewindow / timestep)
-
-        step = int((dwt_timewindow - dwt_overlap)/timestep)
-
-        pad = dwt_size - step
-        
-        #Starting the conversion (goes through all the dataframes)
-        for df in dfs:
-            app = df.values.flatten()
-
-            app = np.pad(app, (pad, 0),'constant', constant_values=(0,0))
-            
-            app = np.array([[0, 1] if app[i+dwt_size-pad] > 15 else [1, 0] for i in range(0, len(app) - dwt_size +1, step) ])
-            
-            app = app.flatten()
-
-            app = np.pad(app, (window_pad*2, 0), 'constant', constant_values=(0,0))
-            
-            app = app.reshape(-1, 2)
-            [y.append(app[i+window_size-window_pad]) for i in range(0, len(app) - window_size +1, window_step)]
-            
-        return np.array(y)

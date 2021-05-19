@@ -33,8 +33,6 @@ class ResNet():
         self.MODEL_NAME = params.get('model_name', 'ResNet')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
-        #Column used to obtain the classification values (y). 
-        self.column = params.get('predicted_column', ("power", "apparent"))
         #If this variable is not None than the class loads the appliance models present in the folder.
         self.load_model_path = params.get('load_model_folder',None)
         #Dictates the ammount of information to be presented during training and regression.
@@ -74,9 +72,9 @@ class ResNet():
                 batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
 
-                X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
                 
-                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column, overlap)
+                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
                 if( self.verbose != 0):
                     print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
@@ -139,9 +137,9 @@ class ResNet():
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
             
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap)
+            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
 
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column, overlap)
+            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
             
             if( self.verbose != 0):
                 print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
@@ -256,7 +254,9 @@ class ResNet():
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
 
-        output_layer = keras.layers.Dense(2, activation='softmax')(gap_layer)
+        dropout_layer = keras.layers.Dropout(0.5)(gap_layer)
+
+        output_layer = keras.layers.Dense(2, activation='softmax')(dropout_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 

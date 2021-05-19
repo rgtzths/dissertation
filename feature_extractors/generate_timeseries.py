@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def generate_main_timeseries(dfs, timewindow, timestep, overlap):
+def generate_main_timeseries(dfs, timewindow, timestep, overlap, mains_mean=None, mains_std=None):
     """
     Converts an array of dataframes with the format timestamp : value into an
     array of feature vectors.
@@ -33,9 +33,18 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap):
 
     pad = window_size - step
 
+    if mains_mean is None:
+        l = np.array(pd.concat(dfs,axis=0))
+        mains_mean = np.mean(l, axis=0)
+        mains_std = np.std(l, axis=0)
+
     for df in dfs:
         
-        new_mains = df.values.flatten()
+        new_mains = df.values
+
+        new_mains = (new_mains - mains_mean) / mains_std
+
+        new_mains = new_mains.flatten()
 
         new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
         
@@ -45,9 +54,9 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap):
 
     data = pd.concat(data, axis=0)
 
-    return data.values.reshape((-1, int(window_size/n_columns), n_columns))
+    return (data.values.reshape((-1, int(window_size/n_columns), n_columns)) , mains_mean, mains_std)
 
-def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, column, overlap):
+def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, overlap):
     """
     Converts an array of dataframes with the format timestamp : value into an
     array of values.
@@ -60,8 +69,6 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
         Time gap covered by each feature vector in min
     timestep : int
         Time between each reading in seconds
-    column : string
-        Name of the column used to extract the values
     Returns
     -------
     Numpy array of feature vectors

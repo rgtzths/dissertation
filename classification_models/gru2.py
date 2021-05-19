@@ -7,7 +7,7 @@ from os import listdir
 import json
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, Dropout
+from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -30,12 +30,12 @@ config = ConfigProto()
 config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
-class GRU_RNN():
+class GRU2():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'GRU')
+        self.MODEL_NAME = params.get('model_name', 'GRU2')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
@@ -89,11 +89,7 @@ class GRU_RNN():
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
                 
-                #Checks if the model already exists and if it doesn't creates a new one.
-                if app_name in self.model:
-                    model = self.model[app_name]
-                else:
-                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
+                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
                 checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
                 #Fits the model to the training data.
@@ -125,7 +121,7 @@ class GRU_RNN():
                     f.close()
             else:
                 print("Using Loaded Model")
-       
+            
     def disaggregate_chunk(self, test_mains, test_appliances):
         
         appliance_powers_dict = {}
@@ -194,7 +190,14 @@ class GRU_RNN():
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        model.add(GRU(n_nodes, input_shape=input_shape, activation="relu"))
+        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True, activation='relu'))
+        model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
+        model.add(LeakyReLU(alpha=0.1))
+        model.add(GRU(n_nodes, return_sequences=True, activation='relu'))
+        model.add(GRU(int(n_nodes/2), activation='relu'))
+        model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.1))
         model.add(Dense(2, activation='softmax'))
         model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])

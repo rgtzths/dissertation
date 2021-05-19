@@ -7,7 +7,7 @@ from os import listdir
 import json
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, LSTM
+from tensorflow.keras.layers import Dense, LSTM, Dropout
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -37,116 +37,91 @@ class LSTM_RNN():
         self.MODEL_NAME = params.get('model_name', 'LSTM')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
-        #Column used to obtain the classification values (y). 
-        self.column = params.get('predicted_column', ("power", "apparent"))
         #If this variable is not None than the class loads the appliance models present in the folder.
         self.load_model_path = params.get('load_model_folder',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 0)
         
-        #Defines the window of time of each feature vector (in mins)
-        self.timewindow = params.get('timewindow', {})
-        
-        #Defines the step bertween each reading (in seconds)
-        self.timestep = params.get('timestep', {})
-        self.overlap = params.get('overlap', {})
-        
-        #Defines the number of nodes in the GRU, 
-        #Normaly varies between 0.5 and 2 time the input size.
-        self.n_nodes = params.get('n_nodes', {})
+        self.appliances = params.get('appliances', {})
 
-        #Number of epochs that the models run
-        self.epochs = params.get('epochs', {})
-
-        #Number of examples presented per batch
-        self.batch_size = params.get('batch_size', {})
-        
-        #Decides if the model runs randomsearch
-        self.randomsearch = params.get('randomsearch', False)
-        #In case of randomsearch = True this variable contains the information
-        #to run the randomsearch (hyperparameter range definition).
-        self.randomsearch_params = params.get('randomsearch_params', None)
+        self.default_appliance = {
+            "timewindow": 180,
+            "overlap": 178,
+            "timestep": 2,
+            'epochs' : 1,
+            'batch_size' : 1024,
+            'n_nodes' : 90
+        }
 
         self.training_results_path = params.get("training_results_path", None)
         self.checkpoint_file = params.get("checkpoint_file", None)
         self.results_file = params.get("results_path", None)
-
 
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
             self.load_model(self.load_model_path)
 
     def partial_fit(self, train_mains, train_appliances):
-         #Checks the need to do random search.
-        if not self.randomsearch:
-            
-            #For each appliance to be classified
-            for app_name, appliance_power in train_appliances:
-                if app_name not in self.model:
-                    if( self.verbose != 0):
-                        print("Preparing Dataset for %s" % app_name)
+        
+        #For each appliance to be classified
+        for app_name, appliance_power in train_appliances:
+            if app_name not in self.model:
+                if( self.verbose != 0):
+                    print("Preparing Dataset for %s" % app_name)
 
-                    X_train = generate_main_timeseries(train_mains, self.timewindow, self.timestep, self.overlap)
-                    
-                    y_train = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
+                appliance_model = self.appliances.get(app_name, {})
 
-                    if( self.verbose != 0):
-                        print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                        print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
                 
-                    if self.verbose != 0:
-                        print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
-                    #Checks if the model already exists and if it doesn't creates a new one.          
-                    if app_name in self.model:
-                        model = self.model[app_name]
-                    else:
-                        model = self.create_model(self.n_nodes, (X_train.shape[1], X_train.shape[2]))
+                if( self.verbose != 0):
+                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+            
+                if self.verbose != 0:
+                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-                    checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-                    #Fits the model to the training data.
-                    history = model.fit(X_train, 
-                            y_train, 
-                            epochs=self.epochs, 
-                            batch_size=self.batch_size,
-                            verbose=self.verbose,
-                            shuffle=True,
-                            callbacks=[checkpoint],
-                            validation_split=self.cv,
-                            )
-                    
-                    history = json.dumps(history.history)
+                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                    if self.training_results_path is not None:
-                        f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
-                        f.write(history)
-                        f.close()
+                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+                #Fits the model to the training data.
+                history = model.fit(X_train, 
+                        y_train, 
+                        epochs=epochs, 
+                        batch_size=batch_size,
+                        verbose=self.verbose,
+                        shuffle=True,
+                        callbacks=[checkpoint],
+                        validation_split=self.cv,
+                        )
+                
+                history = json.dumps(history.history)
 
-                    model.load_weights(self.checkpoint_file)
+                if self.training_results_path is not None:
+                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                    f.write(history)
+                    f.close()
 
-                    #Stores the trained model.
-                    self.model[app_name] = model
-                    
-                    if self.results_file is not None:
-                        f = open(self.results_file, "w")
-                        f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                        f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
-                        f.close()
-                else:
-                    print("Using Loaded Model")
-        else:
-            if self.verbose != 0:
-                print("Executing RandomSearch")
-            results = self.random_search(train_mains, train_appliances)
+                model.load_weights(self.checkpoint_file)
 
-            if self.verbose == 2:
-                for app in results:
-                    print("\nResults for appliance: ", app)
-                    print("\t Score Obtained: ", str(results[app][0]))
-                    print("\t Best Parameters: ", str(results[app][1]))
-                    print("\t Time Window: ", str(results[app][2]))
-                    print("\t Time Step: ", str(results[app][3]))
-                    print("\n")
+                #Stores the trained model.
+                self.model[app_name] = model
+                
+                if self.results_file is not None:
+                    f = open(self.results_file, "w")
+                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.close()
+            else:
+                print("Using Loaded Model")
 
     def disaggregate_chunk(self, test_mains, test_appliances):
 
@@ -156,9 +131,15 @@ class LSTM_RNN():
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
 
-            X_test = generate_main_timeseries(test_mains, self.timewindow, self.timestep, self.overlap)
+            appliance_model = self.appliances.get(app_name, {})
 
-            y_test = generate_appliance_timeseries(appliance_power, True, self.timewindow, self.timestep, self.column, self.overlap)
+            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+
+            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+
+            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
             if( self.verbose != 0):
                 print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
@@ -210,75 +191,8 @@ class LSTM_RNN():
         #Creates a specific model.
         model = Sequential()
         model.add(LSTM(n_nodes, input_shape=input_shape))
+        model.add(Dropout(0.1))
         model.add(Dense(2, activation='softmax'))
         model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
         return model
-
-    def random_search(self, train_mains, train_appliances):
-
-        #Stores the parameters for the best model for each appliance
-        test_results = {}
-
-        for timewindow in self.randomsearch_params['timewindow']:
-            for timestep in self.randomsearch_params['timestep']:
-
-                #Obtains de X training data acording to the timewindow and timestep
-                X_train = generate_main_timeseries(train_mains, False, timewindow, timestep)  
-
-                #Defines the input shape according to the timewindow and timestep.
-                self.randomsearch_params['model']['input_shape'] = [(X_train.shape[1], X_train.shape[2])]
-
-                self.randomsearch_params['model']['n_nodes'] = randint(int(X_train.shape[1] *0.5), int(X_train.shape[1]*2))
-                
-                for app_name, appliance_power in train_appliances:
-                    #Generate the appliance timeseries acording to the timewindow and timestep
-                    y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, self.column)
-
-                    model = KerasClassifier(build_fn = self.create_model, verbose=0)
-                    
-                    randomsearch = RandomizedSearchCV(
-                        estimator=model,
-                        param_distributions=self.randomsearch_params['model'], 
-                        cv=self.randomsearch_params['cv'], 
-                        n_iter=self.randomsearch_params['n_iter'],
-                        n_jobs=self.randomsearch_params['n_jobs'], 
-                        scoring=make_scorer(matthews_corrcoef),
-                        verbose=self.verbose,
-                        refit = False
-                    )
-
-                    fitted_model = randomsearch.fit(X_train, y_train)
-
-                    #Store the best result, if it is actualy the best and the X and y used for the final training.
-                    if app_name not in test_results :
-                        test_results[app_name] = (fitted_model.best_score_, fitted_model.best_params_, timewindow, timestep)
-
-                    elif test_results[app_name][0] < fitted_model.best_score_:
-                        test_results[app_name] = (fitted_model.best_score_, fitted_model.best_params_, timewindow, timestep)
-
-        #Train the final model with the best hyperparameters for each appliance
-        for app_name in test_results:
-
-            X_train = X_train = generate_main_timeseries(train_mains, False, test_results[app_name][2], test_results[app_name][3])
-                        
-            X_cv = X_train[int(len(X_train)*(1-self.cv)):]
-            X_train = X_train[0:int(len(X_train)*(1-self.cv))]
-
-            y_train = generate_appliance_timeseries(appliance_power, True, test_results[app_name][2], test_results[app_name][3], self.column)
-
-            y_cv = y_train[int(len(y_train)*(1-self.cv)):]
-            y_train = y_train[0:int(len(y_train)*(1-self.cv))]
-
-            print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-            model = self.create_model( test_results[app_name][1]['n_nodes'], test_results[app_name][1]['input_shape'])
-
-            model.fit(X_train, y_train, epochs=test_results[app_name][1]['epochs'], batch_size=test_results[app_name][1]['batch_size'], validation_data=(X_cv, y_cv), verbose=self.verbose, shuffle=True)
-
-            self.model[app_name] = model
-
-            self.timewindow[app_name] = test_results[app_name][2]
-
-            self.timestep[app_name] = test_results[app_name][3]
-            
-        return test_results
