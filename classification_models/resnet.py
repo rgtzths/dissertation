@@ -254,7 +254,9 @@ class ResNet():
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
 
-        dropout_layer = keras.layers.Dropout(0.5)(gap_layer)
+        dense_layer = keras.layers.Dense(n_feature_maps, activation='relu')(gap_layer)
+
+        dropout_layer = keras.layers.Dropout(0.1)(dense_layer)
 
         output_layer = keras.layers.Dense(2, activation='softmax')(dropout_layer)
 

@@ -6,8 +6,8 @@ from os.path import join, isfile
 from os import listdir
 import json
 
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, LSTM, Dropout
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Attention, Flatten
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -15,6 +15,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from scipy.stats import randint
 from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.utils import shuffle
 import numpy as np
 
 import sys
@@ -82,6 +83,20 @@ class LSTM_RNN():
                 
                 y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
+                X_train, y_train = shuffle(X_train, y_train, random_state=0)
+
+                X_train, X_cv = X_train[:-int(X_train.shape[0]*self.cv)], X_train[-int(X_train.shape[0]*self.cv) :]
+
+                y_train, y_cv = y_train[:-int(y_train.shape[0]*self.cv)], y_train[-int(y_train.shape[0]*self.cv) :]
+
+                train_cutoff = len(X_train) % batch_size
+                cv_cutoff = len(X_cv) % batch_size
+
+                X_train, y_train = X_train[:-train_cutoff], y_train[:-train_cutoff]
+
+                X_cv, y_cv = X_cv[:-cv_cutoff], y_cv[:-cv_cutoff]
+
+
                 if( self.verbose != 0):
                     print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
                     print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
@@ -89,7 +104,7 @@ class LSTM_RNN():
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
+                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]), batch_size)
 
                 checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
                 #Fits the model to the training data.
@@ -98,9 +113,8 @@ class LSTM_RNN():
                         epochs=epochs, 
                         batch_size=batch_size,
                         verbose=self.verbose,
-                        shuffle=True,
                         callbacks=[checkpoint],
-                        validation_split=self.cv,
+                        validation_data=(X_cv, y_cv)
                         )
                 
                 history = json.dumps(history.history)
@@ -187,12 +201,29 @@ class LSTM_RNN():
         for app in app_models:
             self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
 
-    def create_model(self,n_nodes, input_shape):
+    def create_model(self,n_nodes, input_shape, batch_size):
         #Creates a specific model.
-        model = Sequential()
-        model.add(LSTM(n_nodes, input_shape=input_shape))
-        model.add(Dropout(0.1))
-        model.add(Dense(2, activation='softmax'))
+        input_layer = Input(shape=input_shape, batch_size=batch_size)
+
+        encoder_output, hidden_state, cell_state = LSTM(n_nodes, return_sequences=True, return_state=True)(input_layer)
+        
+        attention_input = [encoder_output, hidden_state]
+
+        encoder_output = Attention()(attention_input)
+
+        #flatten_data = Flatten()(encoder_output)
+
+        #dense_layer = Dense(int(n_nodes/2), activation='relu')(flatten_data)
+
+        lstm_layer = LSTM(n_nodes)(encoder_output)
+
+        dense_layer = Dense(int(n_nodes/2), activation='relu')(lstm_layer)
+        
+        dropout_layer = Dropout(0.1)(dense_layer)
+
+        output_layer = Dense(2, activation='softmax')(dropout_layer)
+
+        model = Model(inputs=input_layer, outputs=output_layer)
         model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
         return model

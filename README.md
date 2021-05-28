@@ -9,5 +9,9 @@
   - pip3 install PyWavelets
 . Install cvxpy
   - conda install cvxpy
+  Install TSFresh
+  - conda install -c conda-forge tsfresh
+  Install Sktime
+  - conda install -c conda-forge sktime
 - Download UKDale H5 - https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.h5.zip
 - Download UKDale Full Dataset - https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.zip

@@ -25,7 +25,8 @@ import csv
 
 sys.path.insert(1, "../feature_extractors")
 from wt import get_discrete_features
-from generate_timeseries import generate_appliance_timeseries
+from generate_timeseries import generate_appliance_timeseries, generate_main_timeseries
+from tsfresh_extractor import get_tsfresh_features
 from matthews_correlation import matthews_correlation
 
 from tensorflow.compat.v1 import ConfigProto
@@ -49,20 +50,14 @@ class MLP():
         self.verbose = params.get('verbose', 0)
         
         self.appliances = params.get('appliances', {})
-       
-        #Decides if the model runs randomsearch
-        self.randomsearch = params.get('randomsearch', False)
-
-        #In case of randomsearch = True this variable contains the information
-        #to run the randomsearch (hyperparameter range definition).
-        self.randomsearch_params = params.get('randomsearch_params', None)
 
         self.default_appliance = {
-            "timewindow": 12,
-            "overlap": 6,
+            "timewindow": 180,
+            "overlap": 172,
             "timestep": 2,
+            "feature_extractor": "wt",
             "wavelet": 'db4',
-            "batch_size": 500,
+            "batch_size": 1024,
             "epochs": 300,
             "n_nodes":32
         }
@@ -76,74 +71,83 @@ class MLP():
             self.load_model(self.load_model_path)
 
     def partial_fit(self, train_mains, train_appliances):
-         #Checks the need to do random search.
-        if not self.randomsearch:
 
-            #For each appliance to be classified
-            for app_name, appliance_power in train_appliances:
-                if app_name not in self.model:
+        #For each appliance to be classified
+        for app_name, appliance_power in train_appliances:
+            if app_name not in self.model:
 
-                    if( self.verbose != 0):
-                        print("Preparing Dataset for %s" % app_name)
+                if( self.verbose != 0):
+                    print("Preparing Dataset for %s" % app_name)
 
-                    appliance_model = self.appliances.get(app_name, {})
+                appliance_model = self.appliances.get(app_name, {})
 
-                    timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                    overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-                    timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+                feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+
+                if feature_extractor == "wt":
+                    print("Using Discrete Wavelet Transforms as Features")
                     wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-                    batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
-                    epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
-                    n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
-
-
                     X_train, self.mains_mean, self.mains_std = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap)
-                    y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
-                    if self.verbose != 0 :
-                        print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                        print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
-                    
-                    if self.verbose != 0:
-                        print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-
-                    model = self.create_model(n_nodes, (X_train.shape[1],))
-
-                    checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
-
-                    history = model.fit(X_train, 
-                            y_train,
-                            epochs=epochs, 
-                            batch_size=batch_size,
-                            shuffle=True,
-                            callbacks=[checkpoint],
-                            validation_split=self.cv,
-                            verbose=self.verbose
-                            )         
-
-                    history = json.dumps(history.history)
-
-                    if self.training_results_path is not None:
-                        f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
-                        f.write(history)
-                        f.close()
-
-                    model.load_weights(self.checkpoint_file)
-
-                    #Stores the trained model.
-                    self.model[app_name] = model
-
-                    if self.results_file is not None:
-                        f = open(self.results_file, "w")
-                        f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                        f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
-                        f.close()
+                elif feature_extractor == "tsfresh":
+                    print("Using TSFresh as Features")
+                    X_train, self.mains_mean, self.mains_std, self.parameters = get_tsfresh_features(train_mains, timestep, timewindow, overlap, app_dfs=appliance_power)
                 else:
-                    print("Using Loaded Model")
+                    print("Using the Timeseries as Features")
+                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                    X_train = X_train.reshape(X_train.shape[0], -1)
+                
+                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
-        elif self.random_search:
-            if self.verbose != 0:
-                print("Executing RandomSearch")
-            results = self.random_search(train_mains, train_appliances)
+                if self.verbose != 0 :
+                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                
+                if self.verbose != 0:
+                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+
+                print(y_train)
+                model = self.create_model(n_nodes, (X_train.shape[1],))
+
+                checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
+
+                history = model.fit(X_train, 
+                        y_train,
+                        epochs=epochs, 
+                        batch_size=batch_size,
+                        shuffle=True,
+                        callbacks=[checkpoint],
+                        validation_split=self.cv,
+                        verbose=self.verbose
+                        )         
+
+                print(model.predict(X_train))
+
+                history = json.dumps(history.history)
+
+                if self.training_results_path is not None:
+                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                    f.write(history)
+                    f.close()
+
+                model.load_weights(self.checkpoint_file)
+
+                #Stores the trained model.
+                self.model[app_name] = model
+                
+                print(self.model[app_name].predict(X_train))
+
+                if self.results_file is not None:
+                    f = open(self.results_file, "w")
+                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
+                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.close()
+            else:
+                print("Using Loaded Model")
 
     def disaggregate_chunk(self, test_mains, test_appliances):
 
@@ -157,12 +161,21 @@ class MLP():
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-            wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+            feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
             
-            X_test = get_discrete_features(test_mains, wavelet, timestep, timewindow, overlap, self.mains_mean, self.mains_std)[0]
+            if feature_extractor == "wt":
+                print("Using Discrete Wavelet Transforms as Features")
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                X_test = get_discrete_features(test_mains, wavelet, timestep, timewindow, overlap, self.mains_mean, self.mains_std)[0]
+            elif feature_extractor == "tsfresh":
+                print("Using TSFresh as Features")
+                X_test = get_tsfresh_features(test_mains, timestep, timewindow, overlap, self.mains_mean, self.mains_std, parameters=self.parameters)[0]
+            else:
+                print("Using the Timeseries as Features")
+                X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_test = X_test.reshape(X_test.shape[0], -1)
 
             y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
-            print(X_test.shape, y_test.shape)
             
             if self.verbose != 0:
                 print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
@@ -170,8 +183,13 @@ class MLP():
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
+            
+            print(y_test)
 
             pred = self.model[app_name].predict(X_test)
+
+            print(pred)
+            
             pred = [ np.where(p == max(p))[0][0]  for p in pred ]
             
             y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
