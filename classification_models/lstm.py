@@ -135,6 +135,11 @@ class LSTM_RNN():
                     f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
                     f.close()
             else:
+                appliance_model = self.appliances.get(app_name, {})
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
                 print("Using Loaded Model")
 
     def disaggregate_chunk(self, test_mains, test_appliances):

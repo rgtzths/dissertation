@@ -147,6 +147,20 @@ class MLP():
                     f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
                     f.close()
             else:
+                appliance_model = self.appliances.get(app_name, {})
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+
+                if feature_extractor == "wt":
+                    wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                    X_train, self.mains_mean, self.mains_std = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap)
+                elif feature_extractor == "tsfresh":
+                    X_train, self.mains_mean, self.mains_std, self.parameters = get_tsfresh_features(train_mains, timestep, timewindow, overlap, app_dfs=appliance_power)
+                else:
+                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+
                 print("Using Loaded Model")
 
     def disaggregate_chunk(self, test_mains, test_appliances):

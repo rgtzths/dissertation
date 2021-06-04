@@ -121,6 +121,12 @@ class GRU2():
                     f.close()
             else:
                 print("Using Loaded Model")
+                appliance_model = self.appliances.get(app_name, {})
+                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                                                                
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap) 
             
     def disaggregate_chunk(self, test_mains, test_appliances):
         
