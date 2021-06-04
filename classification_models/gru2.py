@@ -196,11 +196,11 @@ class GRU2():
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True, activation='relu'))
-        model.add(GRU(n_nodes*2, return_sequences=True, activation='relu'))
+        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
+        model.add(GRU(n_nodes*2, return_sequences=True))
         model.add(LeakyReLU(alpha=0.1))
-        model.add(GRU(n_nodes, return_sequences=True, activation='relu'))
-        model.add(GRU(int(n_nodes/2), activation='relu'))
+        model.add(GRU(n_nodes, return_sequences=True))
+        model.add(GRU(int(n_nodes/2)))
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dense(int(n_nodes/4), activation='relu'))
         model.add(LeakyReLU(alpha=0.1))
