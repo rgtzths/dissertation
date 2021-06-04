@@ -110,7 +110,6 @@ class MLP():
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
-                print(y_train)
                 model = self.create_model(n_nodes, (X_train.shape[1],))
 
                 checkpoint = ModelCheckpoint(self.checkpoint_file, monitor='val_loss', verbose=self.verbose, save_best_only=True, mode='min')
@@ -125,8 +124,6 @@ class MLP():
                         verbose=self.verbose
                         )         
 
-                print(model.predict(X_train))
-
                 history = json.dumps(history.history)
 
                 if self.training_results_path is not None:
@@ -139,8 +136,6 @@ class MLP():
                 #Stores the trained model.
                 self.model[app_name] = model
                 
-                print(self.model[app_name].predict(X_train))
-
                 if self.results_file is not None:
                     f = open(self.results_file, "w")
                     f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
@@ -198,12 +193,8 @@ class MLP():
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
             
-            print(y_test)
-
             pred = self.model[app_name].predict(X_test)
 
-            print(pred)
-            
             pred = [ np.where(p == max(p))[0][0]  for p in pred ]
             
             y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
