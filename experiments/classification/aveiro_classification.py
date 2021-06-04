@@ -39,7 +39,7 @@ def run_experiment():
         #                    'timewindow' : 180,
         #                    'timestep' : 2,
         #                    'overlap' : 178,
-        #                    'epochs' : 500,
+        #                    'epochs' : epochs,
         #                    'batch_size' : 1024,
         #                    'n_nodes' : 90,
         #                }
@@ -56,7 +56,7 @@ def run_experiment():
         #                    'timewindow' : 180,
         #                    'timestep' : 2,
         #                    'overlap' : 178,
-        #                    'epochs' : 500,
+        #                    'epochs' : epochs,
         #                    'batch_size' : 1024,
         #                    'n_nodes' : 90,
         #                }
@@ -73,7 +73,7 @@ def run_experiment():
         #                    'timewindow' : 180,
         #                    'timestep' : 2,
         #                    'overlap' : 178,
-        #                    'epochs' : 500,
+        #                    'epochs' : epochs,
         #                    'batch_size' : 1024,
         #                    'n_nodes' : 90,
         #                }
@@ -90,7 +90,7 @@ def run_experiment():
         #                    'timewindow' : 180,
         #                    'timestep' : 2,
         #                    'overlap' : 178,
-        #                    'epochs' : 500,
+        #                    'epochs' : epochs,
         #                    'batch_size' : 1024,
         #                }
         #            },
@@ -106,7 +106,7 @@ def run_experiment():
         #                    'timewindow' : 180,
         #                    'timestep' : 2,
         #                    'overlap' : 172,
-        #                    'epochs' : 500,
+        #                    'epochs' : epochs,
         #                    'batch_size' : 1024,
         #                    'feature_extractor' : "dwt"
         #                }
@@ -155,7 +155,7 @@ def run_experiment():
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
@@ -171,7 +171,7 @@ def run_experiment():
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
@@ -187,7 +187,7 @@ def run_experiment():
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
@@ -203,7 +203,7 @@ def run_experiment():
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -220,7 +220,7 @@ def run_experiment():
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'feature_extractor' : "dwt"
                         }
