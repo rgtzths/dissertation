@@ -16,9 +16,9 @@ from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
 
-#base_path= "/home/rteixeira/thesis_results/"
-base_path = "/home/user/thesis_results/"
-epochs = 1
+base_path= "/home/rteixeira/thesis_results/"
+#base_path = "/home/user/thesis_results/"
+epochs = 500
 
 def run_experiment():
 
@@ -120,13 +120,13 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
-                        #"house_1" : [
-                        #    (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
-                        #    (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
-                        #    (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
-                        #    (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 25))
-                        #    ]
-                        "house_1" : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
+                        "house_1" : [
+                            (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
+                            (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
+                            (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
+                            (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 25))
+                            ]
+                        #"house_1" : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
                     }
                 },
             },
@@ -134,8 +134,8 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
-                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }
@@ -233,12 +233,12 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
-                        "house_1" : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
-                        #"house_1" : [ 
-                        #    (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 22)),
-                        #    (datetime.datetime(2020, 12, 1), datetime.datetime(2020, 12, 15)),
-                        #    (datetime.datetime(2021, 1, 1), datetime.datetime(2021, 1, 8)) 
-                        #    ]
+                        #"house_1" : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
+                        "house_1" : [ 
+                            (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 22)),
+                            (datetime.datetime(2020, 12, 1), datetime.datetime(2020, 12, 15)),
+                            (datetime.datetime(2021, 1, 1), datetime.datetime(2021, 1, 8)) 
+                            ]
                     }
                 },
             },
@@ -246,8 +246,8 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
-                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }
