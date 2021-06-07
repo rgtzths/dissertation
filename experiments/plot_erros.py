@@ -1,7 +1,7 @@
 import json
 from matplotlib import pyplot as plt
 
-filename = "/home/user/Desktop/ZiTh0s/Uni/Tese/results/trial_3/history/history_heatpump_GRU.json"
+filename = "/home/user/Desktop/ZiTh0s/Uni/Tese/results/trial_4/history/history_heatpump_MLP.json"
 
 history = json.load(open(filename))
 

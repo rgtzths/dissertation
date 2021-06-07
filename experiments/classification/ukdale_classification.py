@@ -8,12 +8,17 @@ from run_experiment import run
 
 import sys
 sys.path.insert(1, "../../classification_models")
+
 from seq2point import Seq2Point
 from gru import GRU_RNN
 from gru2 import GRU2
 from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
+
+#base_path= "/home/rteixeira/thesis_results/"
+base_path = "/home/user/thesis_results/"
+epochs = 1
 
 def run_experiment():
 
@@ -25,16 +30,16 @@ def run_experiment():
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/LSTM/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/LSTM/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/LSTM/results_fridge.txt",
+                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_fridge.h5",
+                    #"load_model_folder" : "base_path/models/LSTM/",
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -42,16 +47,16 @@ def run_experiment():
                 }),
                 "GRU" : GRU_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU/results_fridge.txt",
+                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_fridge.h5",
+                    #"load_model_folder" : "base_path/models/GRU/",
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -59,16 +64,16 @@ def run_experiment():
                 }),
                 "GRU2" : GRU2({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU2/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU2/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU2/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU2/results_fridge.txt",
+                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_fridge.h5",
+                    #"load_model_folder" : "base_path/models/GRU2/",
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -76,23 +81,23 @@ def run_experiment():
                 }),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/ResNet/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/ResNet/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/ResNet/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/ResNet/results_fridge.txt",
+                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_fridge.h5",
+                    #"load_model_folder" : "base_path/models/ResNet/",
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
                 }),
-                "Seq2Point" : Seq2Point({'n_epochs':1,'batch_size':1024, "training_results_path" : "/home/user/thesis_results/history/"})
+                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
             },
-            "model_path" : "/home/user/thesis_results/models/",
+            "model_path" : "base_path/models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {
@@ -118,16 +123,16 @@ def run_experiment():
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/LSTM/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/LSTM/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/LSTM/results_microwave.txt",
+                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : "base_path/models/LSTM/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -135,16 +140,16 @@ def run_experiment():
                 }),
                 "GRU" : GRU_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU/results_microwave.txt",
+                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : "base_path/models/GRU/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -152,16 +157,16 @@ def run_experiment():
                 }),
                 "GRU2" : GRU2({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU2/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU2/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU2/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU2/results_microwave.txt",
+                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : "base_path/models/GRU2/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -169,23 +174,23 @@ def run_experiment():
                 }),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/ResNet/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/ResNet/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/ResNet/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/ResNet/results_microwave.txt",
+                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : "base_path/models/ResNet/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
                 }),
-                "Seq2Point" : Seq2Point({'n_epochs':1,'batch_size':1024, "training_results_path" : "/home/user/thesis_results/history/"})
+                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
             },
-            "model_path" : "/home/user/thesis_results/models/",
+            "model_path" : "base_path/models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {
@@ -211,16 +216,16 @@ def run_experiment():
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/LSTM/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/LSTM/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/LSTM/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/LSTM/results_dish_washer.txt",
+                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : "base_path/models/LSTM/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -228,16 +233,16 @@ def run_experiment():
                 }),
                 "GRU" : GRU_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU/results_dish_washer.txt",
+                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : "base_path/models/GRU/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -245,16 +250,16 @@ def run_experiment():
                 }),
                 "GRU2" : GRU2({
                     'verbose' : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/GRU2/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/GRU2/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/GRU2/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/GRU2/results_dish_washer.txt",
+                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : "base_path/models/GRU2/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
                         }
@@ -262,23 +267,23 @@ def run_experiment():
                 }),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
-                    "training_results_path" : "/home/user/thesis_results/history/",
-                    "results_path" : "/home/user/thesis_results/results/ResNet/results_heatpump.txt",
-                    "checkpoint_file" : "/home/user/thesis_results/models/ResNet/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : "/home/user/thesis_results/models/ResNet/",
+                    "training_results_path" : "base_path/history/",
+                    "results_path" : "base_path/results/ResNet/results_dish_washer.txt",
+                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : "base_path/models/ResNet/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
-                            'epochs' : 1,
+                            'epochs' : epochs,
                             'batch_size' : 1024,
                         }
                     },
                 }),
-                "Seq2Point" : Seq2Point({'n_epochs':1,'batch_size':1024, "training_results_path" : "/home/user/thesis_results/history/"})
+                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
             },
-            "model_path" : "/home/user/thesis_results/models/",
+            "model_path" : "base_path/models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {

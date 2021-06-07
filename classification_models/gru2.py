@@ -196,15 +196,19 @@ class GRU2():
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
+        #Block 1
         model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
-        model.add(GRU(n_nodes*2, return_sequences=True))
         model.add(LeakyReLU(alpha=0.1))
-        model.add(GRU(n_nodes, return_sequences=True))
-        model.add(GRU(int(n_nodes/2)))
+        model.add(Dropout(0.5))
+        #Block 2
+        model.add(GRU(n_nodes*2))
         model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dropout(0.5))
+        #Dense Layer
+        model.add(Dense(int(n_nodes/2), activation='relu'))
         model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.1))
+        model.add(Dropout(0.5))
+        #Classification Layer
         model.add(Dense(2, activation='softmax'))
         model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
