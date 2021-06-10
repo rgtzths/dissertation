@@ -17,7 +17,7 @@ from resnet import ResNet
 from mlp_dwt import MLP
 
 base_path= "/home/rteixeira/thesis_results/"
-#base_path = "/home/user/thesis_results/"
+base_path = "/home/user/thesis_results/"
 epochs = 500
 
 def run_experiment():
@@ -33,7 +33,7 @@ def run_experiment():
                 #    "training_results_path" : base_path + "history/",
                 #    "results_path" : base_path + "results/LSTM/results_heatpump.txt",
                 #    "checkpoint_file" : base_path + "models/LSTM/model_checkpoint_heatpump.h5",
-                #    "load_model_folder" : base_path + "models/LSTM/",
+                #    #"load_model_folder" : base_path + "models/LSTM/",
                 #    "appliances" : {
                 #        "heatpump" : {
                 #            'timewindow' : 180,
@@ -95,24 +95,24 @@ def run_experiment():
                         }
                     },
                 }),
-                #"MLP" : MLP( {
-                #    "verbose" : 2,
-                #    "training_results_path" : base_path + "history/",
-                #    "results_path" : base_path + "results/MLP/results_heatpump.txt",
-                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_heatpump.h5",
-                #    "load_model_folder" : base_path + "models/MLP/",
-                #    "appliances" : {
-                #        "heatpump" : {
-                #            'timewindow' : 180,
-                #            'timestep' : 2,
-                #            'overlap' : 172,
-                #            'epochs' : epochs,
-                #            'batch_size' : 1024,
-                #            'feature_extractor' : "dwt"
-                #        }
-                #    },
-                #    "predicted_column": ("power", "apparent"), 
-                #}),
+                "MLP" : MLP( {
+                    "verbose" : 2,
+                    "training_results_path" : base_path + "history/",
+                    "results_path" : base_path + "results/MLP/results_heatpump.txt",
+                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_heatpump.h5",
+                    #"load_model_folder" : base_path + "models/MLP/",
+                    "appliances" : {
+                        "heatpump" : {
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : epochs,
+                            'batch_size' : 1024,
+                            'feature_extractor' : "dwt"
+                        }
+                    },
+                    "predicted_column": ("power", "apparent"), 
+                }),
             },
             "model_path" : base_path + "models/",
             "timestep" : 2,
@@ -124,7 +124,7 @@ def run_experiment():
                             (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
                             (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
                             (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
-                            (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 25))
+                        #    (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 25))
                             ]
                         #"house_1" : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
                     }
@@ -134,8 +134,8 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_classification/",
                     "houses" : {
-                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }
@@ -209,23 +209,23 @@ def run_experiment():
                         }
                     },
                 }),
-                #"MLP" : MLP( {
-                #    "verbose" : 2,
-                #    "training_results_path" : base_path + "history/",
-                #    "results_path" : base_path + "results/MLP/results_carcharger.txt",
-                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_carcharger.h5",
-                #    #"load_model_folder" : base_path + "models/MLP/",
-                #    "appliances" : {
-                #        "carcharger" : {
-                #            'timewindow' : 180,
-                #            'timestep' : 2,
-                #            'overlap' : 178,
-                #            'epochs' : epochs,
-                #            'batch_size' : 1024,
-                #            'feature_extractor' : "dwt"
-                #        }
-                #    },
-                #}),
+                "MLP" : MLP( {
+                    "verbose" : 2,
+                    "training_results_path" : base_path + "history/",
+                    "results_path" : base_path + "results/MLP/results_carcharger.txt",
+                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_carcharger.h5",
+                    #"load_model_folder" : base_path + "models/MLP/",
+                    "appliances" : {
+                        "carcharger" : {
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : epochs,
+                            'batch_size' : 1024,
+                            'feature_extractor' : "dwt"
+                        }
+                    },
+                }),
             },
             "model_path" : base_path + "models/",
             "timestep" : 2,
