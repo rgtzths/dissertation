@@ -11,7 +11,7 @@ sys.path.insert(1, "../../classification_models")
 
 from seq2point import Seq2Point
 from gru import GRU_RNN
-from gru2 import GRU2
+from deep_gru import DeepGRU
 from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
@@ -24,109 +24,140 @@ def run_experiment():
 
     #Experiment Definition
     experiment = {
-        "fridge" : {
-            "mains_columns" : [('power', 'apparent')],
-            "appliance_columns" : [('power', 'apparent')],
-            "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/LSTM/results_fridge.txt",
-                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : "base_path/models/LSTM/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU/results_fridge.txt",
-                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : "base_path/models/GRU/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU2" : GRU2({
-                    'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU2/results_fridge.txt",
-                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : "base_path/models/GRU2/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "ResNet" : ResNet( {
-                    "verbose" : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/ResNet/results_fridge.txt",
-                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : "base_path/models/ResNet/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                        }
-                    },
-                }),
-                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
-            },
-            "model_path" : "base_path/models/",
-            "timestep" : 2,
-            "train" : {
-                "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
-                    "houses" : {
-                        "house_1" : [(datetime.datetime(2013, 5, 22), datetime.datetime(2013, 5, 23))], #"end" : datetime.datetime(2013, 7, 1)
-                        "house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))] #"end" : datetime.datetime(2013, 7, 1)
-                    }
-                },
-            },
-            "test" : {
-                "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
-                    "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 6, 30),datetime.datetime(2014, 7, 1))]#"end" : datetime.datetime(2014, 7, 9)
-                    }
-                }
-            }
-        },
+        #"fridge" : {
+        #    "mains_columns" : [('power', 'apparent')],
+        #    "appliance_columns" : [('power', 'apparent')],
+        #    "methods" : {
+        #        "LSTM" : LSTM_RNN({
+        #            'verbose' : 2,
+        #            "training_results_path" : base_path+"history/",
+        #            "results_path" : base_path+"results/LSTM/results_fridge.txt",
+        #            "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_fridge.h5",
+        #            #"load_model_folder" : base_path+"models/LSTM/",
+        #            "appliances" : {
+        #                "fridge" : {
+        #                    'timewindow' : 180,
+        #                    'timestep' : 2,
+        #                    'overlap' : 178,
+        #                    'epochs' : epochs,
+        #                    'batch_size' : 1024,
+        #                    'n_nodes' : 90,
+        #                }
+        #            },
+        #        }),
+        #        "GRU" : GRU_RNN({
+        #            'verbose' : 2,
+        #            "training_results_path" : base_path+"history/",
+        #            "results_path" : base_path+"results/GRU/results_fridge.txt",
+        #            "checkpoint_file" : base_path+"models/GRU/model_checkpoint_fridge.h5",
+        #            #"load_model_folder" : base_path+"models/GRU/",
+        #            "appliances" : {
+        #                "fridge" : {
+        #                    'timewindow' : 180,
+        #                    'timestep' : 2,
+        #                    'overlap' : 178,
+        #                    'epochs' : epochs,
+        #                    'batch_size' : 1024,
+        #                    'n_nodes' : 90,
+        #                }
+        #            },
+        #        }),
+        #        "DeepGRU" : DeepGRU({
+        #            'verbose' : 2,
+        #            "training_results_path" : base_path+"history/",
+        #            "results_path" : base_path+"results/DeepGRU/results_fridge.txt",
+        #            "checkpoint_file" : base_path+"models/DeepGRU/model_checkpoint_fridge.h5",
+        #            #"load_model_folder" : base_path+"models/DeepGRU/",
+        #            "appliances" : {
+        #                "fridge" : {
+        #                    'timewindow' : 180,
+        #                    'timestep' : 2,
+        #                    'overlap' : 178,
+        #                    'epochs' : epochs,
+        #                    'batch_size' : 1024,
+        #                    'n_nodes' : 90,
+        #                }
+        #            },
+        #        }),
+        #        "ResNet" : ResNet( {
+        #            "verbose" : 2,
+        #            "training_results_path" : base_path+"history/",
+        #            "results_path" : base_path+"results/ResNet/results_fridge.txt",
+        #            "checkpoint_file" : base_path+"models/ResNet/model_checkpoint_fridge.h5",
+        #            #"load_model_folder" : base_path+"models/ResNet/",
+        #            "appliances" : {
+        #                "fridge" : {
+        #                    'timewindow' : 180,
+        #                    'timestep' : 2,
+        #                    'overlap' : 178,
+        #                    'epochs' : epochs,
+        #                    'batch_size' : 1024,
+        #                }
+        #            },
+        #        }),
+        #        "MLP" : MLP( {
+        #            "verbose" : 2,
+        #            "training_results_path" : base_path + "history/",
+        #            "results_path" : base_path + "results/MLP/results_fridge.txt",
+        #            "checkpoint_file" : base_path + "models/MLP/model_checkpoint_fridge.h5",
+        #            #"load_model_folder" : base_path + "models/MLP/",
+        #            "appliances" : {
+        #                "fridge" : {
+        #                    'timewindow' : 180,
+        #                    'timestep' : 2,
+        #                    'overlap' : 178,
+        #                    'epochs' : epochs,
+        #                    'batch_size' : 1024,
+        #                    'feature_extractor' : "dwt"
+        #                }
+        #            },
+        #            "predicted_column": ("power", "apparent"), 
+        #        }),
+        #        "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : base_path+"history/"})
+        #    },
+        #    "model_path" : base_path+"models/",
+        #    "timestep" : 2,
+        #    "train" : {
+        #        "ukdale" : {
+        #            "location" : "../../../datasets/ukdale_classification/",
+        #            "houses" : {
+        #                #"house_1" : [(datetime.datetime(2013, 5, 22), datetime.datetime(2013, 5, 23))],
+        #                #"house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+        #                "house_1" : [
+        #                    (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 30)),
+        #                    (datetime.datetime(2016, 3, 10), datetime.datetime(2016, 3, 17))
+        #                    ],
+        #                "house_2" : [
+        #                    (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
+        #                    (datetime.datetime(2013, 9, 10), datetime.datetime(2013, 9, 17))
+        #                    ]
+#
+        #            }
+        #        },
+        #    },
+        #    "test" : {
+        #        "ukdale" : {
+        #            "location" : "../../../datasets/ukdale_classification/",
+        #            "houses" : {
+        #                #"house_5" : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+        #                "house_5" : [
+        #                    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
+        #                    (datetime.datetime(2014, 10, 10),datetime.datetime(2014, 10, 17))
+        #                    ]
+        #            }
+        #        }
+        #    }
+        #},
         "microwave" : {
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/LSTM/results_microwave.txt",
-                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : "base_path/models/LSTM/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/LSTM/results_microwave.txt",
+                    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : base_path+"models/LSTM/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
@@ -140,10 +171,10 @@ def run_experiment():
                 }),
                 "GRU" : GRU_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU/results_microwave.txt",
-                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : "base_path/models/GRU/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/GRU/results_microwave.txt",
+                    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : base_path+"models/GRU/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
@@ -155,12 +186,12 @@ def run_experiment():
                         }
                     },
                 }),
-                "GRU2" : GRU2({
+                "DeepGRU" : DeepGRU({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU2/results_microwave.txt",
-                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : "base_path/models/GRU2/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/DeepGRU/results_microwave.txt",
+                    "checkpoint_file" : base_path+"models/DeepGRU/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : base_path+"models/DeepGRU/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
@@ -174,10 +205,10 @@ def run_experiment():
                 }),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/ResNet/results_microwave.txt",
-                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : "base_path/models/ResNet/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/ResNet/results_microwave.txt",
+                    "checkpoint_file" : base_path+"models/ResNet/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : base_path+"models/ResNet/",
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
@@ -188,16 +219,41 @@ def run_experiment():
                         }
                     },
                 }),
-                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
+                "MLP" : MLP( {
+                    "verbose" : 2,
+                    "training_results_path" : base_path + "history/",
+                    "results_path" : base_path + "results/MLP/results_microwave.txt",
+                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_microwave.h5",
+                    #"load_model_folder" : base_path + "models/MLP/",
+                    "appliances" : {
+                        "microwave" : {
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : epochs,
+                            'batch_size' : 1024,
+                            'feature_extractor' : "dwt"
+                        }
+                    },
+                    "predicted_column": ("power", "apparent"), 
+                }),
             },
-            "model_path" : "base_path/models/",
+            "model_path" : base_path+"models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale_classification/",
                     "houses" : {
-                        "house_1" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))], #"end" : datetime.datetime(2013, 7, 1)
-                        "house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))] #"end" : datetime.datetime(2013, 7, 1)
+                        #"house_1" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))],
+                        #"house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+                        "house_1" : [
+                            (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 30)),
+                            (datetime.datetime(2016, 3, 10), datetime.datetime(2016, 3, 17))
+                            ],
+                        "house_2" : [
+                            (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
+                            (datetime.datetime(2013, 9, 10), datetime.datetime(2013, 9, 17))
+                            ]
                     }
                 },
             },
@@ -205,7 +261,10 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale_classification/",
                     "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 7, 1), datetime.datetime(2014, 7, 9))] #"end" : datetime.datetime(2013, 7, 9)
+                        "house_5" : [
+                            (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
+                            (datetime.datetime(2014, 10, 10),datetime.datetime(2014, 10, 17))
+                        ]
                     }
                 }
             }
@@ -216,10 +275,10 @@ def run_experiment():
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/LSTM/results_dish_washer.txt",
-                    "checkpoint_file" : "base_path/models/LSTM/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : "base_path/models/LSTM/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/LSTM/results_dish_washer.txt",
+                    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : base_path+"models/LSTM/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
@@ -233,10 +292,10 @@ def run_experiment():
                 }),
                 "GRU" : GRU_RNN({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU/results_dish_washer.txt",
-                    "checkpoint_file" : "base_path/models/GRU/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : "base_path/models/GRU/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/GRU/results_dish_washer.txt",
+                    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : base_path+"models/GRU/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
@@ -248,12 +307,12 @@ def run_experiment():
                         }
                     },
                 }),
-                "GRU2" : GRU2({
+                "DeepGRU" : DeepGRU({
                     'verbose' : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/GRU2/results_dish_washer.txt",
-                    "checkpoint_file" : "base_path/models/GRU2/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : "base_path/models/GRU2/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/DeepGRU/results_dish_washer.txt",
+                    "checkpoint_file" : base_path+"models/DeepGRU/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : base_path+"models/DeepGRU/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
@@ -267,10 +326,10 @@ def run_experiment():
                 }),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
-                    "training_results_path" : "base_path/history/",
-                    "results_path" : "base_path/results/ResNet/results_dish_washer.txt",
-                    "checkpoint_file" : "base_path/models/ResNet/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : "base_path/models/ResNet/",
+                    "training_results_path" : base_path+"history/",
+                    "results_path" : base_path+"results/ResNet/results_dish_washer.txt",
+                    "checkpoint_file" : base_path+"models/ResNet/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : base_path+"models/ResNet/",
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
@@ -281,16 +340,39 @@ def run_experiment():
                         }
                     },
                 }),
-                "Seq2Point" : Seq2Point({'n_epochs':epochs,'batch_size':1024, "training_results_path" : "base_path/history/"})
+                "MLP" : MLP( {
+                    "verbose" : 2,
+                    "training_results_path" : base_path + "history/",
+                    "results_path" : base_path + "results/MLP/results_dish_washer.txt",
+                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_dish_washer.h5",
+                    #"load_model_folder" : base_path + "models/MLP/",
+                    "appliances" : {
+                        "dish_washer" : {
+                            'timewindow' : 180,
+                            'timestep' : 2,
+                            'overlap' : 178,
+                            'epochs' : epochs,
+                            'batch_size' : 1024,
+                            'feature_extractor' : "dwt"
+                        }
+                    },
+                    "predicted_column": ("power", "apparent"), 
+                }),
             },
-            "model_path" : "base_path/models/",
+            "model_path" : base_path+"models/",
             "timestep" : 2,
             "train" : {
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale_classification/",
                     "houses" : {
-                        "house_1" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))], #"end" : datetime.datetime(2013, 7, 1)
-                        "house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))] #"end" : datetime.datetime(2013, 7, 1)
+                        "house_1" : [
+                            (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 30)),
+                            (datetime.datetime(2016, 3, 10), datetime.datetime(2016, 3, 17))
+                            ],
+                        "house_2" : [
+                            (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
+                            (datetime.datetime(2013, 9, 10), datetime.datetime(2013, 9, 17))
+                            ]
                     }
                 },
             },
@@ -298,7 +380,10 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale_classification/",
                     "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 9))] #"end" : datetime.datetime(2013, 7, 9)
+                        "house_5" : [
+                            (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
+                            (datetime.datetime(2014, 10, 10),datetime.datetime(2014, 10, 17))
+                            ]
                     }
                 }
             }

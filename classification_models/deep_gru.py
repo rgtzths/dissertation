@@ -30,12 +30,12 @@ config = ConfigProto()
 config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
-class GRU2():
+class DeepGRU():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'GRU2')
+        self.MODEL_NAME = params.get('model_name', 'DeepGRU')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
@@ -60,6 +60,8 @@ class GRU2():
 
         if self.load_model_path:
             self.load_model(self.load_model_path)
+            self.mains_mean = params.get("mean", None)
+            self.mains_std = params.get("std", None)
 
     def partial_fit(self, train_mains, train_appliances):
 
@@ -118,15 +120,11 @@ class GRU2():
                     f = open(self.results_file, "w")
                     f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
                     f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.write("Data Mean: " + str(self.mains_mean) + "\n")
+                    f.write("Data Std: " + str(self.mains_std) + "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
-                appliance_model = self.appliances.get(app_name, {})
-                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-                                                                
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap) 
             
     def disaggregate_chunk(self, test_mains, test_appliances):
         
@@ -171,7 +169,7 @@ class GRU2():
                 f = open(self.results_file, "a")
                 f.write("Nº de Positivos para teste: " + str(sum(y_test)) + "\n")
                 f.write("Nº de Negativos para teste: " + str(len(y_test)- sum(y_test)) + "\n")
-                f.write("MCC: "+str(matthews_corrcoef(y_test, pred)))
+                f.write("MCC: "+str(matthews_corrcoef(y_test, pred)) + "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
                 f.write("False Positives: "+str(fp)+ "\n")

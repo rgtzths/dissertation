@@ -61,6 +61,8 @@ class GRU_RNN():
 
         if self.load_model_path:
             self.load_model(self.load_model_path)
+            self.mains_mean = params.get("mean", None)
+            self.mains_std = params.get("std", None)
 
     def partial_fit(self, train_mains, train_appliances):
 
@@ -135,15 +137,11 @@ class GRU_RNN():
                     f = open(self.results_file, "w")
                     f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
                     f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                    f.write("Data Mean: " + str(self.mains_mean) + "\n")
+                    f.write("Data Std: " + str(self.mains_std) + "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
-                appliance_model = self.appliances.get(app_name, {})
-                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
        
     def disaggregate_chunk(self, test_mains, test_appliances):
         
