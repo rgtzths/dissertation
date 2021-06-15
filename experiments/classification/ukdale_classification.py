@@ -123,7 +123,7 @@ def run_experiment():
                         #"house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
                         #"house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
                         "house_1" : [
-                            (datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 30)),
+                            (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                             ],
                         "house_2" : [
@@ -245,7 +245,7 @@ def run_experiment():
                         #"house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
                         #"house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
                         "house_1" : [
-                            (datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 30)),
+                            (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                             ],
                         "house_2" : [
@@ -367,7 +367,7 @@ def run_experiment():
                         #"house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
                         #"house_2" : [(datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 24))]
                         "house_1" : [
-                            (datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 30)),
+                            (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                             ],
                         "house_2" : [
