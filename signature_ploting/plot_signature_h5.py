@@ -6,13 +6,6 @@ import warnings
 warnings.filterwarnings('ignore',category=FutureWarning)
 warnings.filterwarnings('ignore',category=RuntimeWarning)
 
-### Valores Editáveis #####
-app_name = "heatpump"
-
-beginning = pd.to_datetime('2013-06-02T12:30')
-end = pd.to_datetime('2013-06-02T14:00')
-######
-
 '''
     Plot of Different Readings from the same house
 '''
@@ -42,38 +35,38 @@ end = pd.to_datetime('2013-06-02T14:00')
 '''
 ukdale = DataSet('../../datasets/ukdale/ukdale.h5')
 beginning = pd.to_datetime('2013-06-02T12:30')
-end = pd.to_datetime('2013-06-02T20:00')
+end = pd.to_datetime('2017-06-02T20:00')
 
-b1 = next(ukdale.buildings[1].elec["fridge"].load())
+b1 = next(ukdale.buildings[1].elec["htpc"].load())
 
 beginning_index_1 = b1.index.get_loc(beginning, method="nearest")
 
 end_index_1 = b1.index.get_loc(end, method="nearest")
 
 
-beginning = pd.to_datetime('2013-06-02T12:30')
-end = pd.to_datetime('2013-06-02T20:00')
-
-b2 = next(ukdale.buildings[2].elec["fridge"].load())
-
-beginning_index_2 = b2.index.get_loc(beginning, method="nearest")
-
-end_index_2 = b2.index.get_loc(end, method="nearest")
-
-
-beginning = pd.to_datetime('2014-07-02T12:30')
-end = pd.to_datetime('2014-07-02T20:00')
-
-b5 = next(ukdale.buildings[5].elec["fridge"].load())
-
-beginning_index_5 = b5.index.get_loc(beginning, method="nearest")
-
-end_index_5 = b5.index.get_loc(end, method="nearest")
+#beginning = pd.to_datetime('2013-06-02T12:30')
+#end = pd.to_datetime('2013-06-02T20:00')
+#
+#b2 = next(ukdale.buildings[2].elec["fridge"].load())
+#
+#beginning_index_2 = b2.index.get_loc(beginning, method="nearest")
+#
+#end_index_2 = b2.index.get_loc(end, method="nearest")
+#
+#
+#beginning = pd.to_datetime('2014-07-02T12:30')
+#end = pd.to_datetime('2014-07-02T20:00')
+#
+#b5 = next(ukdale.buildings[5].elec["fridge"].load())
+#
+#beginning_index_5 = b5.index.get_loc(beginning, method="nearest")
+#
+#end_index_5 = b5.index.get_loc(end, method="nearest")
 
 
 plt.plot(b1.index[beginning_index_1:end_index_1], b1["power"]["active"][beginning_index_1:end_index_1], label="Building 1")
-plt.plot(b2.index[beginning_index_2:end_index_2],b2["power"]["active"][beginning_index_2:end_index_2], label="Building 2")
-plt.plot(b2.index[beginning_index_2:end_index_2], b5["power"]["active"][beginning_index_5:end_index_5][0: b2.index[beginning_index_2:end_index_2].shape[0] ], label="Building 3")
+#plt.plot(b2.index[beginning_index_2:end_index_2],b2["power"]["active"][beginning_index_2:end_index_2], label="Building 2")
+#plt.plot(b2.index[beginning_index_2:end_index_2], b5["power"]["active"][beginning_index_5:end_index_5][0: b2.index[beginning_index_2:end_index_2].shape[0] ], label="Building 3")
 #plt.plot(df.index[beginning_index:end_index], df["power factor"]["apparent"][beginning_index:end_index], label="Apparent Power")
 
 plt.xlabel("Time")
