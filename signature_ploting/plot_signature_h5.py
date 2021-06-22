@@ -34,10 +34,10 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
     Plot of the same appliance from different houses
 '''
 ukdale = DataSet('../../datasets/ukdale/ukdale.h5')
-beginning = pd.to_datetime('2013-06-02T12:30')
-end = pd.to_datetime('2017-06-02T20:00')
+beginning = pd.to_datetime('2013-05-20T00:00')
+end = pd.to_datetime('2013-10-11T00:00')
 
-b1 = next(ukdale.buildings[1].elec["htpc"].load())
+b1 = next(ukdale.buildings[2].elec["dish washer"].load())
 
 beginning_index_1 = b1.index.get_loc(beginning, method="nearest")
 

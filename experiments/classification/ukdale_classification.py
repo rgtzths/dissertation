@@ -28,40 +28,40 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/LSTM/results_fridge.txt",
-                    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/GRU/results_fridge.txt",
-                    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
+                #"LSTM" : LSTM_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/LSTM/results_fridge.txt",
+                #    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_fridge.h5",
+                #    #"load_model_folder" : base_path+"models/LSTM/",
+                #    "appliances" : {
+                #        "fridge" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/GRU/results_fridge.txt",
+                #    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_fridge.h5",
+                #    #"load_model_folder" : base_path+"models/GRU/",
+                #    "appliances" : {
+                #        "fridge" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_results_path" : base_path+"history/",
@@ -95,24 +95,24 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP( {
-                    "verbose" : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/MLP/results_fridge.txt",
-                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_fridge.h5",
-                    #"load_model_folder" : base_path + "models/MLP/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
+                #"MLP" : MLP( {
+                #    "verbose" : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/MLP/results_fridge.txt",
+                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_fridge.h5",
+                #    #"load_model_folder" : base_path + "models/MLP/",
+                #    "appliances" : {
+                #        "fridge" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'feature_extractor' : "dwt"
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 2,
@@ -150,40 +150,40 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/LSTM/results_microwave.txt",
-                    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "microwave" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/GRU/results_microwave.txt",
-                    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "microwave" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
+                #"LSTM" : LSTM_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/LSTM/results_microwave.txt",
+                #    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_microwave.h5",
+                #    #"load_model_folder" : base_path+"models/LSTM/",
+                #    "appliances" : {
+                #        "microwave" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/GRU/results_microwave.txt",
+                #    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_microwave.h5",
+                #    #"load_model_folder" : base_path+"models/GRU/",
+                #    "appliances" : {
+                #        "microwave" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_results_path" : base_path+"history/",
@@ -217,24 +217,24 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP( {
-                    "verbose" : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/MLP/results_microwave.txt",
-                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_microwave.h5",
-                    #"load_model_folder" : base_path + "models/MLP/",
-                    "appliances" : {
-                        "microwave" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
+                #"MLP" : MLP( {
+                #    "verbose" : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/MLP/results_microwave.txt",
+                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_microwave.h5",
+                #    #"load_model_folder" : base_path + "models/MLP/",
+                #    "appliances" : {
+                #        "microwave" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'feature_extractor' : "dwt"
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 2,
@@ -272,40 +272,40 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/LSTM/results_dish_washer.txt",
-                    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "dish_washer" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path+"history/",
-                    "results_path" : base_path+"results/GRU/results_dish_washer.txt",
-                    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "dish_washer" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
+                #"LSTM" : LSTM_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/LSTM/results_dish_washer.txt",
+                #    "checkpoint_file" : base_path+"models/LSTM/model_checkpoint_dish_washer.h5",
+                #    #"load_model_folder" : base_path+"models/LSTM/",
+                #    "appliances" : {
+                #        "dish_washer" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path+"history/",
+                #    "results_path" : base_path+"results/GRU/results_dish_washer.txt",
+                #    "checkpoint_file" : base_path+"models/GRU/model_checkpoint_dish_washer.h5",
+                #    #"load_model_folder" : base_path+"models/GRU/",
+                #    "appliances" : {
+                #        "dish_washer" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_results_path" : base_path+"history/",
@@ -339,24 +339,24 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP( {
-                    "verbose" : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/MLP/results_dish_washer.txt",
-                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_dish_washer.h5",
-                    #"load_model_folder" : base_path + "models/MLP/",
-                    "appliances" : {
-                        "dish_washer" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
+                #"MLP" : MLP( {
+                #    "verbose" : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/MLP/results_dish_washer.txt",
+                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_dish_washer.h5",
+                #    #"load_model_folder" : base_path + "models/MLP/",
+                #    "appliances" : {
+                #        "dish_washer" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'feature_extractor' : "dwt"
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 2,

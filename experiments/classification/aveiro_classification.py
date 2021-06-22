@@ -28,40 +28,40 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/LSTM/results_heatpump.txt",
-                    "checkpoint_file" : base_path + "models/LSTM/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : base_path + "models/LSTM/",
-                    "appliances" : {
-                        "heatpump" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/GRU/results_heatpump.txt",
-                    "checkpoint_file" : base_path + "models/GRU/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : base_path + "models/GRU/",
-                    "appliances" : {
-                        "heatpump" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
+                #"LSTM" : LSTM_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/LSTM/results_heatpump.txt",
+                #    "checkpoint_file" : base_path + "models/LSTM/model_checkpoint_heatpump.h5",
+                #    #"load_model_folder" : base_path + "models/LSTM/",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/GRU/results_heatpump.txt",
+                #    "checkpoint_file" : base_path + "models/GRU/model_checkpoint_heatpump.h5",
+                #    #"load_model_folder" : base_path + "models/GRU/",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90,
+                #        }
+                #    },
+                #}),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_results_path" : base_path + "history/",
@@ -75,7 +75,7 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
-                            'n_nodes' : 90,
+                            'n_nodes' : 90
                         }
                     },
                 }),
@@ -92,27 +92,28 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
+                            'n_nodes' : 90
                         }
                     },
                 }),
-                "MLP" : MLP( {
-                    "verbose" : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/MLP/results_heatpump.txt",
-                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : base_path + "models/MLP/",
-                    "appliances" : {
-                        "heatpump" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
-                        }
-                    },
-                    "predicted_column": ("power", "apparent"), 
-                }),
+                #"MLP" : MLP( {
+                #    "verbose" : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/MLP/results_heatpump.txt",
+                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_heatpump.h5",
+                #    #"load_model_folder" : base_path + "models/MLP/",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'feature_extractor' : "dwt"
+                #        }
+                #    },
+                #    "predicted_column": ("power", "apparent"), 
+                #}),
             },
             "model_path" : base_path + "models/",
             "timestep" : 2,
@@ -144,38 +145,38 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/LSTM/results_carcharger.txt",
-                    "checkpoint_file" : base_path + "models/LSTM/model_checkpoint_carcharger.h5",
-                    #"load_model_folder" : base_path + "models/LSTM/",
-                    "appliances" : {
-                        "carcharger" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/GRU/results_carcharger.txt",
-                    "checkpoint_file" : base_path + "models/GRU/model_checkpoint_carcharger.h5",
-                    #"load_model_folder" : base_path + "models/GRU/",
-                    "appliances" : {
-                        "carcharger" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                        }
-                    },
-                }),
+                #"LSTM" : LSTM_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/LSTM/results_carcharger.txt",
+                #    "checkpoint_file" : base_path + "models/LSTM/model_checkpoint_carcharger.h5",
+                #    #"load_model_folder" : base_path + "models/LSTM/",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #        }
+                #    },
+                #}),
+                #"GRU" : GRU_RNN({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/GRU/results_carcharger.txt",
+                #    "checkpoint_file" : base_path + "models/GRU/model_checkpoint_carcharger.h5",
+                #    #"load_model_folder" : base_path + "models/GRU/",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #        }
+                #    },
+                #}),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_results_path" : base_path + "history/",
@@ -189,6 +190,7 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
+                            'n_nodes' : 90
                         }
                     },
                 }),
@@ -205,26 +207,27 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
+                            'n_nodes' : 90
                         }
                     },
                 }),
-                "MLP" : MLP( {
-                    "verbose" : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/MLP/results_carcharger.txt",
-                    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_carcharger.h5",
-                    #"load_model_folder" : base_path + "models/MLP/",
-                    "appliances" : {
-                        "carcharger" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
-                        }
-                    },
-                }),
+                #"MLP" : MLP( {
+                #    "verbose" : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/MLP/results_carcharger.txt",
+                #    "checkpoint_file" : base_path + "models/MLP/model_checkpoint_carcharger.h5",
+                #    #"load_model_folder" : base_path + "models/MLP/",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'feature_extractor' : "dwt"
+                #        }
+                #    },
+                #}),
             },
             "model_path" : base_path + "models/",
             "timestep" : 2,

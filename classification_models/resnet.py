@@ -46,6 +46,7 @@ class ResNet():
             "timestep": 2,
             'epochs' : 1,
             'batch_size' : 1024,
+            'n_nodes' : 90
         }
 
         self.training_results_path = params.get("training_results_path", None)
@@ -73,6 +74,7 @@ class ResNet():
                 overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
                 batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
                 X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
                 
@@ -89,7 +91,7 @@ class ResNet():
                 if app_name in self.model:
                     model = self.model[app_name]
                 else:
-                    model = self.create_model((X_train.shape[1], X_train.shape[2]))
+                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
 
                 reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
@@ -191,26 +193,24 @@ class ResNet():
         for app in app_models:
             self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
 
-    def create_model(self, input_shape):
-        n_feature_maps = 64
-
+    def create_model(self, n_nodes, input_shape):
         input_layer = keras.layers.Input(input_shape)
 
         # BLOCK 1
 
-        conv_x = keras.layers.Conv1D(filters=n_feature_maps, kernel_size=8, padding='same')(input_layer)
+        conv_x = keras.layers.Conv1D(filters=n_nodes, kernel_size=8, padding='same')(input_layer)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=n_feature_maps, kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=5, padding='same')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=n_feature_maps, kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=n_nodes, kernel_size=3, padding='same')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
         # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(filters=n_feature_maps, kernel_size=1, padding='same')(input_layer)
+        shortcut_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=1, padding='same')(input_layer)
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_1 = keras.layers.add([shortcut_y, conv_z])
@@ -220,19 +220,19 @@ class ResNet():
 
         # BLOCK 2
 
-        conv_x = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=8, padding='same')(output_block_1)
+        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=8, padding='same')(output_block_1)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=5, padding='same')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=3, padding='same')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
         # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=1, padding='same')(output_block_1)
+        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=1, padding='same')(output_block_1)
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_2 = keras.layers.add([shortcut_y, conv_z])
@@ -242,19 +242,19 @@ class ResNet():
 
         # BLOCK 3
 
-        conv_x = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=8, padding='same')(output_block_2)
+        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=8, padding='same')(output_block_2)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=5, padding='same')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=3, padding='same')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
-        # no need to expand channels because they are equal
-        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
+        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=1, padding='same')(output_block_2)
+        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_3 = keras.layers.add([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
@@ -265,7 +265,7 @@ class ResNet():
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
 
-        dense_layer = keras.layers.Dense(n_feature_maps, activation='relu')(gap_layer)
+        dense_layer = keras.layers.Dense(int(n_nodes/8), activation='relu')(gap_layer)
 
         dropout_layer = keras.layers.Dropout(0.5)(dense_layer)
 
