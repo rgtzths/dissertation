@@ -371,8 +371,8 @@ def run_experiment():
                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                             ],
                         "house_2" : [
-                            (datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 30)),
-                            (datetime.datetime(2016, 1, 10), datetime.datetime(2016, 1, 17))
+                            (datetime.datetime(2013, 9, 23), datetime.datetime(2013, 9, 30)),
+                            (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 17))
                             ]
                     }
                 },

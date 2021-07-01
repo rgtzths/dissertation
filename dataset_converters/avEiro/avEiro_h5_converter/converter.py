@@ -85,7 +85,7 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
 
                 total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values])
                 total.columns.set_names(LEVEL_NAMES, inplace=True)
-                print(total)
+
                 #Store the dataframe in h5
                 store.put(str(key), total)
                 

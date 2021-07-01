@@ -93,7 +93,6 @@ class ResNet():
                 else:
                     model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-
                 reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
 
                 model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_file, monitor='val_loss', verbose=self.verbose,
@@ -143,8 +142,7 @@ class ResNet():
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
             
-            #X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap)[0]
+            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
 
             y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
             
@@ -198,78 +196,78 @@ class ResNet():
 
         # BLOCK 1
 
-        conv_x = keras.layers.Conv1D(filters=n_nodes, kernel_size=8, padding='same')(input_layer)
+        conv_x = keras.layers.Conv1D(filters=n_nodes, kernel_size=8, padding='same', kernel_regularizer='l2')(input_layer)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=5, padding='same', kernel_regularizer='l2')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=n_nodes, kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=n_nodes, kernel_size=3, padding='same', kernel_regularizer='l2')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
         # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=1, padding='same')(input_layer)
+        shortcut_y = keras.layers.Conv1D(filters=n_nodes, kernel_size=1, padding='same', kernel_regularizer='l2')(input_layer)
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_1 = keras.layers.add([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        output_block_1 = keras.layers.Dropout(0.5)(output_block_1)
+        output_block_1 = keras.layers.Dropout(0.7)(output_block_1)
 
         # BLOCK 2
 
-        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=8, padding='same')(output_block_1)
+        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=8, padding='same', kernel_regularizer='l2')(output_block_1)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=5, padding='same', kernel_regularizer='l2')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=3, padding='same', kernel_regularizer='l2')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
         # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=1, padding='same')(output_block_1)
+        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 2), kernel_size=1, padding='same', kernel_regularizer='l2')(output_block_1)
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_2 = keras.layers.add([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
 
-        output_block_2 = keras.layers.Dropout(0.5)(output_block_2)
+        output_block_2 = keras.layers.Dropout(0.7)(output_block_2)
 
         # BLOCK 3
 
-        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=8, padding='same')(output_block_2)
+        conv_x = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=8, padding='same', kernel_regularizer='l2')(output_block_2)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=5, padding='same')(conv_x)
+        conv_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=5, padding='same', kernel_regularizer='l2')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=3, padding='same')(conv_y)
+        conv_z = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=3, padding='same', kernel_regularizer='l2')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
-        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=1, padding='same')(output_block_2)
+        shortcut_y = keras.layers.Conv1D(filters=int(n_nodes / 4), kernel_size=1, padding='same', kernel_regularizer='l2')(output_block_2)
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         output_block_3 = keras.layers.add([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
 
-        output_block_3 = keras.layers.Dropout(0.5)(output_block_3)
+        output_block_3 = keras.layers.Dropout(0.7)(output_block_3)
 
         # FINAL
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
 
-        dense_layer = keras.layers.Dense(int(n_nodes/8), activation='relu')(gap_layer)
+        dense_layer = keras.layers.Dense(int(n_nodes/8), activation='relu', kernel_regularizer='l2')(gap_layer)
 
-        dropout_layer = keras.layers.Dropout(0.5)(dense_layer)
+        dropout_layer = keras.layers.Dropout(0.7)(dense_layer)
 
-        output_layer = keras.layers.Dense(2, activation='softmax')(dropout_layer)
+        output_layer = keras.layers.Dense(2, activation='softmax', kernel_regularizer='l2')(dropout_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 

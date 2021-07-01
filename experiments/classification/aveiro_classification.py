@@ -62,23 +62,23 @@ def run_experiment():
                 #        }
                 #    },
                 #}),
-                "DeepGRU" : DeepGRU({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/DeepGRU/results_heatpump.txt",
-                    "checkpoint_file" : base_path + "models/DeepGRU/model_checkpoint_heatpump.h5",
-                    #"load_model_folder" : base_path + "models/DeepGRU/",
-                    "appliances" : {
-                        "heatpump" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90
-                        }
-                    },
-                }),
+                #"DeepGRU" : DeepGRU({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/DeepGRU/results_heatpump.txt",
+                #    "checkpoint_file" : base_path + "models/DeepGRU/model_checkpoint_heatpump.h5",
+                #    #"load_model_folder" : base_path + "models/DeepGRU/",
+                #    "appliances" : {
+                #        "heatpump" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90
+                #        }
+                #    },
+                #}),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
                     "training_results_path" : base_path + "history/",
@@ -177,23 +177,23 @@ def run_experiment():
                 #        }
                 #    },
                 #}),
-                "DeepGRU" : DeepGRU({
-                    'verbose' : 2,
-                    "training_results_path" : base_path + "history/",
-                    "results_path" : base_path + "results/DeepGRU/results_carcharger.txt",
-                    "checkpoint_file" : base_path + "models/DeepGRU/model_checkpoint_carcharger.h5",
-                    #"load_model_folder" : base_path + "models/DeepGRU/",
-                    "appliances" : {
-                        "carcharger" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90
-                        }
-                    },
-                }),
+                #"DeepGRU" : DeepGRU({
+                #    'verbose' : 2,
+                #    "training_results_path" : base_path + "history/",
+                #    "results_path" : base_path + "results/DeepGRU/results_carcharger.txt",
+                #    "checkpoint_file" : base_path + "models/DeepGRU/model_checkpoint_carcharger.h5",
+                #    #"load_model_folder" : base_path + "models/DeepGRU/",
+                #    "appliances" : {
+                #        "carcharger" : {
+                #            'timewindow' : 180,
+                #            'timestep' : 2,
+                #            'overlap' : 178,
+                #            'epochs' : epochs,
+                #            'batch_size' : 1024,
+                #            'n_nodes' : 90
+                #        }
+                #    },
+                #}),
                 "ResNet" : ResNet( {
                     "verbose" : 2,
                     "training_results_path" : base_path + "history/",

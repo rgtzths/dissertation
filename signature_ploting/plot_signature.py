@@ -6,8 +6,6 @@ import warnings
 warnings.filterwarnings('ignore',category=FutureWarning)
 warnings.filterwarnings('ignore',category=RuntimeWarning)
 
-
-
 '''
     Energia aggregada e dos dispositivos.
 '''

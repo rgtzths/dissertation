@@ -10,28 +10,29 @@ import matplotlib.pyplot as plt
 '''
 #dataset = DataSet('../../datasets/avEiro_h5/avEiro.h5')
 dataset = DataSet('../../datasets/ukdale/ukdale.h5')
+#dataset = DataSet('../../datasets/ampds2/AMPds2.h5')
+#dataset = DataSet('../../datasets/iAWE/iawe.h5')
 
+print("Getting the dataset metadata.")
+pprint(dataset.metadata)
+print("\n\n")
 
-#print("Getting the dataset metadata.")
-#pprint(dataset.metadata)
-#print("\n\n")
-#
-#print("Getting the available buildings.")
-#pprint(dataset.buildings)
-#print("\n\n")
-#
+print("Getting the available buildings.")
+pprint(dataset.buildings)
+print("\n\n")
+
 #print("Getting the metadata of the first building.")
 #pprint(dataset.buildings[1].metadata)
 #print("\n\n")
 #
-#print("Getting the meters of the first building.")
-#pprint(dataset.buildings[1].elec)
-#print("\n\n")
-#
+print("Getting the meters of the first building.")
+pprint(dataset.buildings[1].elec)
+print("\n\n")
+
 #print("Getting the available columns for one meter.")
 #pprint(dataset.buildings[1].elec.mains().available_columns())
 #print("\n\n")
-#
+
 #print("Loading a single collumn of one meter.")
 #pprint(next(dataset.buildings[1].elec.mains().load(physical_quantity="power", ac_type="apparent")))
 #print("\n\n")
@@ -73,6 +74,6 @@ plt.show()
 print("\n\n")
 
 print("Ploting the appliances ON state.")
-dataset.buildings[1].plot_when_on(on_power_threshold = 40)
+dataset.buildings[1].elec.plot_when_on(on_power_threshold = 80)
 plt.show()
 print("\n\n")

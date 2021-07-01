@@ -1,8 +1,8 @@
 House1
  Aggregate          - apparent
- Washing Machine    - active
+ Washer Dryer       - active
  Dish Washer        - active
- Fridge             - active
+ Fridge Freezer     - active
  Microwave          - active
  Boiler             - apparent
 
@@ -24,17 +24,20 @@ House5
  Dish Washer        - active
  Kettle             - active
  Toaster            - active
- Fridge             - active
+ Fridge Freezer     - active
  Microwave          - active
- Oven               - active
+ Electric Oven      - active
+ Washer Dryer       - active
 
 
 Appliances:
- Washing Machine: House 1, 2
+ Washing Machine: House 2
+ Washer Dryer: House 1, 5
  Dish Washer: House 1, 2, 5
  Kettle: House 2, 3, 5
  Toaster: House 2, 5
- Fridge: House 1, 2, 5
+ Fridge: House 2
+ Fridge Freezer: House 1, 5
  Microwave: House 1, 2, 5
- Oven: House 5
+ Electric Oven: House 5
  Boiler: House 1

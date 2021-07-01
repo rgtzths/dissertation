@@ -58,7 +58,11 @@ def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
             df = clean_data(df, timestep, interpolate)
 
             df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
-            df.columns.set_names(LEVEL_NAMES, inplace=True)            
+            df.columns.set_names(LEVEL_NAMES, inplace=True)     
+
+            n=5
+            #df["power"]["apparent"] = df["power"]["apparent"].rolling(window=n).mean().values
+            df["power"]["apparent"] = df["power"]["apparent"].ewm(span=n, adjust=False).mean().values
             
             df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
             
@@ -112,9 +116,9 @@ def _matching_ints(strings, regex):
 house_appliances_mappings = {
     "house1" : {
         "mains" : "1",
-        "washing_machine": "5",
+        "washer_dryer": "5",
         "dish_washer": "6",
-        "fridge": "12",
+        "fridge_freezer": "12",
         "microwave": "13",
         "boiler": "2"
     },
@@ -133,12 +137,13 @@ house_appliances_mappings = {
     },
     "house5" : {
         "mains" : "1",
-        "oven": "20",
+        "electric_oven": "20",
         "dish_washer": "22",
         "kettle": "18",
         "toaster":"15",
-        "fridge": "19",
+        "fridge_freezer": "19",
         "microwave": "23",
+        "washer_dryer" : "24"
     },
     "house4" : {}
 }
