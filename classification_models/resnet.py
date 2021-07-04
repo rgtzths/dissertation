@@ -214,7 +214,7 @@ class ResNet():
         output_block_1 = keras.layers.add([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        output_block_1 = keras.layers.Dropout(0.7)(output_block_1)
+        output_block_1 = keras.layers.Dropout(0.6)(output_block_1)
 
         # BLOCK 2
 
@@ -236,7 +236,7 @@ class ResNet():
         output_block_2 = keras.layers.add([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
 
-        output_block_2 = keras.layers.Dropout(0.7)(output_block_2)
+        output_block_2 = keras.layers.Dropout(0.6)(output_block_2)
 
         # BLOCK 3
 
@@ -257,7 +257,7 @@ class ResNet():
         output_block_3 = keras.layers.add([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
 
-        output_block_3 = keras.layers.Dropout(0.7)(output_block_3)
+        output_block_3 = keras.layers.Dropout(0.6)(output_block_3)
 
         # FINAL
 
@@ -265,7 +265,7 @@ class ResNet():
 
         dense_layer = keras.layers.Dense(int(n_nodes/8), activation='relu', kernel_regularizer='l2')(gap_layer)
 
-        dropout_layer = keras.layers.Dropout(0.7)(dense_layer)
+        dropout_layer = keras.layers.Dropout(0.6)(dense_layer)
 
         output_layer = keras.layers.Dense(2, activation='softmax', kernel_regularizer='l2')(dropout_layer)
 

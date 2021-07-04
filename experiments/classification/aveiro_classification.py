@@ -16,15 +16,15 @@ from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
 
-base_path= "/home/rteixeira/thesis_results/"
-#base_path = "/home/user/thesis_results/"
-epochs = 500
+#base_path= "/home/rteixeira/thesis_results/"
+base_path = "/home/user/thesis_results/"
+epochs = 10
 
 def run_experiment():
 
     #Experiment Definition
     experiment = {
-        "heatpump" : {
+        "heat pump" : {
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
@@ -86,7 +86,7 @@ def run_experiment():
                     "checkpoint_file" : base_path + "models/ResNet/model_checkpoint_heatpump.h5",
                     #"load_model_folder" : base_path + "models/ResNet/",
                     "appliances" : {
-                        "heatpump" : {
+                        "heat pump" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
@@ -119,29 +119,31 @@ def run_experiment():
             "timestep" : 2,
             "train" : {
                 "avEiro" : {
-                    "location" : "../../../datasets/avEiro_classification/",
+                    #"location" : "../../../datasets/avEiro_classification/",
+                    "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        "house_1" : [
-                            (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
-                            (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
-                            (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
-                            (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 22))
-                            ]
-                        #"house_1" : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
+                        #1 : [
+                        #    (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
+                        #    (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
+                        #    (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
+                        #    (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 22))
+                        #    ]
+                        1 : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
                     }
                 },
             },
             "test" : {
                 "avEiro" : {
-                    "location" : "../../../datasets/avEiro_classification/",
+                    #"location" : "../../../datasets/avEiro_classification/",
+                    "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }
         },
-        "carcharger" : {
+        "charger" : {
             "mains_columns" : [('power', 'apparent'), ("voltage", "")],
             "appliance_columns" : [('power', 'apparent')],
             "methods" : {
@@ -201,7 +203,7 @@ def run_experiment():
                     "checkpoint_file" : base_path + "models/ResNet/model_checkpoint_carcharger.h5",
                     #"load_model_folder" : base_path + "models/ResNet/",
                     "appliances" : {
-                        "carcharger" : {
+                        "charger" : {
                             'timewindow' : 180,
                             'timestep' : 2,
                             'overlap' : 178,
@@ -233,23 +235,25 @@ def run_experiment():
             "timestep" : 2,
             "train" : {
                 "avEiro" : {
-                    "location" : "../../../datasets/avEiro_classification/",
+                    #"location" : "../../../datasets/avEiro_classification/",
+                    "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        #"house_1" : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
-                        "house_1" : [ 
-                            (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 22)),
-                            (datetime.datetime(2020, 12, 1), datetime.datetime(2020, 12, 15)),
-                            (datetime.datetime(2021, 1, 1), datetime.datetime(2021, 1, 8)) 
-                            ]
+                        1 : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
+                        #1 : [ 
+                        #    (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 22)),
+                        #    (datetime.datetime(2020, 12, 1), datetime.datetime(2020, 12, 15)),
+                        #    (datetime.datetime(2021, 1, 1), datetime.datetime(2021, 1, 8)) 
+                        #    ]
                     }
                 },
             },
             "test" : {
                 "avEiro" : {
-                    "location" : "../../../datasets/avEiro_classification/",
+                    #"location" : "../../../datasets/avEiro_classification/",
+                    "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        #"house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        "house_1" : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }

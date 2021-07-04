@@ -16,14 +16,25 @@ def run(experiment):
 
         print("...................Loading Train Data for %s..................." % (app))
         for dataset in experiment[app]["train"]:
-            x, y = dataset_loader.load_data(
-                        experiment[app]["train"][dataset]["location"],
-                        app, 
-                        experiment[app]["train"][dataset]["houses"],
-                        experiment[app]["timestep"],
-                        experiment[app]['mains_columns'],
-                        experiment[app]['appliance_columns']
-                    )
+            if experiment[app]["train"][dataset]["location"].split(".")[-1] != "h5":
+                x, y = dataset_loader.load_data(
+                            experiment[app]["train"][dataset]["location"],
+                            app, 
+                            experiment[app]["train"][dataset]["houses"],
+                            experiment[app]["timestep"],
+                            experiment[app]['mains_columns'],
+                            experiment[app]['appliance_columns']
+                        )
+            else:
+                x, y = dataset_loader.load_data_h5(
+                            experiment[app]["train"][dataset]["location"],
+                            app, 
+                            experiment[app]["train"][dataset]["houses"],
+                            experiment[app]["timestep"],
+                            experiment[app]['mains_columns'],
+                            experiment[app]['appliance_columns']
+                        )
+
             for i in range(0, len(x)):
                 X_train.append(x[i])
                 y_train.append(y[i])
@@ -36,14 +47,24 @@ def run(experiment):
 
         print("\n\n...................Loading Test Data for %s..................." % (app))
         for dataset in experiment[app]["test"]:
-            x, y = dataset_loader.load_data(
-                        experiment[app]["test"][dataset]["location"],
-                        app, 
-                        experiment[app]["test"][dataset]["houses"],
-                        experiment[app]["timestep"],
-                        experiment[app]['mains_columns'],
-                        experiment[app]['appliance_columns']
-            )
+            if experiment[app]["test"][dataset]["location"].split(".")[-1] != "h5":
+                x, y = dataset_loader.load_data(
+                            experiment[app]["test"][dataset]["location"],
+                            app, 
+                            experiment[app]["test"][dataset]["houses"],
+                            experiment[app]["timestep"],
+                            experiment[app]['mains_columns'],
+                            experiment[app]['appliance_columns']
+                )
+            else:
+                x, y = dataset_loader.load_data_h5(
+                            experiment[app]["test"][dataset]["location"],
+                            app, 
+                            experiment[app]["test"][dataset]["houses"],
+                            experiment[app]["timestep"],
+                            experiment[app]['mains_columns'],
+                            experiment[app]['appliance_columns']
+                        )
             for i in range(0, len(x)):
                 X_test.append(x[i])
                 y_test.append(y[i])

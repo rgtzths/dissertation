@@ -1,14 +1,15 @@
 import numpy as np
 import pandas as pd
+
 from nilmtk.measurement import LEVEL_NAMES
+from nilmtk import DataSet
 
 def load_data(dataset_folder, appliance, houses, timestep, mains_columns, appliance_columns):
     #Array that contains the aggragate readings in dataframes
     aggregated_readings = []
 
 
-    #Dictionary that contains the readings from the appliances
-    # With format [ df-house1, df-house2... ]
+    #Array that contains the readings from the appliances
     app_readings = []
 
     column_mapping = {
@@ -80,5 +81,38 @@ def load_data(dataset_folder, appliance, houses, timestep, mains_columns, applia
             aggregated_readings.append(mains[beginning_index_x: end_index_x])
             app_readings.append(app[beginning_index_y: end_index_y])
 
+    return (aggregated_readings, app_readings)
+
+def load_data_h5(dataset_file, appliance, houses, timestep, mains_columns, appliance_columns):
+    #Array that contains the aggragate readings in dataframes
+    aggregated_readings = []
+
+
+    #Array that contains the readings from the appliances
+    app_readings = []
+
+    dataset = DataSet(dataset_file)  
+
+    for house in houses:
+
+        for timeperiod in houses[house]:
+            
+            dataset.set_window(start=timeperiod[0],end=timeperiod[1])
+
+            mains = next(dataset.buildings[house].elec.mains().load(sample_period=timestep))
+
+            for c in mains.columns:
+                if c not in mains_columns:
+                    del mains[c]
+
+            app_df = next(dataset.buildings[house].elec[appliance].load(sample_period=timestep))
+
+            for c in app_df.columns:
+                if c not in appliance_columns:
+                    del app_df[c]
+            
+            aggregated_readings.append(mains)
+            app_readings.append(app_df)
+    
     return (aggregated_readings, app_readings)
 
