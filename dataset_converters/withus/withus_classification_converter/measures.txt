@@ -1,5 +1,0 @@
-['timestamp', 'power_plus', 'power_minus', 'energy_aplus',
-       'energy_aminus', 'voltage', 'current', 'frequency', 'power_factor',
-       'reactive_power1', 'reactive_power2', 'reactive_power3',
-       'reactive_power4', 'reactive_energy1', 'reactive_energy2',
-       'reactive_energy3', 'reactive_energy4']

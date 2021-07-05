@@ -1,0 +1,107 @@
+instance: 3 #Instância no dataset NILM
+
+original_name: house_006056131261 #Nome dado no dataset
+
+description: Descrição da casa
+
+construction_year: 1990 #Ano de construção
+
+rooms: 
+  - {
+    name: "kitchen", # Um dos {‘lounge’, ‘kitchen’, ‘bedroom’, ‘utility’, ‘garage’, ‘basement’, ‘bathroom’, ‘study’, ‘nursery’, ‘hall’, ‘dining room’, ‘outdoors’}
+    instance: 1, #Caso tenha duas cozinhas, dois quartos etc (distinguir)
+    description: Descrição da cozinha caso seja relevante.,
+    floor: 0 #Andar da casa. Rés do chão é o 0.
+  }
+
+m_occupants: 4 #Número de pessoas na casa regularmente
+
+description_of_occupants: Texto a descrever os ocupantes da casa, opcional mas relevante.
+
+energy_improvements: ["photovoltaics"] # uma combinção dos seguintes valores 
+                                    #{‘photovoltaics’, ‘solar thermal’, ‘cavity wall insulation’, ‘loft insulation’, ‘solid wall insulation’, ‘double glazing’, ‘secondary glazing’, ‘triple glazing’}
+
+heating: ["electricity"] #uma combinação dos seguintes (por ordem decrescente de consumo)
+                       #{‘natural gas’, ‘electricity’, ‘coal’, ‘wood’, ‘biomass’, ‘oil’, ‘LPG’}
+
+communal_boiler: false #Caso o aquecimento seja fornecido por um heater partilhado
+
+ownership: bought #Se a casa é comprada ou arrendada {‘rented’, ‘bought’}
+
+building_type: cottage #TIpo de casa, Um dos seguintes : {‘bungalow’, ‘cottage’, ‘detached’, ‘end of terrace’, ‘flat’, ‘semi-detached’, ‘mid-terrace’, ‘student halls’, ‘factory’, ‘office’, ‘university’}
+
+geo_location: {country: PT, latitude: 40.6333333, longitude: -8.65, locality: Aveiro}  #geo location específica da casa (dá override da localização específicada no dataset)
+
+timezone: Europe/London  #Caso a timezeno seja diferente da do dataset
+
+timeframe: {end: '2021-06-08T16:33:00', start: '2021-03-10T13:59:50'}
+
+#periods_unoccupied: #Alturas em que os habitantes foram de férias etc.
+#  - {end: '2020-11-25T18:35:53+01:00', start: '2020-11-25T22:28:15+00:00'} # Dados de exemplo
+
+elec_meters:
+  1:
+    device_model: aggregate_meter #nome do meter no meter_devices
+    submeter_of: 0 # Indica qual dos outros meters é upstream deste (0 significa que é um site meter)
+    submeter_of_is_uncertain: false #Indica que não sabemos de qual este meter é submeter
+    site_meter: true #Indica que é um site meter
+    timeframe: {end: '2021-06-07T16:33:00', start: '2021-03-11T13:59:50'} # Tempo em que esteve ligado
+    name: Aggregated meter # Opcional, identificador do meter
+    #phase: Usado em casos de análise de múltiplas fases
+    data_location: house_006056131261/mains.csv #Localização dos dados extraídos pelo sensor
+    disabled: false #Colocar a verdadeiro se o sensor deve ser ignorado pelo NILMTK
+    #preprocessing_applied:
+    #  clip: {upper_limit: 4000}  #Remove todos os dados que passem o valor 4000 para este meter
+    warning: Aviso de alguma anormalidade que aconteceu com este sensor.
+
+  2:
+    device_model: plug_meter 
+    submeter_of: 1 
+    submeter_of_is_uncertain: false
+    site_meter: false 
+    timeframe: {end: '2021-06-08T16:33:00', start: '2021-03-10T13:59:50'}
+    name: dish washer 
+    room: kitchen.1 
+    floor: 0 
+    data_location: house_006056131261/dish washer.csv
+    disabled: false
+  
+  3:
+    device_model: plug_meter
+    submeter_of: 1 
+    submeter_of_is_uncertain: false
+    site_meter: false 
+    timeframe: {end: '2021-06-08T16:33:00', start: '2021-03-10T13:59:50'}
+    name: washing machine 
+    data_location: house_006056131261/washing machine
+    disabled: false
+
+appliances:
+  - description: Descrição do que está a ser medido e do próprio eletrodoméstico
+    type: dish washer
+    instance: 1
+    meters: [2]
+    #on_power_threshold: 2000 #Valor em whats que determina se o eletrodoméstico está ligado ou desligado
+    #max_power: 4000 #Máxima potência utilizada
+    #min_off_duration: 1 #Duranção mínima para se considerar desligado (em min)
+    #min_on_duration: 10 #Duranção mínima para se considerar ligado (em min)
+    room: kitchen.1
+    control: ‘thermostat’ # Tipo de controlo do eletrodoméstico {‘timer’, ‘manual’, ‘motion’, ‘sunlight’, ‘thermostat’, ‘always on’}
+    efficiency_rating: A+
+    #nominal_consumption: {on_power: 120, standy_power: 10, energy_per_year: 12000, energy_per_cycle: 1000} #Energia em whats (no ano e no ciclo em kWh)
+    #components [{}] Lista de dicionários onde cada dicionário é um appliance. Representa os vários apliances dentro do apliance específicado
+    model: Heater_2 #Nome do modelo
+    manufacter: Gás Company
+    brand: Eltric XPTO
+    dates_active: [ #Lista de timeframes na qual o eletrodoméstico esteve ligado (pode representar a substituição do eletrodoméstico)
+      timeframe: {end: '2021-06-08T16:33:00', start: '2021-03-10T13:59:50'}
+    ]
+    year_of_purchase: 2018
+    year_of_manufacture: 2018
+
+  - type: washing machine
+    instance: 1
+    meters: [3]
+    dates_active: [
+      timeframe: {end: '2021-06-08T16:33:00', start: '2021-03-10T13:59:50'}
+    ]

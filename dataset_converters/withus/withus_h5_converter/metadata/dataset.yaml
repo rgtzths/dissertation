@@ -1,0 +1,35 @@
+name: withus
+
+long_name: withus Eletricity 
+
+contact: rafaelgteixeira@ua.pt #Might need change
+
+creators: ["Rafael Teixeira", "Diogo Gomes", "Tomás Oliveira"]
+
+timezone: "Europe/London"
+
+description: "Apliance-by-Apliance and whole-house power demand readings from 4 Homes from Aveiro, Portugal. The power demand was recorded each two seconds, for both aplience-by-aplience and whole-house." #Better future description
+
+number_of_buildings: 4  #Future Update
+
+subject: Domestic buildings whole-house and aplience-by-aplience readings. #Needs to be updated
+
+geospaticial_coverage: Aveiro, Portugal #Might need to be updated
+
+date: '2021-03-21'  #Need to be updated
+
+timeframe: {start: '2021-03-21T14:36:04', end:"2021-08-05"} #Needs Change
+
+geo_location: {country: PT, latitude: 40.6333333, longitude: -8.65, locality: Aveiro} #Might need update
+
+
+rights_list: 
+  - {name: Creative Commons Attribution 4.0 International (CC BY 4.0), uri: 'http://creativecommons.org/licenses/by/4.0/'} #Just an example
+
+funding: ["WithUs", "Universidade de Aveiro"] #Needs to be changed
+
+description_of_subjects: Masters Students, Researchers and Company workers #Needs to be updated
+
+related_documents: ["Example 1"]  #Need to be updated with future publishes of pappers
+
+schema: https://github.com/nilmtk/nilm_metadata/tree/v0.2

@@ -17,6 +17,46 @@ import utils
 
 from data_clean import clean_data
 
+def load_period(base_url, device, beginning, end, username, password, is_meter):
+
+    if is_meter:
+        response = StringIO(
+                    requests.get(base_url + 'mono-meter/individual?device_id='+device+"&begin="+beginning+"&end="+end , 
+                                auth=(username,password),
+                                headers={'Content-Type': 'text/csv'} 
+                                ).content.decode("utf-8") 
+                    )
+    else:
+        response =  StringIO (
+                    requests.get(base_url + 'plug/individual?device_id='+device+"&begin="+beginning+"&end="+end , 
+                                auth=(username,password), 
+                                headers={'Content-Type': 'text/csv'}
+                                ).content.decode("utf-8") 
+                    )
+
+    df = pd.read_csv(response, sep=",")
+
+    if is_meter:
+        del df['meter_id']
+    else: 
+        del df['plug_id']
+    del df['gateway_id']
+    del df['device_type']
+    del df['period']
+    
+    df.index = pd.to_datetime(df["timestamp"], unit='ms')
+    df.index = df.index.round("s", ambiguous=False)
+
+    del df["timestamp"]
+    
+    #Sort index and drop duplicates
+    df = df.sort_index()
+    dups_in_index = df.index.duplicated(keep='first')
+    if dups_in_index.any():
+        df = df[~dups_in_index]
+
+    return df
+
 
 def download_and_convert(base_url, username, password, column_mapping, appliances_mapping, timestep, interpolate, output_path):
 
@@ -42,6 +82,7 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                 if app["device_type"] != "meter":
                     if "description" in app["metadata"] and app["metadata"]["description"] in appliances_mapping:
                         print("Loading appliance data ("+app["metadata"]["description"]+ ") from house " + house)
+                        appliance = appliances_mapping[app["metadata"]["description"]]
 
                         dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password)).json()
                         
@@ -58,16 +99,7 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                                 q_beginning = begining.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
                                 q_end = end.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
 
-                                response =  StringIO (requests.get(base_url + 'plug/individual?device_id='+app["device"]+"&begin="+q_beginning+"&end="+q_end , 
-                                                    auth=(username,password), 
-                                                    headers={'Content-Type': 'text/csv'}).content.decode("utf-8") )
-
-                                df = pd.read_csv(response, sep=",")
-
-                                del df['plug_id']
-                                del df['gateway_id']
-                                del df['device_type']
-                                del df['period']
+                                df = load_period(base_url, app["device"], q_beginning, q_end, username, password, False)
 
                                 dfs.append(df)
                                 begining = end
@@ -78,21 +110,13 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                             q_beginning = begining.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
                             q_end = end.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
 
-                            response =  StringIO (requests.get(base_url + 'plug/individual?device_id='+app["device"]+"&begin="+q_beginning+"&end="+q_end , 
-                                                auth=(username,password), 
-                                                headers={'Content-Type': 'text/csv'}).content.decode("utf-8") )
-
-                            df = pd.read_csv(response, sep=",")
-
-                            del df['plug_id']
-                            del df['gateway_id']
-                            del df['device_type']
-                            del df['period']
+                            df = load_period(base_url, app["device"], q_beginning, q_end, username, password, False)
 
                             dfs.append(df)
 
                 else:
                     print("Loading aggregated data from house " + house)
+                    appliance = "mains"
                     dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password)).json()
                     
                     begining_date = datetime.datetime.strptime(dates["startDateStr"], "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -108,20 +132,7 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                             q_beginning = begining.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
                             q_end = end.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
 
-                            response = StringIO(
-                                        requests.get(base_url + 'mono-meter/individual?device_id='+app["device"]+"&begin="+q_beginning+"&end="+q_end , 
-                                                    auth=(username,password),
-                                                    headers={'Content-Type': 'text/csv'} 
-                                                    ).content.decode("utf-8") 
-                                        )
-
-                            df = pd.read_csv(response, sep=",")
-
-                            del df['meter_id']
-                            del df['gateway_id']
-                            del df['device_type']
-                            del df['period']
-
+                            df = load_period(base_url, app["device"], q_beginning, q_end, username, password, True)
                             dfs.append(df)
                             begining = end
                             end += week_td
@@ -131,36 +142,25 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                         q_beginning = begining.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
                         q_end = end.strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
 
-                        response = StringIO(
-                                        requests.get(base_url + 'mono-meter/individual?device_id='+app["device"]+"&begin="+q_beginning+"&end="+q_end , 
-                                                    auth=(username,password),
-                                                    headers={'Content-Type': 'text/csv'} 
-                                                    ).content.decode("utf-8") 
-                                        )
-
-                        df = pd.read_csv(response, sep=",")
-
-                        del df['meter_id']
-                        del df['gateway_id']
-                        del df['device_type']
-                        del df['period']
+                        df = load_period(base_url, app["device"], q_beginning, q_end, username, password, True)
 
                         dfs.append(df)
 
                 if len(dfs) > 0:
 
-                    data = pd.concat(dfs, axis=0)
-#
-                    #data = clean_data(data, timestep, interpolate)
-#
+                    data = pd.concat(dfs, axis=0, sort=True)
+                    dups_in_index = data.index.duplicated(keep='first')
+                    if dups_in_index.any():
+                        print("Duplicates")
+                        data = data[~dups_in_index]
+                    
+                    data = clean_data(data, timestep, interpolate)
+
                     #data.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in data.columns.values])
                     #data.columns.set_names(LEVEL_NAMES, inplace=True)
-#
-                    #utils.create_path('{}/house_{}'.format(output_path, house))
-                    #df.to_csv('{}/house_{}/{}.csv'.format(output_path, house, appliance))
-                    #print(data)
-        
 
+                    utils.create_path('{}/house_{}'.format(output_path, house))
+                    data.to_csv('{}/house_{}/{}.csv'.format(output_path, house, appliance))
 
 username = 'ml_login'
 password = 'ml_pw_enc'

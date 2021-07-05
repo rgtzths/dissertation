@@ -3,16 +3,20 @@ from nilmtk.utils import get_datastore
 from nilmtk.utils import check_directory_exists
 from nilmtk.datastore import Key
 from nilmtk.measurement import LEVEL_NAMES
-from os.path import join, isdir
+from nilm_metadata import save_yaml_to_datastore
+
+from os.path import join, isdir, join
 from os import listdir
 import re
-from nilm_metadata import save_yaml_to_datastore
 import pandas as pd
 import numpy as np
 
 import sys
 sys.path.insert(1, "../../")
+sys.path.insert(1, "../../../utils")
+
 from data_clean import clean_data
+import utils
 
 def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
     """
@@ -26,6 +30,10 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
     """
 
     # Open DataStore
+    base_path = ""
+    for directory in  output_filename.split("/")[0:-1]:
+        base_path += directory + "/"
+    utils.create_path( base_path)
     store = get_datastore(output_filename, "HDF", mode='w')
 
     check_directory_exists(aveiro_path)
@@ -55,8 +63,8 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                     df.index = pd.to_datetime(df["time"], unit='ns')
                     df.index = df.index.round("s", ambiguous=False)
                     #Drops unnecessary columns
-                    df = df.drop("time", 1)
-                    df = df.drop("name", 1)
+                    del df["time"]
+                    del df["name"]
                     #Labels the value column with the appliance name
                     df.columns = [measure]
                     #Sort index and drop duplicates
@@ -83,9 +91,8 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
 
                 total = clean_data(total, timestep, interpolate)
 
-                total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values])
-                total.columns.set_names(LEVEL_NAMES, inplace=True)
-
+                total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values], names=LEVEL_NAMES)
+                print(total)
                 #Store the dataframe in h5
                 store.put(str(key), total)
                 
@@ -96,8 +103,8 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                 df = pd.read_csv(csv_filename)
                 df.index = pd.to_datetime(df["time"], unit='ns')
                 df.index = df.index.round("s", ambiguous=False)
-                df = df.drop("time", 1)
-                df = df.drop("name", 1)
+                del df["name"]
+                del df["time"]
                 df.columns = [measure]
                 df = df.sort_index()
                 dups_in_index = df.index.duplicated(keep='first')
@@ -105,9 +112,8 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                     df = df[~dups_in_index]
                 df = clean_data(df, timestep, interpolate)
 
-                df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]])
-                df.columns.set_names(LEVEL_NAMES, inplace=True)
-                
+                df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]], names=LEVEL_NAMES)
+                print(df)
                 store.put(str(key), df)
         print()
 
