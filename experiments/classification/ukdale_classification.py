@@ -8,6 +8,8 @@ from run_experiment import run
 
 import sys
 sys.path.insert(1, "../../classification_models")
+sys.path.insert(1, "../../utils")
+sys.path.insert(1, "../../feature_extractors")
 
 from seq2point import Seq2Point
 from gru import GRU_RNN
