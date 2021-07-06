@@ -12,11 +12,16 @@ import tensorflow as tf
 
 from sklearn.metrics import matthews_corrcoef, confusion_matrix
 import numpy as np
-import sys
 
-sys.path.insert(1, "/home/rteixeira/thesis/feature_extractors")
+#import sys
+#sys.path.insert(1, "../utils")
+#sys.path.insert(1, "../feature_extractors")
+
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
 from matthews_correlation import matthews_correlation
+
+import utils
+import plots
 
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -49,9 +54,22 @@ class ResNet():
             'n_nodes' : 90
         }
 
-        self.training_results_path = params.get("training_results_path", None)
-        self.results_file = params.get("results_path", None)
-        self.checkpoint_file = params.get("checkpoint_file", None)
+        self.training_history_folder = params.get("training_history_folder", None)
+        self.results_folder = params.get("results_folder", None)
+        self.checkpoint_folder = params.get("checkpoint_folder", None)
+        self.plots_folder = params.get("plots_folder", None)
+
+        if self.training_history_folder is not None:
+            utils.create_path(self.training_history_folder)
+        
+        if self.results_folder is not None:
+            utils.create_path(self.results_folder)
+        
+        if self.checkpoint_folder is not None:
+            utils.create_path(self.checkpoint_folder)
+
+        if self.plots_folder is not None:
+            utils.create_path(self.plots_folder)
 
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
@@ -81,8 +99,8 @@ class ResNet():
                 y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
                 if( self.verbose != 0):
-                    print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº de Negativos ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                    print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
+                    print("Nº of negative examples ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
                 
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -95,35 +113,66 @@ class ResNet():
 
                 reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
 
-                model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_file, monitor='val_loss', verbose=self.verbose,
-                                                            save_best_only=True, mode='min')
+                checkpoint = keras.callbacks.ModelCheckpoint(
+                                self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
+                                monitor='val_loss', 
+                                verbose=self.verbose, 
+                                save_best_only=True, 
+                                mode='min'
+                                )
 
                 history = model.fit(X_train, 
                         y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
                         shuffle=True,
-                        callbacks=[reduce_lr, model_checkpoint],
+                        callbacks=[reduce_lr, checkpoint],
                         validation_split=self.cv,
                         verbose=self.verbose
                         )         
 
-                if self.training_results_path is not None:
-                    f = open(self.training_results_path + "history_"+app_name+"_"+self.MODEL_NAME+".json", "w")
+                if self.training_history_folder is not None:
+                    f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
                     f.write(str(history.history))
                     f.close()
+                    
+                if self.plots_folder is not None:
+                    utils.create_path(self.plots_folder + "/" + app_name + "/")
+                    plots.plot_model_history(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
-                model.load_weights(self.checkpoint_file)
+                model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
 
                 #Stores the trained model.
                 self.model[app_name] = model
 
-                if self.results_file is not None:
-                    f = open(self.results_file, "w")
-                    f.write("Nº de Positivos para treino: " + str(sum([ np.where(p == max(p))[0][0]  for p in y_train])) + "\n")
-                    f.write("Nº de Negativos para treino: " + str(y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ])) + "\n")
+                 #Gets the trainning data score
+                pred = self.model[app_name].predict(X_train)
+                pred = [ np.where(p == max(p))[0][0]  for p in pred ]
+                
+                y_train = [ np.where(p == max(p))[0][0]  for p in y_train ]
+                
+                tn, fp, fn, tp = confusion_matrix(y_train, pred).ravel()
+                mcc = matthews_corrcoef(y_train, pred)
+
+                if self.verbose == 2:
+                    print("Training data scores")
+                    print("True Positives: ", tp)
+                    print("True Negatives: ", tn)  
+                    print("False Negatives: ", fn)  
+                    print("False Positives: ", fp)        
+                    print("MCC: ", mcc )
+                
+                if self.results_folder is not None:
+                    f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
+                    f.write("Nº of positive examples for training: " + str(sum(y_train)) + "\n")
+                    f.write("Nº of negative examples for training: " + str(len(y_train)- sum(y_train)) + "\n")
                     f.write("Data Mean: " + str(self.mains_mean) + "\n")
                     f.write("Data Std: " + str(self.mains_std) + "\n")
+                    f.write("Train MCC: "+str(mcc)+ "\n")
+                    f.write("True Positives: "+str(tp)+ "\n")
+                    f.write("True Negatives: "+str(tn)+ "\n")
+                    f.write("False Positives: "+str(fp)+ "\n")
+                    f.write("False Negatives: "+str(fn)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
@@ -147,8 +196,8 @@ class ResNet():
             y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
             
             if( self.verbose != 0):
-                print("Nº de Positivos ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
-                print("Nº de Negativos ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº of negative examples ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
@@ -166,10 +215,10 @@ class ResNet():
                 print("False Positives: ", fp)        
                 print( "MCC: ", matthews_corrcoef(y_test, pred))
             
-            if self.results_file is not None:
-                f = open(self.results_file, "a")
-                f.write("Nº de Positivos para teste: " + str(sum(y_test)) + "\n")
-                f.write("Nº de Negativos para teste: " + str(len(y_test)- sum(y_test)) + "\n")
+            if self.results_folder is not None:
+                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
+                f.write("Nº of positive examples for test: " + str(sum(y_test)) + "\n")
+                f.write("Nº of negative examples for test: " + str(len(y_test)- sum(y_test)) + "\n")
                 f.write("MCC: "+str(matthews_corrcoef(y_test, pred))+ "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
