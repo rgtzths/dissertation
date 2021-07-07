@@ -4,7 +4,6 @@ House1
  Dish Washer        - active
  Fridge Freezer     - active
  Microwave          - active
- Boiler             - apparent
 
 House2
  Aggregate          - apparent

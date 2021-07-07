@@ -1,0 +1,372 @@
+######################################## Prof Diogo ########################################
+
+### Heat pump ###
+"houses" : {
+    1 : [
+        (datetime.datetime(2020, 10, 5), datetime.datetime(2020, 10, 9))
+        (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
+        (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
+        (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
+        (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5))
+        ]
+}
+
+### Car charger ###
+"houses" : {
+    1 : [ 
+        (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 15)),
+        (datetime.datetime(2020, 11, 16), datetime.datetime(2020, 11, 20)),
+        (datetime.datetime(2020, 11, 23), datetime.datetime(2020, 11, 29)),
+        (datetime.datetime(2020, 12, 2), datetime.datetime(2020, 12, 6)),
+        (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 13)),
+        (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 13)),
+        (datetime.datetime(2020, 12, 16), datetime.datetime(2020, 12, 21)),
+        (datetime.datetime(2021, 1, 2), datetime.datetime(2021, 1, 4)),
+        (datetime.datetime(2021, 1, 5), datetime.datetime(2021, 1, 6)),
+        (datetime.datetime(2021, 1, 6), datetime.datetime(2021, 1, 9)),
+        (datetime.datetime(2021, 1, 11), datetime.datetime(2021, 1, 21)),
+        ]
+}
+
+######################################## UKDale ########################################
+
+### Fridge Freezer ###
+
+"houses" : {
+    1 : [
+        (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
+        (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
+    ]
+    5 : [
+        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 30)),
+        (datetime.datetime(2014, 7, 30), datetime.datetime(2014, 8, 30)),
+    ]
+}
+
+### Washer Dryer ###
+
+"houses" : {
+    1 : [
+        (datetime.datetime(2013, 2, 18), datetime.datetime(2013, 2, 19)),
+        (datetime.datetime(2013, 2, 20), datetime.datetime(2013, 2, 23)),
+        (datetime.datetime(2013, 2, 24), datetime.datetime(2013, 2, 26)),
+        (datetime.datetime(2013, 2, 27), datetime.datetime(2013, 3, 1)),
+        (datetime.datetime(2013, 3, 2), datetime.datetime(2013, 3, 4)),
+        (datetime.datetime(2013, 3, 6), datetime.datetime(2013, 3, 9)),
+        (datetime.datetime(2013, 3, 12), datetime.datetime(2013, 3, 14)),
+        (datetime.datetime(2013, 3, 15), datetime.datetime(2013, 3, 18)),
+        (datetime.datetime(2013, 3, 21), datetime.datetime(2013, 3, 23)),
+        (datetime.datetime(2013, 3, 24), datetime.datetime(2013, 3, 25)),   
+        (datetime.datetime(2013, 3, 26), datetime.datetime(2013, 3, 29)),
+        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 4)),  
+        (datetime.datetime(2013, 4, 5), datetime.datetime(2013, 4, 6)), 
+        (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
+        (datetime.datetime(2013, 4, 12), datetime.datetime(2013, 4, 15)),
+    ]
+    5 : [
+        (datetime.datetime(2014, 7, 1), datetime.datetime(2014, 7, 3)),
+        (datetime.datetime(2014, 7, 4), datetime.datetime(2014, 7, 6)),
+        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 8, 10)),
+        (datetime.datetime(2014, 7, 13), datetime.datetime(2014, 7, 14)),
+        (datetime.datetime(2014, 7, 16), datetime.datetime(2014, 7, 18)),
+        (datetime.datetime(2014, 7, 20), datetime.datetime(2014, 7, 23)),
+        (datetime.datetime(2014, 7, 24), datetime.datetime(2014, 7, 26)),
+        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 29)),
+        (datetime.datetime(2014, 7, 30), datetime.datetime(2014, 7, 31)),
+        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 2)),
+        (datetime.datetime(2014, 8, 6), datetime.datetime(2014, 8, 7)),
+        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 15)),
+        (datetime.datetime(2014, 8, 18), datetime.datetime(2014, 8, 19)),
+        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 26)),
+        (datetime.datetime(2014, 8, 31), datetime.datetime(2014, 9, 1)),
+        (datetime.datetime(2014, 9, 5), datetime.datetime(2014, 9, 6)),#26
+        (datetime.datetime(2014, 9, 10), datetime.datetime(2014, 9, 12)),
+        (datetime.datetime(2014, 9, 14), datetime.datetime(2014, 9, 15)),
+        (datetime.datetime(2014, 9, 16), datetime.datetime(2014, 9, 20)),
+        
+    ]
+}
+
+### Dish Washer ###
+
+"houses" : {
+    1 : [
+        (datetime.datetime(2013, 2, 18), datetime.datetime(2013, 2, 19)),
+        (datetime.datetime(2013, 2, 21), datetime.datetime(2013, 2, 22)),
+        (datetime.datetime(2013, 2, 24), datetime.datetime(2013, 2, 25)),
+        (datetime.datetime(2013, 2, 27), datetime.datetime(2013, 2, 28)),
+        (datetime.datetime(2013, 3, 9), datetime.datetime(2013, 3, 10)),
+        (datetime.datetime(2013, 3, 16), datetime.datetime(2013, 3, 17)),
+        (datetime.datetime(2013, 3, 19), datetime.datetime(2013, 3, 20)),
+        (datetime.datetime(2013, 3, 21), datetime.datetime(2013, 3, 22)),
+        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 3)),
+        (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
+        (datetime.datetime(2013, 4, 26), datetime.datetime(2013, 4, 27)),
+        (datetime.datetime(2013, 4, 28, 12), datetime.datetime(2013, 4, 29, 12)), 
+        (datetime.datetime(2013, 5, 1, 12), datetime.datetime(2013, 5, 2, 12)),
+        (datetime.datetime(2013, 5, 4, 12), datetime.datetime(2013, 5, 5, 12)),
+        (datetime.datetime(2013, 5, 10), datetime.datetime(2013, 5, 11)),
+        (datetime.datetime(2013, 5, 14, 12), datetime.datetime(2013, 5, 15, 12)),
+        (datetime.datetime(2013, 5, 18), datetime.datetime(2013, 5, 19)),
+        (datetime.datetime(2013, 5, 20, 12), datetime.datetime(2013, 5, 21, 12)),
+        (datetime.datetime(2013, 5, 22, 12), datetime.datetime(2013, 5, 23, 12)),
+        (datetime.datetime(2013, 5, 31), datetime.datetime(2013, 6, 1)),
+        (datetime.datetime(2013, 6, 2), datetime.datetime(2013, 6, 3)),
+        (datetime.datetime(2013, 6, 4), datetime.datetime(2013, 6, 7)),
+        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 9)),
+        (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 12)),
+        (datetime.datetime(2013, 6, 19), datetime.datetime(2013, 6, 20)),
+        (datetime.datetime(2013, 6, 23), datetime.datetime(2013, 6, 24)),
+        (datetime.datetime(2013, 6, 28), datetime.datetime(2013, 6, 29)),
+    ]
+    2 : [
+        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 24)),
+        (datetime.datetime(2013, 5, 25), datetime.datetime(2013, 6, 15)),
+        (datetime.datetime(2013, 6, 16), datetime.datetime(2013, 6, 19)),
+        (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 23)),
+        (datetime.datetime(2013, 6, 24), datetime.datetime(2013, 6, 28)),
+    ]
+    3 : [
+        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 1)),
+        (datetime.datetime(2014, 7, 3), datetime.datetime(2014, 7, 4)),
+        (datetime.datetime(2014, 7, 6), datetime.datetime(2014, 7, 7)),
+        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
+        (datetime.datetime(2014, 7, 11), datetime.datetime(2014, 7, 12)),
+        (datetime.datetime(2014, 7, 13), datetime.datetime(2014, 7, 14)),
+        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 20)),
+        (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 23)),
+        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 28)),
+        (datetime.datetime(2014, 7, 29), datetime.datetime(2014, 7, 30)),
+        (datetime.datetime(2014, 8, 1, 12), datetime.datetime(2014, 8, 2, 12)),
+        (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 4)),
+        (datetime.datetime(2014, 8, 8), datetime.datetime(2014, 8, 9)),
+        (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 11)),
+        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 14)),
+        (datetime.datetime(2014, 8, 16), datetime.datetime(2014, 8, 17)),
+        (datetime.datetime(2014, 8, 19), datetime.datetime(2014, 8, 20)),
+        (datetime.datetime(2014, 8, 22), datetime.datetime(2014, 8, 23)),
+        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 25)),
+        (datetime.datetime(2014, 8, 27), datetime.datetime(2014, 8, 28)),
+        (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 8, 31)),
+        (datetime.datetime(2014, 9, 1), datetime.datetime(2014, 9, 2)),
+        (datetime.datetime(2014, 9, 3), datetime.datetime(2014, 9, 4)),
+        (datetime.datetime(2014, 9, 6), datetime.datetime(2014, 9, 7)),
+        (datetime.datetime(2014, 9, 9), datetime.datetime(2014, 9, 10)),#26
+        (datetime.datetime(2014, 9, 14), datetime.datetime(2014, 9, 16)),
+        (datetime.datetime(2014, 9, 17), datetime.datetime(2014, 9, 18)),
+        (datetime.datetime(2014, 9, 19), datetime.datetime(2014, 9, 20)),
+
+    ]
+}
+
+
+### Microwave ###
+
+"houses" : {
+    1 : [
+        (datetime.datetime(2013, 6, 25), datetime.datetime(2013, 7, 9)),
+        (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 18)),
+        (datetime.datetime(2013, 7, 28), datetime.datetime(2013, 7, 9)),
+    ]
+    2 : [
+        (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 7, 5)),
+        (datetime.datetime(2013, 7, 5), datetime.datetime(2013, 8, 5)),
+    ]
+    5 : [
+        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
+        (datetime.datetime(2014, 7, 10), datetime.datetime(2014, 7, 11)),
+        (datetime.datetime(2014, 7, 12), datetime.datetime(2014, 7, 17)),
+        (datetime.datetime(2014, 7, 21), datetime.datetime(2014, 7, 22)),
+        (datetime.datetime(2014, 7, 28), datetime.datetime(2014, 7, 29)),
+        (datetime.datetime(2014, 8, 4), datetime.datetime(2014, 8, 5)),
+        (datetime.datetime(2014, 8, 7), datetime.datetime(2014, 8, 8)),
+        (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 12)),
+        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 16)),
+        (datetime.datetime(2014, 8, 20), datetime.datetime(2014, 8, 25)),
+        (datetime.datetime(2014, 8, 26), datetime.datetime(2014, 8, 28)),
+        (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 9, 2)),#28
+        (datetime.datetime(2014, 9, 5), datetime.datetime(2014, 9, 6)),
+        (datetime.datetime(2014, 9, 7), datetime.datetime(2014, 9, 8)),
+    ]
+}
+
+### Washing Machine ###
+
+"houses" : {
+    2 : [
+        (datetime.datetime(2013, 5, 26), datetime.datetime(2013, 5, 28)),
+        (datetime.datetime(2013, 6, 2), datetime.datetime(2013, 6, 3)),
+        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 10)),
+        (datetime.datetime(2013, 6, 12), datetime.datetime(2013, 6, 13)),
+        (datetime.datetime(2013, 6, 15), datetime.datetime(2013, 6, 17)),
+        (datetime.datetime(2013, 6, 22), datetime.datetime(2013, 6, 24)),
+        (datetime.datetime(2013, 6, 29), datetime.datetime(2013, 7, 1)),
+        (datetime.datetime(2013, 7, 6), datetime.datetime(2013, 7, 7)),
+        (datetime.datetime(2013, 7, 13), datetime.datetime(2013, 7, 14)),
+        (datetime.datetime(2013, 7, 19), datetime.datetime(2013, 7, 20)),
+        (datetime.datetime(2013, 7, 23), datetime.datetime(2013, 7, 25)),
+        (datetime.datetime(2013, 7, 27), datetime.datetime(2013, 7, 29)),
+        (datetime.datetime(2013, 8, 1), datetime.datetime(2013, 8, 2)),
+        (datetime.datetime(2013, 8, 3), datetime.datetime(2013, 8, 5)),#21
+        (datetime.datetime(2013, 8, 23), datetime.datetime(2013, 8, 24)),
+        (datetime.datetime(2013, 8, 28), datetime.datetime(2013, 8, 29)),
+        (datetime.datetime(2013, 8, 31), datetime.datetime(2013, 9, 1)),
+        (datetime.datetime(2013, 9, 4), datetime.datetime(2013, 9, 5)),
+        (datetime.datetime(2013, 9, 14), datetime.datetime(2013, 9, 15)),
+        (datetime.datetime(2013, 9, 21), datetime.datetime(2013, 9, 23)),
+        (datetime.datetime(2013, 9, 28), datetime.datetime(2013, 9, 30)),
+        (datetime.datetime(2013, 10, 5), datetime.datetime(2013, 10, 7)),
+    ]
+}
+
+### Kettle ###
+"houses" : {
+    2 : [
+        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 6, 18)),
+        (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 26)),
+    ],
+    3 : [
+        (datetime.datetime(2013, 3, 1), datetime.datetime(2013, 3, 3)),
+        (datetime.datetime(2013, 3, 6), datetime.datetime(2013, 3, 7)),
+        (datetime.datetime(2013, 3, 8), datetime.datetime(2013, 3, 10)),
+        (datetime.datetime(2013, 3, 11), datetime.datetime(2013, 3, 12)),
+        (datetime.datetime(2013, 3, 13), datetime.datetime(2013, 3, 14)),
+        (datetime.datetime(2013, 3, 16), datetime.datetime(2013, 3, 20)),
+        (datetime.datetime(2013, 3, 24), datetime.datetime(2013, 3, 30)),
+        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 5)),
+        (datetime.datetime(2013, 4, 6), datetime.datetime(2013, 4, 9)),
+    ]
+    5: [
+        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 18)),
+        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 26)),
+        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 31)),
+        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 9, 8)),
+    ]
+}
+
+### Toaster ###
+"houses" : {
+    2 : [
+        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 23)),
+        (datetime.datetime(2013, 5, 26), datetime.datetime(2013, 5, 28)),
+        (datetime.datetime(2013, 5, 29), datetime.datetime(2013, 5, 30)),
+        (datetime.datetime(2013, 5, 31), datetime.datetime(2013, 6, 4)),
+        (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 6, 7)),
+        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 11)),
+        (datetime.datetime(2013, 6, 13), datetime.datetime(2013, 6, 14)),
+        (datetime.datetime(2013, 6, 15), datetime.datetime(2013, 6, 16)),
+        (datetime.datetime(2013, 6, 17), datetime.datetime(2013, 6, 18)),
+        (datetime.datetime(2013, 6, 21), datetime.datetime(2013, 6, 23)),
+        (datetime.datetime(2013, 6, 30), datetime.datetime(2013, 7, 1)),
+        (datetime.datetime(2013, 7, 6), datetime.datetime(2013, 7, 9)),#23
+        (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 13)),
+        (datetime.datetime(2013, 7, 15), datetime.datetime(2013, 7, 16)),
+        (datetime.datetime(2013, 7, 22), datetime.datetime(2013, 7, 23)),
+        (datetime.datetime(2013, 7, 24), datetime.datetime(2013, 7, 25)),
+        (datetime.datetime(2013, 7, 27), datetime.datetime(2013, 7, 28)),
+        (datetime.datetime(2013, 7, 30), datetime.datetime(2013, 8, 2)),
+        (datetime.datetime(2013, 8, 4), datetime.datetime(2013, 8, 5)),
+
+    ]
+    5 : [
+        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 2)),
+        (datetime.datetime(2014, 7, 4), datetime.datetime(2014, 7, 5)),
+        (datetime.datetime(2014, 7, 7), datetime.datetime(2014, 7, 8)),
+        (datetime.datetime(2014, 7, 11), datetime.datetime(2014, 7, 12)),
+        (datetime.datetime(2014, 7, 15), datetime.datetime(2014, 7, 16)),
+        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 20)),
+        (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 26)),
+        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 28)),
+        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 3)),
+        (datetime.datetime(2014, 8, 5), datetime.datetime(2014, 8, 6)),
+        (datetime.datetime(2014, 8, 9), datetime.datetime(2014, 8, 12)),
+        (datetime.datetime(2014, 8, 19), datetime.datetime(2014, 8, 22)),
+        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 26)),#24
+        (datetime.datetime(2014, 8, 28), datetime.datetime(2014, 9, 1)),
+        (datetime.datetime(2014, 9, 4), datetime.datetime(2014, 9, 5)),
+        (datetime.datetime(2014, 9, 6), datetime.datetime(2014, 9, 7)),
+    ]
+}
+
+### Fridge ###
+"houses" : {
+    2 : [
+        (datetime.datetime(2013, 5, 22), datetime.datetime(2013, 6, 22)),
+        (datetime.datetime(2013, 6, 22), datetime.datetime(2013, 7, 22)),
+        (datetime.datetime(2013, 7, 22), datetime.datetime(2013, 8, 5)),
+    ]
+}
+
+### Electric Oven ###
+"houses" : {
+    5 : [
+        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 3)),
+        (datetime.datetime(2014, 7, 6), datetime.datetime(2014, 7, 10)),
+        (datetime.datetime(2014, 7, 12), datetime.datetime(2014, 7, 15)),
+        (datetime.datetime(2014, 7, 18), datetime.datetime(2014, 7, 21)),
+        (datetime.datetime(2014, 7, 23), datetime.datetime(2014, 7, 25)),
+        (datetime.datetime(2014, 7, 26), datetime.datetime(2014, 7, 31)),
+        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 2)),
+        (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 8)),
+        (datetime.datetime(2014, 8, 9), datetime.datetime(2014, 8, 15)),
+    ]
+}
+
+
+######################################## WithUs ########################################
+
+### Fridge ###
+"houses" : {
+    1 : [
+        (datetime.datetime(2021, 4, 1), datetime.datetime(2021, 5, 1)),
+    ]
+    2 : [
+        (datetime.datetime(2021, 4, 1), datetime.datetime(2021, 5, 1)),
+    ]
+    4 : [
+        (datetime.datetime(2021, 5, 1), datetime.datetime(2021, 6, 1)),
+    ]
+}
+
+### Heat Pump ###
+"houses" : {
+    2 : [
+        (datetime.datetime(2021, 4, 15), datetime.datetime(2021, 5, 15)),
+    ]
+}
+
+### Washing Machine ###
+"houses" : {
+    3 : [
+        (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 15)),
+        (datetime.datetime(2021, 3, 16), datetime.datetime(2021, 3, 17)),
+        (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 15)),
+        (datetime.datetime(2021, 3, 19), datetime.datetime(2021, 3, 20)),
+        (datetime.datetime(2021, 3, 22), datetime.datetime(2021, 3, 23)),
+        (datetime.datetime(2021, 3, 26), datetime.datetime(2021, 3, 29)),
+        (datetime.datetime(2021, 3, 30), datetime.datetime(2021, 4, 1)),
+        (datetime.datetime(2021, 4, 2), datetime.datetime(2021, 4, 4)),
+        (datetime.datetime(2021, 4, 5), datetime.datetime(2021, 4, 7)),
+        (datetime.datetime(2021, 4, 8), datetime.datetime(2021, 4, 9)),
+        (datetime.datetime(2021, 4, 11), datetime.datetime(2021, 4, 12)),
+        (datetime.datetime(2021, 4, 13), datetime.datetime(2021, 4, 14)),
+        (datetime.datetime(2021, 4, 16), datetime.datetime(2021, 4, 17)),
+        (datetime.datetime(2021, 4, 19), datetime.datetime(2021, 4, 20)),
+        (datetime.datetime(2021, 4, 23), datetime.datetime(2021, 4, 25)),
+        (datetime.datetime(2021, 4, 26), datetime.datetime(2021, 4, 27)),
+        (datetime.datetime(2021, 4, 29), datetime.datetime(2021, 5, 1)),#26
+        (datetime.datetime(2021, 5, 3), datetime.datetime(2021, 5, 4)),
+        (datetime.datetime(2021, 5, 5), datetime.datetime(2021, 5, 6)),
+        (datetime.datetime(2021, 5, 7), datetime.datetime(2021, 5, 8)),
+        (datetime.datetime(2021, 5, 14), datetime.datetime(2021, 5, 17)),
+    ]
+}
+
+### Dish Washer ###
+"houses" : {
+    3 : [
+        (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 21)),
+        (datetime.datetime(2021, 3, 22), datetime.datetime(2021, 4, 17)),
+        (datetime.datetime(2021, 4, 19), datetime.datetime(2021, 5, 6)),
+    ]
+}
