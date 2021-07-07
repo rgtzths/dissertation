@@ -156,9 +156,6 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                     
                     data = clean_data(data, timestep, interpolate)
 
-                    #data.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in data.columns.values])
-                    #data.columns.set_names(LEVEL_NAMES, inplace=True)
-
                     utils.create_path('{}/house_{}'.format(output_path, house))
                     data.to_csv('{}/house_{}/{}.csv'.format(output_path, house, appliance))
 
