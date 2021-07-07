@@ -18,9 +18,9 @@ from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
 
-#base_path= "/home/rteixeira/thesis_results/"
-base_path = "/home/user/thesis_results/"
-epochs = 10
+base_path= "/home/rteixeira/thesis_results/"
+#base_path = "/home/user/thesis_results/"
+epochs = 500
 
 def run_experiment():
 
@@ -128,13 +128,13 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        #1 : [
-                        #    (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
-                        #    (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
-                        #    (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
-                        #    (datetime.datetime(2021, 1, 17), datetime.datetime(2021, 1, 22))
-                        #    ]
-                        1 : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
+                        1 : [
+                            (datetime.datetime(2020, 10, 5), datetime.datetime(2020, 10, 9)),
+                            (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
+                            (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
+                            (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
+                            ]
+                        #1 : [(datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 21))]
                     }
                 },
             },
@@ -142,8 +142,8 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
                     }
                 }
             }
@@ -247,12 +247,18 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        1 : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
-                        #1 : [ 
-                        #    (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 22)),
-                        #    (datetime.datetime(2020, 12, 1), datetime.datetime(2020, 12, 15)),
-                        #    (datetime.datetime(2021, 1, 1), datetime.datetime(2021, 1, 8)) 
-                        #    ]
+                        #1 : [ (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 16)) ]
+                        1 : [ 
+                            (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 15)),
+                            (datetime.datetime(2020, 11, 16), datetime.datetime(2020, 11, 20)),
+                            (datetime.datetime(2020, 11, 23), datetime.datetime(2020, 11, 29)),
+                            (datetime.datetime(2020, 12, 2), datetime.datetime(2020, 12, 6)),
+                            (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 13)),
+                            (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 13)),
+                            (datetime.datetime(2020, 12, 16), datetime.datetime(2020, 12, 21)),
+                            (datetime.datetime(2021, 1, 2), datetime.datetime(2021, 1, 4)),
+                            (datetime.datetime(2021, 1, 5), datetime.datetime(2021, 1, 6)),
+                            ]
                     }
                 },
             },
@@ -260,8 +266,12 @@ def run_experiment():
                 "avEiro" : {
                     "location" : "../../../datasets/avEiro_h5/avEiro.h5",
                     "houses" : {
-                        1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
-                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5)) ]
+                        #1 : [ (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 1, 16)) ]
+                        1 : [ 
+                            (datetime.datetime(2021, 1, 6), datetime.datetime(2021, 1, 9)),
+                            (datetime.datetime(2021, 1, 11), datetime.datetime(2021, 1, 21)), 
+                            ]
+                        
                     }
                 }
             }

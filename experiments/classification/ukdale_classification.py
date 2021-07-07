@@ -18,9 +18,9 @@ from lstm import LSTM_RNN
 from resnet import ResNet
 from mlp_dwt import MLP
 
-#base_path= "/home/rteixeira/thesis_results/"
-base_path = "/home/user/thesis_results/"
-epochs = 1
+base_path= "/home/rteixeira/thesis_results/"
+#base_path = "/home/user/thesis_results/"
+epochs = 10
 
 def run_experiment():
 
@@ -28,7 +28,7 @@ def run_experiment():
     experiment = {
         "fridge" : {
             "mains_columns" : [('power', 'apparent')],
-            "appliance_columns" : [('power', 'apparent')],
+            "appliance_columns" : [('power', 'active')],
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
@@ -122,18 +122,18 @@ def run_experiment():
                 }),
             },
             "model_path" : base_path+"models/",
-            "timestep" : 2,
+            "timestep" : 6,
             "train" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
-                        "house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
-                        #"house_1" : [
+                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 22, 23, 59, 53))],
+                        2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+                        #1 : [
                         #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                         #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                         #    ],
-                        #"house_2" : [
+                        #2 : [
                         #    (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
                         #    (datetime.datetime(2013, 7, 10), datetime.datetime(2013, 7, 17))
                         #    ]
@@ -142,10 +142,10 @@ def run_experiment():
             },
             "test" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #"house_5" : [
+                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        #5 : [
                         #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
                         #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
                         #    ]
@@ -155,7 +155,7 @@ def run_experiment():
         },
         "microwave" : {
             "mains_columns" : [('power', 'apparent')],
-            "appliance_columns" : [('power', 'apparent')],
+            "appliance_columns" : [('power', 'active')],
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
@@ -249,18 +249,18 @@ def run_experiment():
                 }),
             },
             "model_path" : base_path+"models/",
-            "timestep" : 2,
+            "timestep" : 6,
             "train" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
-                        "house_2" : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
-                        #"house_1" : [
+                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 48))],
+                        2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+                        #1 : [
                         #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                         #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                         #    ],
-                        #"house_2" : [
+                        #2 : [
                         #    (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
                         #    (datetime.datetime(2013, 7, 10), datetime.datetime(2013, 7, 17))
                         #    ]
@@ -269,10 +269,10 @@ def run_experiment():
             },
             "test" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #"house_5" : [
+                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        #5 : [
                         #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
                         #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
                         #    ]
@@ -280,9 +280,9 @@ def run_experiment():
                 }
             }
         },
-        "dish_washer" : {
+        "dish washer" : {
             "mains_columns" : [('power', 'apparent')],
-            "appliance_columns" : [('power', 'apparent')],
+            "appliance_columns" : [('power', 'active')],
             "methods" : {
                 "LSTM" : LSTM_RNN({
                     'verbose' : 2,
@@ -376,18 +376,18 @@ def run_experiment():
                 }),
             },
             "model_path" : base_path+"models/",
-            "timestep" : 2,
+            "timestep" : 6,
             "train" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_1" : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23))],
-                        "house_2" : [(datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 24))]
-                        #"house_1" : [
+                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 50))],
+                        2 : [(datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 24))]
+                        #1 : [
                         #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
                         #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
                         #    ],
-                        #"house_2" : [
+                        #2 : [
                         #    (datetime.datetime(2013, 9, 23), datetime.datetime(2013, 9, 30)),
                         #    (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 17))
                         #    ]
@@ -396,10 +396,10 @@ def run_experiment():
             },
             "test" : {
                 "ukdale" : {
-                    "location" : "../../../datasets/ukdale_classification/",
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        "house_5" : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #"house_5" : [
+                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        #5 : [
                         #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
                         #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
                         #    ]

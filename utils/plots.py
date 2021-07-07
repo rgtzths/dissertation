@@ -13,7 +13,6 @@ def plot_model_history(model_history, destination_folder):
     plt.ylabel("Categorical Cross Entropy")
     plt.title("Loss of the model")
     plt.legend()
-    print(fig.dpi)
     fig.savefig(destination_folder+"loss.png", dpi=300.0, bbox_inches='tight', orientation="landscape")
 
     fig = plt.figure()

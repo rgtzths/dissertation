@@ -131,9 +131,11 @@ class ResNet():
                         verbose=self.verbose
                         )         
 
+                history = str(history.history).replace("'", "\"")
+
                 if self.training_history_folder is not None:
                     f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                    f.write(str(history.history))
+                    f.write(history)
                     f.close()
                     
                 if self.plots_folder is not None:

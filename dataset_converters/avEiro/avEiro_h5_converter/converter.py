@@ -92,7 +92,6 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                 total = clean_data(total, timestep, interpolate)
 
                 total.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in total.columns.values], names=LEVEL_NAMES)
-                print(total)
                 #Store the dataframe in h5
                 store.put(str(key), total)
                 
@@ -113,7 +112,6 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
                 df = clean_data(df, timestep, interpolate)
 
                 df.columns = pd.MultiIndex.from_tuples([column_mapping["power"]], names=LEVEL_NAMES)
-                print(df)
                 store.put(str(key), df)
         print()
 
