@@ -2,8 +2,6 @@ import datetime
 import warnings
 warnings.filterwarnings("ignore")
 
-from scipy.stats import randint, loguniform
-
 from run_experiment import run
 
 import sys
@@ -11,7 +9,6 @@ sys.path.insert(1, "../../classification_models")
 sys.path.insert(1, "../../utils")
 sys.path.insert(1, "../../feature_extractors")
 
-from seq2point import Seq2Point
 from gru import GRU_RNN
 from deep_gru import DeepGRU
 from lstm import LSTM_RNN
@@ -20,7 +17,7 @@ from mlp_dwt import MLP
 
 base_path= "/home/rteixeira/thesis_results/"
 #base_path = "/home/user/thesis_results/"
-epochs = 10
+epochs = 500
 
 def run_experiment():
 
@@ -127,16 +124,16 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 22, 23, 59, 53))],
-                        2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
-                        #1 : [
-                        #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
-                        #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
-                        #    ],
-                        #2 : [
-                        #    (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
-                        #    (datetime.datetime(2013, 7, 10), datetime.datetime(2013, 7, 17))
-                        #    ]
+                        #1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 22, 23, 59, 53))],
+                        #2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+                        1 : [
+                            (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
+                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
+                            ],
+                        2 : [
+                            (datetime.datetime(2013, 5, 22), datetime.datetime(2013, 5, 29)),
+                            (datetime.datetime(2013, 6, 7), datetime.datetime(2013, 7, 14))
+                            ]
                     }
                 },
             },
@@ -144,11 +141,10 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #5 : [
-                        #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
-                        #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
-                        #    ]
+                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        5 : [
+                            (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 15)),
+                            ]
                     }
                 }
             }
@@ -254,16 +250,16 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 48))],
-                        2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
-                        #1 : [
-                        #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
-                        #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
-                        #    ],
-                        #2 : [
-                        #    (datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 30)),
-                        #    (datetime.datetime(2013, 7, 10), datetime.datetime(2013, 7, 17))
-                        #    ]
+                        #1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 48))],
+                        #2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
+                        1 : [
+                            (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 18)),
+                            (datetime.datetime(2013, 7, 28), datetime.datetime(2013, 7, 5)),
+                            ],
+                        2 : [
+                            (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 6, 12)),
+                            (datetime.datetime(2013, 7, 18), datetime.datetime(2013, 7, 25)),
+                            ]
                     }
                 },
             },
@@ -271,11 +267,17 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #5 : [
-                        #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
-                        #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
-                        #    ]
+                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        5 : [
+                            (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
+                            (datetime.datetime(2014, 7, 10), datetime.datetime(2014, 7, 11)),
+                            (datetime.datetime(2014, 7, 12), datetime.datetime(2014, 7, 17)),
+                            (datetime.datetime(2014, 7, 21), datetime.datetime(2014, 7, 22)),
+                            (datetime.datetime(2014, 7, 28), datetime.datetime(2014, 7, 29)),
+                            (datetime.datetime(2014, 8, 4), datetime.datetime(2014, 8, 5)),
+                            (datetime.datetime(2014, 8, 7), datetime.datetime(2014, 8, 8)),
+                            (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 12)),
+                            ]
                     }
                 }
             }
@@ -381,16 +383,28 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 50))],
-                        2 : [(datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 24))]
-                        #1 : [
-                        #    (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
-                        #    (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
-                        #    ],
-                        #2 : [
-                        #    (datetime.datetime(2013, 9, 23), datetime.datetime(2013, 9, 30)),
-                        #    (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 17))
-                        #    ]
+                        #1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 50))],
+                        #2 : [(datetime.datetime(2015, 9, 23), datetime.datetime(2015, 9, 24))]
+                        1 : [
+                            (datetime.datetime(2013, 2, 18), datetime.datetime(2013, 2, 19)),
+                            (datetime.datetime(2013, 2, 21), datetime.datetime(2013, 2, 22)),
+                            (datetime.datetime(2013, 2, 24), datetime.datetime(2013, 2, 25)),
+                            (datetime.datetime(2013, 2, 27), datetime.datetime(2013, 2, 28)),
+                            (datetime.datetime(2013, 3, 9), datetime.datetime(2013, 3, 10)),
+                            (datetime.datetime(2013, 3, 16), datetime.datetime(2013, 3, 17)),
+                            (datetime.datetime(2013, 3, 19), datetime.datetime(2013, 3, 20)),
+                            (datetime.datetime(2013, 3, 21), datetime.datetime(2013, 3, 22)),
+                            (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 3)),
+                            (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
+                            (datetime.datetime(2013, 4, 26), datetime.datetime(2013, 4, 27)),
+                            (datetime.datetime(2013, 4, 28, 12), datetime.datetime(2013, 4, 29, 12)),
+                            ],
+                        2 : [
+                            (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 24)),
+                            (datetime.datetime(2013, 6, 16), datetime.datetime(2013, 6, 19)),
+                            (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 23)),
+                            (datetime.datetime(2013, 6, 24), datetime.datetime(2013, 6, 28)),
+                            ]
                     }
                 },
             },
@@ -398,11 +412,21 @@ def run_experiment():
                 "ukdale" : {
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
-                        5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
-                        #5 : [
-                        #    (datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 8)),
-                        #    (datetime.datetime(2014, 9, 8),datetime.datetime(2014, 9, 15))
-                        #    ]
+                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        5 : [
+                            (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 1)),
+                            (datetime.datetime(2014, 7, 3), datetime.datetime(2014, 7, 4)),
+                            (datetime.datetime(2014, 7, 6), datetime.datetime(2014, 7, 7)),
+                            (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
+                            (datetime.datetime(2014, 7, 11), datetime.datetime(2014, 7, 12)),
+                            (datetime.datetime(2014, 7, 13), datetime.datetime(2014, 7, 14)),
+                            (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 20)),
+                            (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 23)),
+                            (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 28)),
+                            (datetime.datetime(2014, 7, 29), datetime.datetime(2014, 7, 30)),
+                            (datetime.datetime(2014, 8, 1, 12), datetime.datetime(2014, 8, 2, 12)),
+                            (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 4)),
+                            ]
                     }
                 }
             }
