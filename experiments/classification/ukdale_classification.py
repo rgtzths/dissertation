@@ -27,42 +27,6 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'active')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/LSTM/",
-                    "results_folder" : base_path + "results/LSTM/",
-                    "checkpoint_folder" : base_path + "models/LSTM/",
-                    "plots_folder" : base_path + "plots/LSTM/",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/GRU/",
-                    "results_folder" : base_path + "results/GRU/",
-                    "checkpoint_folder" : base_path + "models/GRU/",
-                    "plots_folder" : base_path + "plots/GRU/",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -73,8 +37,8 @@ def run_experiment():
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
@@ -91,8 +55,8 @@ def run_experiment():
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                         }
@@ -108,8 +72,8 @@ def run_experiment():
                     "appliances" : {
                         "fridge" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'feature_extractor' : "dwt"
@@ -125,15 +89,10 @@ def run_experiment():
                     "location" : "../../../datasets/ukdale/ukdale.h5",
                     "houses" : {
                         #1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 22, 23, 59, 53))],
-                        #2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
                         1 : [
-                            (datetime.datetime(2014, 2, 20), datetime.datetime(2014, 2, 28)),
-                             (datetime.datetime(2016, 9, 10), datetime.datetime(2016, 9, 17))
+                            (datetime.datetime(2014, 2, 1), datetime.datetime(2014, 3, 1)),
+                            (datetime.datetime(2016, 9, 1), datetime.datetime(2016, 10, 1))
                             ],
-                        2 : [
-                            (datetime.datetime(2013, 5, 22), datetime.datetime(2013, 5, 29)),
-                            (datetime.datetime(2013, 6, 7), datetime.datetime(2013, 7, 14))
-                            ]
                     }
                 },
             },
@@ -143,7 +102,7 @@ def run_experiment():
                     "houses" : {
                         #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
                         5 : [
-                            (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 15)),
+                            (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 30)),
                             ]
                     }
                 }
@@ -153,42 +112,6 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'active')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                     "training_history_folder" : base_path + "history/LSTM/",
-                    "results_folder" : base_path + "results/LSTM/",
-                    "checkpoint_folder" : base_path + "models/LSTM/",
-                    "plots_folder" : base_path + "plots/LSTM/",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "microwave" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/GRU/",
-                    "results_folder" : base_path + "results/GRU/",
-                    "checkpoint_folder" : base_path + "models/GRU/",
-                    "plots_folder" : base_path + "plots/GRU/",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "microwave" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -199,8 +122,8 @@ def run_experiment():
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
@@ -217,8 +140,8 @@ def run_experiment():
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                         }
@@ -234,8 +157,8 @@ def run_experiment():
                     "appliances" : {
                         "microwave" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'feature_extractor' : "dwt"
@@ -253,21 +176,10 @@ def run_experiment():
                         #1 : [(datetime.datetime(2014, 2, 22), datetime.datetime(2014, 2, 23, 23, 59, 48))],
                         #2 : [(datetime.datetime(2013, 5, 23), datetime.datetime(2013, 5, 24))]
                         1 : [
+                            (datetime.datetime(2013, 6, 25), datetime.datetime(2013, 7, 9)),
                             (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 18)),
-                            (datetime.datetime(2013, 7, 28), datetime.datetime(2013, 7, 5)),
+                            (datetime.datetime(2013, 7, 28), datetime.datetime(2013, 8, 9)),
                             ],
-                        2 : [
-                            (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 6, 12)),
-                            (datetime.datetime(2013, 7, 18), datetime.datetime(2013, 7, 25)),
-                            ]
-                    }
-                },
-            },
-            "test" : {
-                "ukdale" : {
-                    "location" : "../../../datasets/ukdale/ukdale.h5",
-                    "houses" : {
-                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
                         5 : [
                             (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
                             (datetime.datetime(2014, 7, 10), datetime.datetime(2014, 7, 11)),
@@ -277,6 +189,23 @@ def run_experiment():
                             (datetime.datetime(2014, 8, 4), datetime.datetime(2014, 8, 5)),
                             (datetime.datetime(2014, 8, 7), datetime.datetime(2014, 8, 8)),
                             (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 12)),
+                            (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 16)),
+                            (datetime.datetime(2014, 8, 20), datetime.datetime(2014, 8, 25)),
+                            (datetime.datetime(2014, 8, 26), datetime.datetime(2014, 8, 28)),
+                            (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 9, 2)),#28
+                            (datetime.datetime(2014, 9, 5), datetime.datetime(2014, 9, 6)),
+                            (datetime.datetime(2014, 9, 7), datetime.datetime(2014, 9, 8)),
+                            ]
+                    }
+                },
+            },
+            "test" : {
+                "ukdale" : {
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
+                    "houses" : {
+                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        2 : [
+                            (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 7, 5)),
                             ]
                     }
                 }
@@ -286,42 +215,6 @@ def run_experiment():
             "mains_columns" : [('power', 'apparent')],
             "appliance_columns" : [('power', 'active')],
             "methods" : {
-                "LSTM" : LSTM_RNN({
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/LSTM/",
-                    "results_folder" : base_path + "results/LSTM/",
-                    "checkpoint_folder" : base_path + "models/LSTM/",
-                    "plots_folder" : base_path + "plots/LSTM/",
-                    #"load_model_folder" : base_path+"models/LSTM/",
-                    "appliances" : {
-                        "dish_washer" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
-                "GRU" : GRU_RNN({
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/GRU/",
-                    "results_folder" : base_path + "results/GRU/",
-                    "checkpoint_folder" : base_path + "models/GRU/",
-                    "plots_folder" : base_path + "plots/GRU/",
-                    #"load_model_folder" : base_path+"models/GRU/",
-                    "appliances" : {
-                        "dish_washer" : {
-                            'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
-                            'epochs' : epochs,
-                            'batch_size' : 1024,
-                            'n_nodes' : 90,
-                        }
-                    },
-                }),
                 "DeepGRU" : DeepGRU({
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -332,8 +225,8 @@ def run_experiment():
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'n_nodes' : 90,
@@ -350,8 +243,8 @@ def run_experiment():
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                         }
@@ -367,8 +260,8 @@ def run_experiment():
                     "appliances" : {
                         "dish_washer" : {
                             'timewindow' : 180,
-                            'timestep' : 2,
-                            'overlap' : 178,
+                            'timestep' : 6,
+                            'overlap' : 174,
                             'epochs' : epochs,
                             'batch_size' : 1024,
                             'feature_extractor' : "dwt"
@@ -397,22 +290,23 @@ def run_experiment():
                             (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 3)),
                             (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
                             (datetime.datetime(2013, 4, 26), datetime.datetime(2013, 4, 27)),
-                            (datetime.datetime(2013, 4, 28, 12), datetime.datetime(2013, 4, 29, 12)),
+                            (datetime.datetime(2013, 4, 28, 12), datetime.datetime(2013, 4, 29, 12)), 
+                            (datetime.datetime(2013, 5, 1, 12), datetime.datetime(2013, 5, 2, 12)),
+                            (datetime.datetime(2013, 5, 4, 12), datetime.datetime(2013, 5, 5, 12)),
+                            (datetime.datetime(2013, 5, 10), datetime.datetime(2013, 5, 11)),
+                            (datetime.datetime(2013, 5, 14, 12), datetime.datetime(2013, 5, 15, 12)),
+                            (datetime.datetime(2013, 5, 18), datetime.datetime(2013, 5, 19)),
+                            (datetime.datetime(2013, 5, 20, 12), datetime.datetime(2013, 5, 21, 12)),
+                            (datetime.datetime(2013, 5, 22, 12), datetime.datetime(2013, 5, 23, 12)),
+                            (datetime.datetime(2013, 5, 31), datetime.datetime(2013, 6, 1)),
+                            (datetime.datetime(2013, 6, 2), datetime.datetime(2013, 6, 3)),
+                            (datetime.datetime(2013, 6, 4), datetime.datetime(2013, 6, 7)),
+                            (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 9)),
+                            (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 12)),
+                            (datetime.datetime(2013, 6, 19), datetime.datetime(2013, 6, 20)),
+                            (datetime.datetime(2013, 6, 23), datetime.datetime(2013, 6, 24)),
+                            (datetime.datetime(2013, 6, 28), datetime.datetime(2013, 6, 29)),
                             ],
-                        2 : [
-                            (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 24)),
-                            (datetime.datetime(2013, 6, 16), datetime.datetime(2013, 6, 19)),
-                            (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 23)),
-                            (datetime.datetime(2013, 6, 24), datetime.datetime(2013, 6, 28)),
-                            ]
-                    }
-                },
-            },
-            "test" : {
-                "ukdale" : {
-                    "location" : "../../../datasets/ukdale/ukdale.h5",
-                    "houses" : {
-                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
                         5 : [
                             (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 1)),
                             (datetime.datetime(2014, 7, 3), datetime.datetime(2014, 7, 4)),
@@ -426,6 +320,37 @@ def run_experiment():
                             (datetime.datetime(2014, 7, 29), datetime.datetime(2014, 7, 30)),
                             (datetime.datetime(2014, 8, 1, 12), datetime.datetime(2014, 8, 2, 12)),
                             (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 4)),
+                            (datetime.datetime(2014, 8, 8), datetime.datetime(2014, 8, 9)),
+                            (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 11)),
+                            (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 14)),
+                            (datetime.datetime(2014, 8, 16), datetime.datetime(2014, 8, 17)),
+                            (datetime.datetime(2014, 8, 19), datetime.datetime(2014, 8, 20)),
+                            (datetime.datetime(2014, 8, 22), datetime.datetime(2014, 8, 23)),
+                            (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 25)),
+                            (datetime.datetime(2014, 8, 27), datetime.datetime(2014, 8, 28)),
+                            (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 8, 31)),
+                            (datetime.datetime(2014, 9, 1), datetime.datetime(2014, 9, 2)),
+                            (datetime.datetime(2014, 9, 3), datetime.datetime(2014, 9, 4)),
+                            (datetime.datetime(2014, 9, 6), datetime.datetime(2014, 9, 7)),
+                            (datetime.datetime(2014, 9, 9), datetime.datetime(2014, 9, 10)),
+                            (datetime.datetime(2014, 9, 14), datetime.datetime(2014, 9, 16)),
+                            (datetime.datetime(2014, 9, 17), datetime.datetime(2014, 9, 18)),
+                            (datetime.datetime(2014, 9, 19), datetime.datetime(2014, 9, 20)),
+                            ]
+                    }
+                },
+            },
+            "test" : {
+                "ukdale" : {
+                    "location" : "../../../datasets/ukdale/ukdale.h5",
+                    "houses" : {
+                        #5 : [(datetime.datetime(2014, 8, 1),datetime.datetime(2014, 8, 2))]
+                        2 : [
+                            (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 24)),
+                            (datetime.datetime(2013, 5, 25), datetime.datetime(2013, 6, 15)),
+                            (datetime.datetime(2013, 6, 16), datetime.datetime(2013, 6, 19)),
+                            (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 23)),
+                            (datetime.datetime(2013, 6, 24), datetime.datetime(2013, 6, 28)),
                             ]
                     }
                 }

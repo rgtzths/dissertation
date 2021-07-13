@@ -5,20 +5,19 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 from os.path import join, isfile
 from os import listdir
 import json
+import math
 
 from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
-import tensorflow as tf
 
-from sklearn.metrics import matthews_corrcoef, confusion_matrix
-import numpy as np
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import pandas as pd
 
 #import sys
 #sys.path.insert(1, "../utils")
 #sys.path.insert(1, "../feature_extractors")
 
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
-from matthews_correlation import matthews_correlation
 
 import utils
 import plots
@@ -95,12 +94,12 @@ class ResNet():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
 
                 X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
-                
-                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
 
+                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+
+                
                 if( self.verbose != 0):
-                    print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº of negative examples ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+                    print("Nº of examples ", str(X_train.shape[0]))
                 
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -140,7 +139,7 @@ class ResNet():
                     
                 if self.plots_folder is not None:
                     utils.create_path(self.plots_folder + "/" + app_name + "/")
-                    plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
+                    plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
                 model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
 
@@ -149,41 +148,34 @@ class ResNet():
 
                  #Gets the trainning data score
                 pred = self.model[app_name].predict(X_train)
-                pred = [ np.where(p == max(p))[0][0]  for p in pred ]
-                
-                y_train = [ np.where(p == max(p))[0][0]  for p in y_train ]
-                
-                tn, fp, fn, tp = confusion_matrix(y_train, pred).ravel()
-                mcc = matthews_corrcoef(y_train, pred)
+                                
+                rmse = math.sqrt(mean_squared_error(y_train, pred))
+                mae = mean_absolute_error(y_train, pred)
 
                 if self.verbose == 2:
-                    print("Training data scores")
-                    print("True Positives: ", tp)
-                    print("True Negatives: ", tn)  
-                    print("False Negatives: ", fn)  
-                    print("False Positives: ", fp)        
-                    print("MCC: ", mcc )
+                    print("Training data scores")    
+                    print("RMSE: ", rmse )
+                    print("MAE: ", mae )
                 
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                    f.write("Nº of positive examples for training: " + str(sum(y_train)) + "\n")
-                    f.write("Nº of negative examples for training: " + str(len(y_train)- sum(y_train)) + "\n")
+                    f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
                     f.write("Data Mean: " + str(self.mains_mean) + "\n")
                     f.write("Data Std: " + str(self.mains_std) + "\n")
-                    f.write("Train MCC: "+str(mcc)+ "\n")
-                    f.write("True Positives: "+str(tp)+ "\n")
-                    f.write("True Negatives: "+str(tn)+ "\n")
-                    f.write("False Positives: "+str(fp)+ "\n")
-                    f.write("False Negatives: "+str(fn)+ "\n")
+                    f.write("Train RMSE: "+str(rmse)+ "\n")
+                    f.write("Train MAE: "+str(mae)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
 
-    def disaggregate_chunk(self, test_mains, test_appliances):
+    def disaggregate_chunk(self, test_mains):
+
+        test_predictions_list = []
 
         appliance_powers_dict = {}
         
-        for app_name, appliance_power in test_appliances:
+        for i, app_name in enumerate(self.model):
+
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
 
@@ -195,41 +187,22 @@ class ResNet():
             
             X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
 
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
-            
             if( self.verbose != 0):
-                print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
-                print("Nº of negative examples ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº of examples", X_test.shape[0])
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
             pred = self.model[app_name].predict(X_test)
-            pred = [ np.where(p == max(p))[0][0]  for p in pred ]
-            
-            y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
-            tn, fp, fn, tp = confusion_matrix(y_test, pred).ravel()
+            pred = [p[0] for p in pred]
 
-            if self.verbose == 2:
-                print("True Positives: ", tp)
-                print("True Negatives: ", tn)  
-                print("False Negatives: ", fn)  
-                print("False Positives: ", fp)        
-                print( "MCC: ", matthews_corrcoef(y_test, pred))
-            
-            if self.results_folder is not None:
-                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
-                f.write("Nº of positive examples for test: " + str(sum(y_test)) + "\n")
-                f.write("Nº of negative examples for test: " + str(len(y_test)- sum(y_test)) + "\n")
-                f.write("MCC: "+str(matthews_corrcoef(y_test, pred))+ "\n")
-                f.write("True Positives: "+str(tp)+ "\n")
-                f.write("True Negatives: "+str(tn)+ "\n")
-                f.write("False Positives: "+str(fp)+ "\n")
-                f.write("False Negatives: "+str(fn)+ "\n")
-                f.close()
+            column = pd.Series(
+                    pred, index=test_mains[0].index, name=i)
+            appliance_powers_dict[app_name] = column
+        
+        test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
-            appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
-        return appliance_powers_dict
+        return test_predictions_list
 
     def save_model(self, folder_name):
         #For each appliance trained store its model
@@ -240,7 +213,7 @@ class ResNet():
         #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
         input_layer = keras.layers.Input(input_shape)
@@ -265,7 +238,7 @@ class ResNet():
         output_block_1 = keras.layers.add([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        output_block_1 = keras.layers.Dropout(0.6)(output_block_1)
+        output_block_1 = keras.layers.Dropout(0.5)(output_block_1)
 
         # BLOCK 2
 
@@ -287,7 +260,7 @@ class ResNet():
         output_block_2 = keras.layers.add([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
 
-        output_block_2 = keras.layers.Dropout(0.6)(output_block_2)
+        output_block_2 = keras.layers.Dropout(0.5)(output_block_2)
 
         # BLOCK 3
 
@@ -308,7 +281,7 @@ class ResNet():
         output_block_3 = keras.layers.add([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
 
-        output_block_3 = keras.layers.Dropout(0.6)(output_block_3)
+        output_block_3 = keras.layers.Dropout(0.5)(output_block_3)
 
         # FINAL
 
@@ -316,13 +289,12 @@ class ResNet():
 
         dense_layer = keras.layers.Dense(int(n_nodes/8), activation='relu', kernel_regularizer='l2')(gap_layer)
 
-        dropout_layer = keras.layers.Dropout(0.6)(dense_layer)
+        dropout_layer = keras.layers.Dropout(0.5)(dense_layer)
 
-        output_layer = keras.layers.Dense(2, activation='softmax', kernel_regularizer='l2')(dropout_layer)
+        output_layer = keras.layers.Dense(1, kernel_regularizer='l2')(dropout_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(),
-                      metrics=["accuracy", matthews_correlation])
+        model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
 
         return model

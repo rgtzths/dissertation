@@ -1,29 +1,30 @@
 import warnings
+
+from matplotlib.pyplot import hist
 warnings.filterwarnings('ignore',category=FutureWarning)
 warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
+import math
 import json
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-from scipy.stats import randint
-from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
-from sklearn.model_selection import RandomizedSearchCV
-
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import numpy as np
+import pandas as pd
+
 
 #import sys
 #sys.path.insert(1, "../utils")
 #sys.path.insert(1, "../feature_extractors")
 
-from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
-from matthews_correlation import matthews_correlation
+from wt import get_discrete_features
+from generate_timeseries import generate_appliance_timeseries, generate_main_timeseries
 
 import utils
 import plots
@@ -35,28 +36,30 @@ config = ConfigProto()
 config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
-class DeepGRU():
+class MLP():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'DeepGRU')
+        self.MODEL_NAME = params.get('model_name', 'MLP')
         #Percentage of values used as cross validation data from the training data.
         self.cv = params.get('cv', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
         self.load_model_path = params.get('load_model_folder',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 0)
-
+        
         self.appliances = params.get('appliances', {})
 
         self.default_appliance = {
             "timewindow": 180,
-            "overlap": 178,
+            "overlap": 172,
             "timestep": 2,
-            'epochs' : 1,
-            'batch_size' : 1024,
-            'n_nodes' : 90
+            "feature_extractor": "wt",
+            "wavelet": 'db4',
+            "batch_size": 1024,
+            "epochs": 1,
+            "n_nodes":32
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -72,10 +75,11 @@ class DeepGRU():
         
         if self.checkpoint_folder is not None:
             utils.create_path(self.checkpoint_folder)
-
+        
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
 
+        #In case of existing a model path, load every model in that path.
         if self.load_model_path:
             self.load_model(self.load_model_path)
             self.mains_mean = params.get("mean", None)
@@ -86,30 +90,38 @@ class DeepGRU():
         #For each appliance to be classified
         for app_name, appliance_power in train_appliances:
             if app_name not in self.model:
+
                 if( self.verbose != 0):
                     print("Preparing Dataset for %s" % app_name)
 
                 appliance_model = self.appliances.get(app_name, {})
 
                 timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
                 overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
                 batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+                feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
 
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)  
-
-                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
+                if feature_extractor == "wt":
+                    print("Using Discrete Wavelet Transforms as Features")
+                    wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                    X_train, self.mains_mean, self.mains_std = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap)
+                else:
+                    print("Using the Timeseries as Features")
+                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                    X_train = X_train.reshape(X_train.shape[0], -1)
+                
+                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
 
                 if( self.verbose != 0):
-                    print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº of negative examples ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
-
+                    print("Nº of examples ", str(X_train.shape[0]))
+                
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-                
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
+
+                model = self.create_model(n_nodes, (X_train.shape[1],))
 
                 checkpoint = ModelCheckpoint(
                                 self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
@@ -119,16 +131,15 @@ class DeepGRU():
                                 mode='min'
                                 )
 
-                #Fits the model to the training data.
-                history = model.fit( X_train, 
-                        y_train, 
+                history = model.fit(X_train, 
+                        y_train,
                         epochs=epochs, 
-                        batch_size=batch_size, 
-                        verbose=self.verbose, 
+                        batch_size=batch_size,
                         shuffle=True,
                         callbacks=[checkpoint],
                         validation_split=self.cv,
-                        )
+                        verbose=self.verbose
+                        )         
 
                 history = json.dumps(history.history)
 
@@ -136,101 +147,81 @@ class DeepGRU():
                     f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
                     f.write(history)
                     f.close()
-
+                
                 if self.plots_folder is not None:
                     utils.create_path(self.plots_folder + "/" + app_name + "/")
-                    plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
+                    plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
                 model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
-                
+
                 #Stores the trained model.
                 self.model[app_name] = model
-
+                
                 #Gets the trainning data score
                 pred = self.model[app_name].predict(X_train)
-                pred = [ np.where(p == max(p))[0][0]  for p in pred ]
-                
-                y_train = [ np.where(p == max(p))[0][0]  for p in y_train ]
-                
-                tn, fp, fn, tp = confusion_matrix(y_train, pred).ravel()
-                mcc = matthews_corrcoef(y_train, pred)
+                                                
+                rmse = math.sqrt(mean_squared_error(y_train, pred))
+                mae = mean_absolute_error(y_train, pred)
 
                 if self.verbose == 2:
-                    print("Training data scores")
-                    print("True Positives: ", tp)
-                    print("True Negatives: ", tn)  
-                    print("False Negatives: ", fn)  
-                    print("False Positives: ", fp)        
-                    print("MCC: ", mcc )
+                    print("Training data scores")    
+                    print("RMSE: ", rmse )
+                    print("MAE: ", mae )
                 
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                    f.write("Nº of positive examples for training: " + str(sum(y_train)) + "\n")
-                    f.write("Nº of negative examples for training: " + str(len(y_train)- sum(y_train)) + "\n")
+                    f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
                     f.write("Data Mean: " + str(self.mains_mean) + "\n")
                     f.write("Data Std: " + str(self.mains_std) + "\n")
-                    f.write("Train MCC: "+str(mcc)+ "\n")
-                    f.write("True Positives: "+str(tp)+ "\n")
-                    f.write("True Negatives: "+str(tn)+ "\n")
-                    f.write("False Positives: "+str(fp)+ "\n")
-                    f.write("False Negatives: "+str(fn)+ "\n")
+                    f.write("Train RMSE: "+str(rmse)+ "\n")
+                    f.write("Train MAE: "+str(mae)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
-            
-    def disaggregate_chunk(self, test_mains, test_appliances):
-        
+
+    def disaggregate_chunk(self, test_mains):
+
+        test_predictions_list = []
+
         appliance_powers_dict = {}
         
-        for app_name, appliance_power in test_appliances:
+        for i, app_name in enumerate(self.model):
+
             if self.verbose != 0:
                 print("Preparing the Test Data for %s" % app_name)
-            
-            appliance_model = self.appliances.get(app_name, {})
-            
+
+            appliance_model = self.appliances.get(app_name)
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0] 
-
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
+            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+            
+            if feature_extractor == "wt":
+                print("Using Discrete Wavelet Transforms as Features")
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                X_test = get_discrete_features(test_mains, wavelet, timestep, timewindow, overlap, self.mains_mean, self.mains_std)[0]
+            else:
+                print("Using the Timeseries as Features")
+                X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_test = X_test.reshape(X_test.shape[0], -1)
             
             if( self.verbose != 0):
-                print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
-                print("Nº of negative examples ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº of examples", X_test.shape[0])
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
             
             pred = self.model[app_name].predict(X_test)
-            pred = [ np.where(p == max(p))[0][0]  for p in pred ]
+
+            pred = [p[0] for p in pred]
+
+            column = pd.Series(
+                    pred, index=test_mains[0].index, name=i)
+            appliance_powers_dict[app_name] = column
         
-            y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
-            
-            tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
+        test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
-            if self.verbose == 2:
-                print("True Positives: ", tp)
-                print("True Negatives: ", tn)  
-                print("False Negatives: ", fn)  
-                print("False Positives: ", fp)        
-                print( "MCC: ", matthews_corrcoef(y_test, pred))
-
-            if self.results_folder is not None:
-                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
-                f.write("Nº of positive examples for test: " + str(sum(y_test)) + "\n")
-                f.write("Nº of negative examples for test: " + str(len(y_test)- sum(y_test)) + "\n")
-                f.write("MCC: "+str(matthews_corrcoef(y_test, pred)) + "\n")
-                f.write("True Positives: "+str(tp)+ "\n")
-                f.write("True Negatives: "+str(tn)+ "\n")
-                f.write("False Positives: "+str(fp)+ "\n")
-                f.write("False Negatives: "+str(fn)+ "\n")
-                f.close()
-
-            appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
-
-        return appliance_powers_dict
+        return test_predictions_list
 
     def save_model(self, folder_name):
         #For each appliance trained store its model
@@ -241,29 +232,17 @@ class DeepGRU():
         #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
         model = Sequential()
-        #Block 1
-        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Block 2
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Block 3
-        model.add(GRU(int(n_nodes/2)))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Dense Layer
+        model.add(Dense(n_nodes, input_shape=input_shape, activation='relu'))
         model.add(Dense(int(n_nodes/4), activation='relu'))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Classification Layer
-        model.add(Dense(2, activation='softmax'))
-        model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
+        model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dropout(0.1))
+        model.add(Dense(1))
+        model.compile(loss='mean_squared_error', optimizer=Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
 
         return model

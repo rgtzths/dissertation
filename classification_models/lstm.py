@@ -153,7 +153,7 @@ class LSTM_RNN():
 
                 if self.plots_folder is not None:
                     utils.create_path(self.plots_folder + "/" + app_name + "/")
-                    plots.plot_model_history(json.loads(history), self.plots_folder + "/" + app_name + "/")
+                    plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
                 model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
 

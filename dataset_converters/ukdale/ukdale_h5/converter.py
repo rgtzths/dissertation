@@ -179,7 +179,7 @@ def _convert(input_path, store, measurement_mapping_func, tz, sort_index=True, d
                 drop_duplicates=drop_duplicates
             )
             
-            df = clean_data(df, 6, "previous")
+            df = clean_data(df, 6, "average")
 
             store.put(str(key), df)
         print()

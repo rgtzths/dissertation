@@ -47,7 +47,7 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap, mains_mean=None
         new_mains = new_mains.flatten()
 
         new_mains = np.pad(new_mains, (pad, 0),'constant', constant_values=(0,0))
-        
+
         new_mains = np.array([ new_mains[i : i + window_size] for i in range(0, len(new_mains) - window_size + 1, step)])
 
         data.append(pd.DataFrame(new_mains))
@@ -87,8 +87,8 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
         app = np.pad(app, (pad, 0),'constant', constant_values=(0,-1))
 
         if is_classification:
-            [data.append([0, 1]) if app[i+window_size-pad] > 80 else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
+            [data.append([0, 1]) if app[i+window_size-1] > 80 else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
         else:
-            [data.append(app[i+window_size]) for i in range(0, len(app), step)]
+            [data.append(app[i+window_size -1]) for i in range(0, len(app) - window_size +1, step)]
 
     return np.array(data)
