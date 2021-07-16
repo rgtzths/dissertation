@@ -19,7 +19,7 @@ sys.path.insert(1, "../../../utils")
 from data_clean import clean_data
 import utils
 
-def convert_withus(withus_path, output_filename, timestep, interpolate):
+def convert_withus(withus_path, output_filename):
     """
     Converts the withus dataset into a h5 dataset ready to be used in nilmtk.
     Parameters
@@ -219,7 +219,4 @@ withus_path = "../../../../datasets/withus_classification/"
 metada_path = "./metadata"
 output_filename = "../../../../datasets/withus_h5/withus.h5"
 
-interpolate = "previous"
-timestep = 2
-
-convert_withus(withus_path, output_filename, timestep, interpolate)
+convert_withus(withus_path, output_filename)

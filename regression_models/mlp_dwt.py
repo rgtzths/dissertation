@@ -59,7 +59,7 @@ class MLP():
             "wavelet": 'db4',
             "batch_size": 1024,
             "epochs": 1,
-            "n_nodes":32
+            "n_nodes":256
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
