@@ -338,7 +338,6 @@
     3 : [
         (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 15)),
         (datetime.datetime(2021, 3, 16), datetime.datetime(2021, 3, 17)),
-        (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 15)),
         (datetime.datetime(2021, 3, 19), datetime.datetime(2021, 3, 20)),
         (datetime.datetime(2021, 3, 22), datetime.datetime(2021, 3, 23)),
         (datetime.datetime(2021, 3, 26), datetime.datetime(2021, 3, 29)),
@@ -365,6 +364,6 @@
     3 : [
         (datetime.datetime(2021, 3, 13), datetime.datetime(2021, 3, 21)),
         (datetime.datetime(2021, 3, 22), datetime.datetime(2021, 4, 17)),
-        (datetime.datetime(2021, 4, 19), datetime.datetime(2021, 5, 6)),
+        (datetime.datetime(2021, 4, 19), datetime.datetime(2021, 5, 19)),
     ]
 }
