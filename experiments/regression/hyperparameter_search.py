@@ -12,7 +12,7 @@ from mlp_dwt import MLP
 def run_fridge(base_path, timewindow, timestep, epochs):
     fridge = {
         'power': {'mains': ['apparent'],'appliance': ['active']},
-        'sample_rate': 6,
+        'sample_rate':  timestep,
         'appliances': ['fridge'],
         'methods': {
             "ResNet" : ResNet( {
@@ -125,7 +125,7 @@ def run_fridge(base_path, timewindow, timestep, epochs):
 def run_microwave(base_path, timewindow, timestep, epochs):
     microwave = {
         'power': {'mains': ['apparent'],'appliance': ['active']},
-        'sample_rate': 6,
+        'sample_rate':  timestep,
         'appliances': ['microwave'],
         'methods': {
             "ResNet" : ResNet( {
@@ -363,7 +363,7 @@ def run_microwave(base_path, timewindow, timestep, epochs):
 def run_dish_washer(base_path, timewindow, timestep, epochs):
     dish_washer = {
         'power': {'mains': ['apparent'],'appliance': ['active']},
-        'sample_rate': 6,
+        'sample_rate':  timestep,
         'appliances': ['dish washer'],
         'methods': {
             "ResNet" : ResNet( {
@@ -823,7 +823,7 @@ def run_dish_washer(base_path, timewindow, timestep, epochs):
 def run_kettle(base_path, timewindow, timestep, epochs):
     kettle = {
         'power': {'mains': ['apparent'],'appliance': ['active']},
-        'sample_rate': 6,
+        'sample_rate':  timestep,
         'appliances': ['kettle'],
         'methods': {
             "ResNet" : ResNet( {
@@ -1009,7 +1009,7 @@ def run_kettle(base_path, timewindow, timestep, epochs):
 def run_washing_machine(base_path, timewindow, timestep, epochs):
     washing_machine = {
         'power': {'mains': ['apparent'],'appliance': ['active']},
-        'sample_rate': 6,
+        'sample_rate':  timestep,
         'appliances': ['washing machine'],
         'methods': {
             "ResNet" : ResNet( {

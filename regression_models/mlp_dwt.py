@@ -15,7 +15,8 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-import numpy as np
+from sklearn.model_selection import train_test_split
+
 import pandas as pd
 
 
@@ -55,7 +56,7 @@ class MLP():
             "timewindow": 180,
             "overlap": 172,
             "timestep": 2,
-            "feature_extractor": "wt",
+            "feature_extractor": "",
             "wavelet": 'db4',
             "batch_size": 1024,
             "epochs": 1,
@@ -115,6 +116,8 @@ class MLP():
                 
                 y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
 
+                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in y_train])
+
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
                 
@@ -137,7 +140,7 @@ class MLP():
                         batch_size=batch_size,
                         shuffle=True,
                         callbacks=[checkpoint],
-                        validation_split=self.cv,
+                        validation_data=(X_cv, y_cv),
                         verbose=self.verbose
                         )         
 
@@ -238,8 +241,8 @@ class MLP():
         #Creates a specific model.
         model = Sequential()
         model.add(Dense(n_nodes, input_shape=input_shape, activation='relu'))
-        model.add(Dense(int(n_nodes/4), activation='relu'))
         model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
         model.add(Dense(int(n_nodes/4), activation='relu'))
         model.add(Dropout(0.1))
         model.add(Dense(1))

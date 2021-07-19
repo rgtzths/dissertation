@@ -16,12 +16,15 @@ from mlp_dwt import MLP
 
 base_path= "/home/rteixeira/thesis_results/regression/"
 #base_path = "/home/user/thesis_results/regression/"
-epochs = 500
+epochs = 1
+timestep = 2
+timewindow = 90 * timestep
+overlap = timewindow - timestep
 
 #Experiment Definition
 heatpump = {
     'power': {'mains': ['apparent'], 'appliance': ['apparent']},
-    'sample_rate': 2,
+    'sample_rate': timestep,
     'appliances': ['heat pump'],
     'methods': {
         'DAE':DAE({'n_epochs':epochs,'batch_size':1024}),
@@ -36,9 +39,9 @@ heatpump = {
             #"load_model_folder" : base_path + "models/ResNet/",
             "appliances" : {
                 "heat pump" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'n_nodes' : 90
@@ -54,9 +57,9 @@ heatpump = {
             #"load_model_folder" : base_path + "models/DeepGRU/",
             "appliances" : {
                 "heat pump" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'n_nodes' : 90
@@ -72,9 +75,9 @@ heatpump = {
             #"load_model_folder" : base_path + "models/MLP/",
             "appliances" : {
                 "heat pump" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'feature_extractor' : "dwt"
@@ -137,39 +140,11 @@ heatpump = {
         },
         'metrics':['mae', 'rmse']
     }
-    #'train': {
-    #    'datasets': {
-    #        'avEiro': {
-    #            'path': '../../../datasets/avEiro_h5/avEiro.h5',
-    #            'buildings': {
-    #                1: {
-    #                    'start_time': '2020-10-15',
-    #                    'end_time': '2020-10-16'
-    #                }
-    #            }
-    #        }
-    #    },
-    #    'metrics':['mae', 'rmse']
-    #},
-    #'test': {
-    #    'datasets': {
-    #        'avEiro': {
-    #            'path': '../../../datasets/avEiro_h5/avEiro.h5',
-    #            'buildings': {
-    #                1: {
-    #                    'start_time': '2021-01-15',
-    #                    'end_time': '2021-01-16'
-    #                }
-    #            }
-    #        }
-    #    },
-    #    'metrics':['mae', 'rmse']
-    #}
 }
 
 charger = {
     'power': {'mains': ['apparent'], 'appliance': ['apparent']},
-    'sample_rate': 2,
+    'sample_rate': timestep,
     'appliances': ['charger'],
     'methods': {
         'DAE':DAE({'n_epochs':epochs,'batch_size':1024}),
@@ -184,9 +159,9 @@ charger = {
             #"load_model_folder" : base_path + "models/ResNet/",
             "appliances" : {
                 "charger" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'n_nodes' : 90
@@ -202,9 +177,9 @@ charger = {
             #"load_model_folder" : base_path + "models/DeepGRU/",
             "appliances" : {
                 "charger" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'n_nodes' : 90
@@ -220,9 +195,9 @@ charger = {
             #"load_model_folder" : base_path + "models/MLP/",
             "appliances" : {
                 "charger" : {
-                    'timewindow' : 180,
-                    'timestep' : 2,
-                    'overlap' : 178,
+                    'timewindow' : timewindow,
+                    'timestep' : timestep,
+                    'overlap' : overlap,
                     'epochs' : epochs,
                     'batch_size' : 1024,
                     'feature_extractor' : "dwt"
@@ -321,53 +296,25 @@ charger = {
         },
         'metrics':['mae', 'rmse']
     }
-    #'train': {
-    #    'datasets': {
-    #        'avEiro': {
-    #            'path': '../../../datasets/avEiro_h5/avEiro.h5',
-    #            'buildings': {
-    #                1: {
-    #                    'start_time': '2020-10-15',
-    #                    'end_time': '2020-10-16'
-    #                }
-    #            }
-    #        }
-    #    },
-    #    'metrics':['mae', 'rmse']
-    #},
-    #'test': {
-    #    'datasets': {
-    #        'avEiro': {
-    #            'path': '../../../datasets/avEiro_h5/avEiro.h5',
-    #            'buildings': {
-    #                1: {
-    #                    'start_time': '2021-01-15',
-    #                    'end_time': '2021-01-16'
-    #                }
-    #            }
-    #        }
-    #    },
-    #    'metrics':['mae', 'rmse']
-    #}
 }
 
-### Training and testing Heat Pump ####
-#results = API(heatpump)
-#
-##Get all the results in the experiment and print them.
-#errors_keys = results.errors_keys
-#errors = results.errors
-#
-#for app in results.appliances:
-#    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
-#    for classifier in errors[0].columns:
-#        f.write(5*"-" + classifier + "-"*5 + "\n")
-#        for i in range(len(errors)):
-#            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
-#
-###################################################
+## Training and testing Heat Pump ####
+results = API(heatpump)
 
-### Training and testing Car charger ####
+#Get all the results in the experiment and print them.
+errors_keys = results.errors_keys
+errors = results.errors
+
+for app in results.appliances:
+    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
+    for classifier in errors[0].columns:
+        f.write(5*"-" + classifier + "-"*5 + "\n")
+        for i in range(len(errors)):
+            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
+
+##################################################
+
+## Training and testing Car charger ####
 
 results = API(heatpump)
 

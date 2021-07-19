@@ -1,3 +1,4 @@
+from re import X
 import warnings
 warnings.filterwarnings('ignore',category=FutureWarning)
 warnings.filterwarnings('ignore',category=RuntimeWarning)
@@ -11,6 +12,8 @@ from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.model_selection import train_test_split
+
 import pandas as pd
 
 #import sys
@@ -98,6 +101,8 @@ class ResNet():
                 y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
 
                 X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2] ))
+
+                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in y_train])
                 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
@@ -127,7 +132,7 @@ class ResNet():
                         batch_size=batch_size,
                         shuffle=True,
                         callbacks=[reduce_lr, checkpoint],
-                        validation_split=self.cv,
+                        validation_data=(X_cv, y_cv),
                         verbose=self.verbose
                         )         
 

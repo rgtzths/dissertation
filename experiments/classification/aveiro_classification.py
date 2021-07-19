@@ -116,7 +116,7 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
+                            'feature_extractor' : "wt"
                         }
                     },
                     "predicted_column": ("power", "apparent"), 
@@ -236,7 +236,7 @@ def run_experiment():
                             'overlap' : 178,
                             'epochs' : epochs,
                             'batch_size' : 1024,
-                            'feature_extractor' : "dwt"
+                            'feature_extractor' : "wt"
                         }
                     },
                 }),

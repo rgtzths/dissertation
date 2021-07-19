@@ -64,7 +64,6 @@ def convert_withus(withus_path, output_filename):
 
                 #Calculate apparent power, apparent cummultative energy and unify the reactive power and cumultative energy
                 df = preprocess_mains(df)
-                print(df)
                 #appends that dataframe to an array
                 for c in df.columns:
                     if c not in column_mapping:
@@ -75,7 +74,6 @@ def convert_withus(withus_path, output_filename):
 
                 #Sort index and drop duplicates
                 df = df.sort_index()
-                print(df)
                 #Store the dataframe in h5
                 store.put(str(key), df)
                 
@@ -94,13 +92,11 @@ def convert_withus(withus_path, output_filename):
                     if c != measure:
                         del df[c]
 
-                print(df)
                 #Labels the value column with the appliance name
                 df.columns = pd.MultiIndex.from_tuples([column_mapping[measure]], names=LEVEL_NAMES)
 
                 #Sort index and drop duplicates
                 df = df.sort_index()
-                print(df)
                 #Store the dataframe in h5
                 store.put(str(key), df)
         print()
@@ -197,11 +193,6 @@ appliance_meter_mapping = {
         "fridge" : 2,
         "heat pump": 3
     },
-    "006056131261" : {
-        "mains" : 1,
-        "dish washer" : 2,
-        "washing machine" : 3
-    },
     "F88A3C900128" : {
         "mains" : 1,
         "fridge" : 2
@@ -211,8 +202,7 @@ appliance_meter_mapping = {
 house_mapping = {
     "688AB5006CFE" : 1,
     "688AB50004EF" : 2,
-    "006056131261" : 3,
-    "F88A3C900128" : 4
+    "F88A3C900128" : 3
 }
 
 withus_path = "../../../../datasets/withus_classification/"

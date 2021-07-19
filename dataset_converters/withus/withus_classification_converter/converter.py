@@ -1,9 +1,5 @@
-from os.path import join, isdir, isfile
-from os import listdir
-import re
-import json
+
 import pandas as pd
-import numpy as np
 import requests
 from io import StringIO
 import datetime
@@ -23,14 +19,16 @@ def load_period(base_url, device, beginning, end, username, password, is_meter):
         response = StringIO(
                     requests.get(base_url + 'mono-meter/individual?device_id='+device+"&begin="+beginning+"&end="+end , 
                                 auth=(username,password),
-                                headers={'Content-Type': 'text/csv'} 
+                                headers={'Content-Type': 'text/csv'},
+                                timeout=None 
                                 ).content.decode("utf-8") 
                     )
     else:
         response =  StringIO (
                     requests.get(base_url + 'plug/individual?device_id='+device+"&begin="+beginning+"&end="+end , 
                                 auth=(username,password), 
-                                headers={'Content-Type': 'text/csv'}
+                                headers={'Content-Type': 'text/csv'}, 
+                                timeout=None
                                 ).content.decode("utf-8") 
                     )
 
@@ -58,17 +56,17 @@ def load_period(base_url, device, beginning, end, username, password, is_meter):
     return df
 
 
-def download_and_convert(base_url, username, password, column_mapping, appliances_mapping, timestep, interpolate, output_path):
+def download_and_convert(base_url, username, password, appliances_mapping, timestep, interpolate, output_path):
 
-    response = requests.get(base_url + 'households', auth=(username,password)).json()
+    response = requests.get(base_url + 'households', auth=(username,password), timeout=None).json()
 
-    houses = [ house["household"] for house in response if house["household"] != "placeholder_house"]
+    houses = [ house["household"] for house in response if house["household"] != "placeholder_house" and house["household"] not in ["006056131261"]]
 
     week_td = pd.Timedelta(7, unit="D")
 
     for house in houses:
         
-        response = requests.get(base_url + 'household_devices/'+house, auth=(username,password)).json()
+        response = requests.get(base_url + 'household_devices/'+house, auth=(username,password), timeout=None).json()
 
         load_data = 0
         for app in response:
@@ -84,7 +82,7 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                         print("Loading appliance data ("+app["metadata"]["description"]+ ") from house " + house)
                         appliance = appliances_mapping[app["metadata"]["description"]]
 
-                        dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password)).json()
+                        dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password), timeout=None).json()
                         
                         begining_date = datetime.datetime.strptime(dates["startDateStr"], "%Y-%m-%dT%H:%M:%S.%fZ")
                         end_date = datetime.datetime.strptime(dates["endDateStr"], "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -117,8 +115,8 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
                 else:
                     print("Loading aggregated data from house " + house)
                     appliance = "mains"
-                    dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password)).json()
-                    
+                    print(requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password), timeout=None).text)
+                    dates =  requests.get(base_url + 'device/'+app["device"]+'/interval' , auth=(username,password), timeout=None).json()
                     begining_date = datetime.datetime.strptime(dates["startDateStr"], "%Y-%m-%dT%H:%M:%S.%fZ")
                     end_date = datetime.datetime.strptime(dates["endDateStr"], "%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -162,12 +160,6 @@ def download_and_convert(base_url, username, password, column_mapping, appliance
 username = 'ml_login'
 password = 'ml_pw_enc'
 
-##Change
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
-
 appliances_mapping = {
     "Fridge" : "fridge", 
     "Dishwasher": "dish washer", 
@@ -183,4 +175,4 @@ base_url = "http://withus.av.it.pt/api/v1/ed/"
 
 output_path = "../../../../datasets/withus_classification"
 
-download_and_convert(base_url, username, password, column_mapping, appliances_mapping, timestep, interpolate, output_path)
+download_and_convert(base_url, username, password, appliances_mapping, timestep, interpolate, output_path)

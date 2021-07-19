@@ -3,7 +3,7 @@
 ## Python Requirements
 ### Create a conda environment
 Create a conda environment
-- conda create --name nilmtk python=3.8.10
+- conda create --name nilmtk python
 
 Activate the environment
 - conda activate nilmtk
