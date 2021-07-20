@@ -4,20 +4,22 @@ from tensorflow.keras.layers import Conv1D, Dense, Dropout, Reshape, Flatten
 import pandas as pd
 import numpy as np
 from collections import OrderedDict 
-from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.models import Sequential
-import matplotlib.pyplot as  plt
 from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow.keras.backend as K
 from statistics import mean
 import os
 import json
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
 
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+from sklearn.model_selection import train_test_split
+
+#import sys
+#sys.path.insert(1, "../utils")
+#sys.path.insert(1, "../feature_extractors")
+
+import utils
+import plots
+
 
 class DAE(Disaggregator):
 
@@ -26,7 +28,7 @@ class DAE(Disaggregator):
         Iniititalize the moel with the given parameters
         """
         self.MODEL_NAME = "DAE"
-        self.file_prefix = "{}-temp-weights".format(self.MODEL_NAME.lower())
+        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
@@ -36,6 +38,14 @@ class DAE(Disaggregator):
         self.appliance_params = params.get('appliance_params',{})
         self.save_model_path = params.get('save-model-path', None)
         self.load_model_path = params.get('pretrained-model-path',None)
+
+        self.training_history_folder = params.get("training_history_folder", None)
+        if self.training_history_folder is not None:
+            utils.create_path(self.training_history_folder)
+        self.plots_folder = params.get("plots_folder", None)
+        if self.plots_folder is not None:
+            utils.create_path(self.plots_folder)
+
         self.models = OrderedDict()
         if self.load_model_path:
             self.load_model()
@@ -67,7 +77,6 @@ class DAE(Disaggregator):
             if appliance_name not in self.models:
                 print("First model training for", appliance_name)
                 self.models[appliance_name] = self.return_network()
-                print(self.models[appliance_name].summary())
 
             print("Started Retraining model for", appliance_name)
             model = self.models[appliance_name]
@@ -76,15 +85,29 @@ class DAE(Disaggregator):
                     current_epoch,
             )
             checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-            model.fit(
-                    train_main, power,
-                    validation_split=.15,
+
+            X_train, X_cv, y_train, y_cv = train_test_split(train_main, power, test_size=.15, stratify=[ 1 if x > 80 else 0 for x in power[:, -1]])
+
+            history = model.fit(
+                    X_train, y_train,
+                    validation_data=(X_cv, y_cv),
                     batch_size=self.batch_size,
                     epochs=self.n_epochs,
                     callbacks=[ checkpoint ],
                     shuffle=True,
             )
             model.load_weights(filepath)
+
+            history = json.dumps(history.history)
+
+            if self.training_history_folder is not None:
+                f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
+                f.write(history)
+                f.close()
+
+            if self.plots_folder is not None:
+                utils.create_path(self.plots_folder + "/" + app_name + "/")
+                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
         if self.save_model_path:
             self.save_model()
@@ -155,7 +178,7 @@ class DAE(Disaggregator):
         model.add(Dense((self.sequence_length)*8, activation='relu'))
         model.add(Reshape(((self.sequence_length), 8)))
         model.add(Conv1D(1, 4, activation="linear", padding="same", strides=1))
-        model.compile(loss='mse', optimizer='adam')
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
         return model
 
     def call_preprocessing(self, mains_lst, submeters_lst, method):

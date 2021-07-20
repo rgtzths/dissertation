@@ -114,9 +114,9 @@ class MLP():
                     X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
                     X_train = X_train.reshape(X_train.shape[0], -1)
                 
-                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
 
-                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in y_train])
+                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean])
 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))

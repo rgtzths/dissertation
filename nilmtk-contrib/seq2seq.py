@@ -5,12 +5,16 @@ from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
 
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+from sklearn.model_selection import train_test_split
+
+import json
+#import sys
+#sys.path.insert(1, "../utils")
+#sys.path.insert(1, "../feature_extractors")
+
+import utils
+import plots
 
 class SequenceLengthError(Exception):
     pass
@@ -25,7 +29,7 @@ class Seq2Seq(Disaggregator):
     def __init__(self, params):
 
         self.MODEL_NAME = "Seq2Seq"
-        self.file_prefix = "{}-temp-weights".format(self.MODEL_NAME.lower())
+        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
@@ -37,6 +41,13 @@ class Seq2Seq(Disaggregator):
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
             raise (SequenceLengthError)
+        
+        self.training_history_folder = params.get("training_history_folder", None)
+        if self.training_history_folder is not None:
+            utils.create_path(self.training_history_folder)
+        self.plots_folder = params.get("plots_folder", None)
+        if self.plots_folder is not None:
+            utils.create_path(self.plots_folder)
 
     def partial_fit(self, train_main, train_appliances, do_preprocessing=True, current_epoch=0, **load_kwargs):
         print("...............Seq2Seq partial_fit running...............")
@@ -73,14 +84,28 @@ class Seq2Seq(Disaggregator):
                             current_epoch,
                     )
                     checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
-                    model.fit(
-                            train_main, power,
-                            validation_split=.15,
+
+                    X_train, X_cv, y_train, y_cv = train_test_split(train_main, power, test_size=.15, stratify=[ 1 if x > 80 else 0 for x in power[:, int(self.sequence_length/2 +1)]])
+
+                    history = model.fit(
+                            X_train, y_train,
+                            validation_data=(X_cv, y_cv),
                             epochs=self.n_epochs,
                             batch_size=self.batch_size,
                             callbacks=[ checkpoint ],
                     )
                     model.load_weights(filepath)
+
+                    history = json.dumps(history.history)
+                    
+                    if self.training_history_folder is not None:
+                        f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
+                        f.write(history)
+                        f.close()
+
+                    if self.plots_folder is not None:
+                        utils.create_path(self.plots_folder + "/" + app_name + "/")
+                        plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
                     
     def disaggregate_chunk(self,test_main_list,model=None,do_preprocessing=True):
@@ -146,7 +171,7 @@ class Seq2Seq(Disaggregator):
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(.2))
         model.add(Dense(self.sequence_length))
-        model.compile(loss='mse', optimizer='adam')
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 

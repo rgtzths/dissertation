@@ -36,6 +36,7 @@ class ResNet():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
+        self.app_stats = {}
         #Name used to identify the Model Name.
         self.MODEL_NAME = params.get('model_name', 'ResNet')
         #Percentage of values used as cross validation data from the training data.
@@ -98,11 +99,15 @@ class ResNet():
 
                 X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
 
-                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+
+                self.app_stats[app_name] = {}
+                self.app_stats[app_name]["mean"] = app_mean
+                self.app_stats[app_name]["std"] = app_std
 
                 X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2] ))
 
-                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in y_train])
+                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean])
                 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
@@ -153,8 +158,8 @@ class ResNet():
                 self.model[app_name] = model
 
                  #Gets the trainning data score
-                pred = self.model[app_name].predict(X_train)
-                                
+                pred = self.model[app_name].predict(X_train)*app_std + app_mean
+                   
                 rmse = math.sqrt(mean_squared_error(y_train, pred))
                 mae = mean_absolute_error(y_train, pred)
 
@@ -166,8 +171,10 @@ class ResNet():
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
                     f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
-                    f.write("Data Mean: " + str(self.mains_mean) + "\n")
-                    f.write("Data Std: " + str(self.mains_std) + "\n")
+                    f.write("Main Data Mean: " + str(self.mains_mean) + "\n")
+                    f.write("Main Data Std: " + str(self.mains_std) + "\n")
+                    f.write(app_name + " Data Std: " + str(app_mean) + "\n")
+                    f.write(app_name + " Data Std: " + str(app_std) + "\n")
                     f.write("Train RMSE: "+str(rmse)+ "\n")
                     f.write("Train MAE: "+str(mae)+ "\n")
                     f.close()
@@ -201,6 +208,7 @@ class ResNet():
 
             pred = self.model[app_name].predict(X_test)
             pred = [p[0] for p in pred]
+            pred = self.app_stats[app_name]["mean"] + pred * self.app_stats[app_name]["std"]
 
             column = pd.Series(
                     pred, index=test_mains[0].index, name=i)

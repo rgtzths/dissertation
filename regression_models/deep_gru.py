@@ -26,13 +26,6 @@ from generate_timeseries import generate_main_timeseries, generate_appliance_tim
 import utils
 import plots
 
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
-
 class DeepGRU():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
