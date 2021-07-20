@@ -5,6 +5,7 @@ from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
+import random
 
 from sklearn.model_selection import train_test_split
 
@@ -22,8 +23,6 @@ class SequenceLengthError(Exception):
 class ApplianceNotFoundError(Exception):
     pass
 
-
-
 class Seq2Seq(Disaggregator):
 
     def __init__(self, params):
@@ -37,6 +36,7 @@ class Seq2Seq(Disaggregator):
         self.mains_mean = 1800
         self.mains_std = 600
         self.batch_size = params.get('batch_size',512)
+        self.on_treshold = params.get('on_treshold', 50)
         self.appliance_params = params.get('appliance_params',{})
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
@@ -85,14 +85,27 @@ class Seq2Seq(Disaggregator):
                     )
                     checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
 
-                    X_train, X_cv, y_train, y_cv = train_test_split(train_main, power, test_size=.15, stratify=[ 1 if x > 80 else 0 for x in power[:, int(self.sequence_length/2 +1)]])
+                    app_mean = self.appliance_params[app_name]['mean']
+                    app_std = self.appliance_params[app_name]['std']
+
+                    binary_y = np.array([ 1 if x > self.on_treshold else 0 for x in (power[:, -1]*app_std) + app_mean])
+                    
+                    negatives = np.where(binary_y == 0)[0]
+                    positives = np.where(binary_y == 1)[0]
+
+                    negatives = list(random.sample(set(negatives), positives.shape[0]))
+                    undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+                    X_train = train_main[undersampled_dataset]
+                    y_train = power[undersampled_dataset]
 
                     history = model.fit(
                             X_train, y_train,
-                            validation_data=(X_cv, y_cv),
+                            validation_split=0.15,
                             epochs=self.n_epochs,
                             batch_size=self.batch_size,
                             callbacks=[ checkpoint ],
+                            shuffle=False,
                     )
                     model.load_weights(filepath)
 

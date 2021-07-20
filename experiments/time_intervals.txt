@@ -28,7 +28,8 @@
 }
 
 ######################################## UKDale ########################################
-
+## Casa 5 -2 meses de medidas simultaneas
+## Casa 2 - 4 meses de medidas simultaneas
 ### Fridge Freezer ###
 
 "houses" : {

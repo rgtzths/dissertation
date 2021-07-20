@@ -16,9 +16,10 @@ from resnet import ResNet
 from deep_gru import DeepGRU
 from mlp_dwt import MLP
 
-#base_path= "/home/rteixeira/soa_results/"
-base_path = "/home/user/article_results/"
-epochs = 1
+base_path= "/home/rteixeira/soa_results/"
+#base_path = "/home/user/article_results/"
+#base_path = "/home/atnoguser/article_results/"
+epochs = 500
 timestep = 6
 timewindow = 64 * timestep
 overlap = timewindow - timestep
@@ -29,52 +30,37 @@ fridge = {
     'sample_rate': timestep,
     'appliances': ['fridge'],
     'methods': {
-        #'DAE':DAE({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/DAE/",
-        #    "plots_folder" : base_path + "plots/DAE/",
-        #    "file_prefix" : base_path + "models/DAE/",
-        #    "mains_mean" : 594.9043,
-        #    "mains_std" : 513.311,
-        #    "appliance_params" : {
-        #        "fridge" : {
-        #            "mean" : 200,
-        #            "std" : 400
-        #        },
-        #    }
-        #}),
-        #'Seq2Point':Seq2Point({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Point/",
-        #    "plots_folder" : base_path + "plots/Seq2Point/",
-        #    "file_prefix" : base_path + "models/Seq2Point/",
-        #    "mains_mean" : 594.9043,
-        #    "mains_std" : 513.311,
-        #    "appliance_params" : {
-        #        "fridge" : {
-        #            "mean" : 200,
-        #            "std" : 400
-        #        },
-        #    }
-        #}),
-        #'Seq2Seq':Seq2Seq({
-        #    'n_epochs':epochs,
-        #    "batch_size" : 256,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Seq/",
-        #    "plots_folder" : base_path + "plots/Seq2Seq/",
-        #    "file_prefix" : base_path + "models/Seq2Seq/",
-        #    "mains_mean" : 594.9043,
-        #    "mains_std" : 513.311,
-        #    "appliance_params" : {
-        #        "fridge" : {
-        #            "mean" : 200,
-        #            "std" : 400
-        #        },
-        #    }
-        #}),
+        'DAE':DAE({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/DAE/",
+            "plots_folder" : base_path + "plots/DAE/",
+            "file_prefix" : base_path + "models/DAE/",
+            "mains_mean" : 594.9043,
+            "mains_std" : 513.311,
+            "on_threshold" : 50
+        }),
+        'Seq2Point':Seq2Point({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Point/",
+            "plots_folder" : base_path + "plots/Seq2Point/",
+            "file_prefix" : base_path + "models/Seq2Point/",
+            "mains_mean" : 594.9043,
+            "mains_std" : 513.311,
+            "on_threshold" : 50
+        }),
+        'Seq2Seq':Seq2Seq({
+            'n_epochs':epochs,
+            "batch_size" : 256,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Seq/",
+            "plots_folder" : base_path + "plots/Seq2Seq/",
+            "file_prefix" : base_path + "models/Seq2Seq/",
+            "mains_mean" : 594.9043,
+            "mains_std" : 513.311,
+            "on_threshold" : 50
+        }),
         "ResNet" : ResNet( {
             "verbose" : 2,
             "training_history_folder" : base_path + "history/ResNet/",
@@ -90,8 +76,7 @@ fridge = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 32,
-                    "mean" : 200,
-                    "std" : 400
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -111,8 +96,7 @@ fridge = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 90,
-                    "mean" : 200,
-                    "std" : 400
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -132,8 +116,7 @@ fridge = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'feature_extractor' : "wt",
-                    "mean" : 200,
-                    "std" : 400
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -152,8 +135,7 @@ fridge = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 256,
-                    "mean" : 200,
-                    "std" : 400
+                    'on_treshold' : 50
                 }
             },
             "mains_mean" : 594.9043,
@@ -161,58 +143,18 @@ fridge = {
             "predicted_column": ("power", "active"), 
         }),
     },
-    #'train': {    
-    #    'datasets': {
-    #        'UKDale': {
-    #            'path': '../../../datasets/ukdale/ukdale.h5',
-    #            'buildings': {
-    #                1: {
-    #                    'start_time': "2014-02-01",
-    #                    'end_time' : "2014-03-01"
-    #                },
-    #                5: {
-    #                    'start_time': "2014-06-30",
-    #                    'end_time': "2014-07-30"
-    #                }           
-    #            }
-    #        },
-    #    }
-    #},
-    #'test': {
-    #    'datasets': {
-    #        'UKDale': {
-    #            'path': '../../../datasets/ukdale/ukdale.h5',
-    #            'buildings': {
-    #                2: {
-    #                    'start_time': "2013-05-22",
-    #                    'end_time': "2013-06-22"
-    #                } 
-    #            }
-    #        },
-    #        #'Eco': {
-    #        #    'path': '../../../datasets/eco_h5/eco.h5',
-    #        #    'buildings': {
-    #        #        2: {
-    #        #            'start_time': "2012-07-01",
-    #        #            'end_time': "2012-08-01"
-    #        #        } 
-    #        #    }
-    #        #}
-    #    },
-    #    'metrics':['mae', 'rmse']
-    #}
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
-                        'start_time': "2014-02-01",
-                        'end_time' : "2014-02-02"
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },
-                    5: {
-                        'start_time': "2014-06-30",
-                        'end_time': "2014-07-01"
+                    2: {
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     }           
                 }
             },
@@ -221,17 +163,57 @@ fridge = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
-                        'start_time': "2013-05-22",
-                        'end_time': "2013-05-23"
+                    5: {
+                        'start_time': "2014-07-01",
+                        'end_time': "2014-09-01"
                     } 
                 }
-            }
+            },
+            #'Eco': {
+            #    'path': '../../../../datasets/eco_h5/eco.h5',
+            #    'buildings': {
+            #        2: {
+            #            'start_time': "2012-07-01",
+            #            'end_time': "2012-08-01"
+            #        } 
+            #    }
+            #}
         },
         'metrics':['mae', 'rmse']
     }
+    #'train': {    
+    #    'datasets': {
+    #        'UKDale': {
+    #            'path': '../../../../datasets/ukdale/ukdale.h5',
+    #            'buildings': {
+    #                1: {
+    #                    'start_time': "2014-02-01",
+    #                    'end_time' : "2014-02-02"
+    #                },
+    #                2: {
+    #                    'start_time': "2013-06-30",
+    #                    'end_time': "2013-07-01"
+    #                }           
+    #            }
+    #        },
+    #    }
+    #},
+    #'test': {
+    #    'datasets': {
+    #        'UKDale': {
+    #            'path': '../../../../datasets/ukdale/ukdale.h5',
+    #            'buildings': {
+    #                5: {
+    #                    'start_time': "2013-05-22",
+    #                    'end_time': "2013-05-23"
+    #                } 
+    #            }
+    #        }
+    #    },
+    #    'metrics':['mae', 'rmse']
+    #}
 }
 
 microwave = {
@@ -239,36 +221,26 @@ microwave = {
     'sample_rate': timestep,
     'appliances': ['microwave'],
     'methods': {
-        #'DAE':DAE({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/DAE/",
-        #    "plots_folder" : base_path + "plots/DAE/",
-        #    "file_prefix" : base_path + "models/DAE/",
-        #    "mains_mean" : 594.9043,
-        #    "mains_std" : 513.311,
-        #    "appliance_params" : {
-        #        "microwave" : {
-        #            "mean" : 500,
-        #            "std" : 800
-        #        },
-        #    }
-        #}),
-        #'Seq2Point':Seq2Point({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Point/",
-        #    "plots_folder" : base_path + "plots/Seq2Point/",
-        #    "file_prefix" : base_path + "models/Seq2Point/",
-        #    "mains_mean" : 594.9043,
-        #    "mains_std" : 513.311,
-        #    "appliance_params" : {
-        #        "microwave" : {
-        #            "mean" : 500,
-        #            "std" : 800
-        #        },
-        #    }
-        #}),
+        'DAE':DAE({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/DAE/",
+            "plots_folder" : base_path + "plots/DAE/",
+            "file_prefix" : base_path + "models/DAE/",
+            "mains_mean" : 594.9043,
+            "mains_std" : 513.311,
+            "on_threshold" : 200
+        }),
+        'Seq2Point':Seq2Point({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Point/",
+            "plots_folder" : base_path + "plots/Seq2Point/",
+            "file_prefix" : base_path + "models/Seq2Point/",
+            "mains_mean" : 594.9043,
+            "mains_std" : 513.311,
+            "on_threshold" : 200
+        }),
         'Seq2Seq':Seq2Seq({
             'n_epochs':epochs,
             'sequence_length':299,
@@ -278,12 +250,7 @@ microwave = {
             "file_prefix" : base_path + "models/Seq2Seq/",
             "mains_mean" : 594.9043,
             "mains_std" : 513.311,
-            "appliance_params" : {
-                "microwave" : {
-                    "mean" : 500,
-                    "std" : 800
-                },
-            }
+            "on_threshold" : 200
         }),
         "ResNet" : ResNet( {
             "verbose" : 2,
@@ -300,8 +267,7 @@ microwave = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 32,
-                    "mean" : 500,
-                    "std" : 800
+                    'on_treshold' : 200
                 }
             },
             "predicted_column": ("power", "active"),
@@ -321,8 +287,7 @@ microwave = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 90,
-                    "mean" : 500,
-                    "std" : 800
+                    'on_treshold' : 200
                 }
             },
             "predicted_column": ("power", "active"),
@@ -342,8 +307,7 @@ microwave = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'feature_extractor' : "wt",
-                    "mean" : 500,
-                    "std" : 800
+                    'on_treshold' : 200
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -362,8 +326,7 @@ microwave = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 256,
-                    "mean" : 500,
-                    "std" : 800
+                    'on_treshold' : 200
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -372,141 +335,16 @@ microwave = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
-                        'start_time': "2013-06-25",
-                        'end_time' : "2013-07-09"
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },
-                    5: {
-                        'start_time': "2014-07-08",
-                        'end_time' : "2014-07-09"
+                    2: {
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },             
-                }
-            },
-            'UKDale2': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-07-12",
-                        'end_time' : "2013-07-18"
-                    },
-                    5: {
-                        'start_time': "2014-07-10",
-                        'end_time' : "2014-07-11"
-                    },            
-                }
-            },
-            'UKDale3': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-07-28",
-                        'end_time' : "2013-08-09"
-                    },
-                    5: {
-                        'start_time': "2014-07-12",
-                        'end_time' : "2014-07-17"
-                    },          
-                }
-            },
-            'UKDale4': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-07-21",
-                        'end_time' : "2014-07-22"
-                    },             
-                }
-            },
-            'UKDale5': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-07-28",
-                        'end_time' : "2014-07-29"
-                    },           
-                }
-            },
-            'UKDale6': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-04",
-                        'end_time' : "2014-08-05"
-                    },            
-                }
-            },
-            'UKDale7': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-07",
-                        'end_time' : "2014-08-08"
-                    },             
-                }
-            },
-            'UKDale8': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-10",
-                        'end_time' : "2014-08-12"
-                    },           
-                }
-            },
-            'UKDale9': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {            
-                    5: {
-                        'start_time': "2014-08-13",
-                        'end_time' : "2014-08-16"
-                    }, 
-                }
-            },
-            'UKDale10': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-20",
-                        'end_time' : "2014-08-25"
-                    },            
-                }
-            },
-            'UKDale11': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-26",
-                        'end_time' : "2014-08-28"
-                    },            
-                }
-            },
-            'UKDale12': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-29",
-                        'end_time' : "2014-09-02"
-                    },             
-                }
-            },
-            'UKDale13': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-05",
-                        'end_time' : "2014-09-06"
-                    },             
-                }
-            },
-            'UKDale14': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-07",
-                        'end_time' : "2014-09-08"
-                    },           
                 }
             },
         }
@@ -514,16 +352,16 @@ microwave = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
-                        'start_time': "2013-06-06",
-                        'end_time': "2013-07-05"
+                    5: {
+                        'start_time': "2014-07-01",
+                        'end_time': "2014-09-01"
                     }
                 }
             },
             'Eco': {
-                'path': '../../../datasets/eco_h5/eco.h5',
+                'path': '../../../../datasets/eco_h5/eco.h5',
                 'buildings': {
                     4: {
                         'start_time': "2012-12-01",
@@ -542,36 +380,26 @@ dish_washer = {
     'sample_rate': timestep,
     'appliances': ['dish washer'],
     'methods': {
-        #'DAE':DAE({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/DAE/",
-        #    "plots_folder" : base_path + "plots/DAE/",
-        #    "file_prefix" : base_path + "models/DAE/",
-        #    "mains_mean" : 613.3364,
-        #    "mains_std" : 612.0515,
-        #    "appliance_params" : {
-        #        "dish washer" : {
-        #            "mean" : 700,
-        #            "std" : 1000
-        #        },
-        #    }
-        #    }),
-        #'Seq2Point':Seq2Point({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Point/",
-        #    "plots_folder" : base_path + "plots/Seq2Point/",
-        #    "file_prefix" : base_path + "models/Seq2Point/",
-        #    "mains_mean" : 613.3364,
-        #    "mains_std" : 612.0515,
-        #    "appliance_params" : {
-        #        "dish washer" : {
-        #            "mean" : 700,
-        #            "std" : 1000
-        #        },
-        #    }
-        #}),
+        'DAE':DAE({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/DAE/",
+            "plots_folder" : base_path + "plots/DAE/",
+            "file_prefix" : base_path + "models/DAE/",
+            "mains_mean" : 613.3364,
+            "mains_std" : 612.0515,
+            "on_threshold" : 50
+        }),
+        'Seq2Point':Seq2Point({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Point/",
+            "plots_folder" : base_path + "plots/Seq2Point/",
+            "file_prefix" : base_path + "models/Seq2Point/",
+            "mains_mean" : 613.3364,
+            "mains_std" : 612.0515,
+            "on_threshold" : 50
+        }),
         'Seq2Seq':Seq2Seq({
             'n_epochs':epochs,
             'sequence_length':299,
@@ -581,12 +409,7 @@ dish_washer = {
             "file_prefix" : base_path + "models/Seq2Seq/",
             "mains_mean" : 613.3364,
             "mains_std" : 612.0515,
-            "appliance_params" : {
-                "dish washer" : {
-                    "mean" : 700,
-                    "std" : 1000
-                },
-            }
+            "on_threshold" : 50
         }),
         "ResNet" : ResNet( {
             "verbose" : 2,
@@ -603,8 +426,7 @@ dish_washer = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 32,
-                    "mean" : 700,
-                    "std" : 1000
+                    "on_threshold" : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -624,8 +446,7 @@ dish_washer = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 90,
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -645,8 +466,7 @@ dish_washer = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'feature_extractor' : "wt",
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -665,8 +485,7 @@ dish_washer = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 256,
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -676,363 +495,16 @@ dish_washer = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
-                        'start_time': "2014-01-05",
-                        'end_time' : "2014-01-06"
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },
-                    5: {
-                        'start_time': "2014-06-30",
-                        'end_time' : "2014-07-01"
+                    2: {
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },             
-                }
-            },
-            'UKDale2': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-01-11",
-                        'end_time' : "2014-01-12"
-                    },
-                    5: {
-                        'start_time': "2014-07-03",
-                        'end_time' : "2014-07-04"
-                    },            
-                }
-            },
-            'UKDale3': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-01-08T12:00",
-                        'end_time' : "2014-01-09T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-07-06",
-                        'end_time' : "2014-07-07"
-                    },          
-                }
-            },
-            'UKDale4': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-01-17T12:00",
-                        'end_time' : "2014-01-18T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-07-08",
-                        'end_time' : "2014-07-09"
-                    },             
-                }
-            },
-            'UKDale5': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-01-21T12:00",
-                        'end_time' : "2014-01-22T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-07-11",
-                        'end_time' : "2014-07-12"
-                    },           
-                }
-            },
-            'UKDale6': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-01-31T12:00",
-                        'end_time' : "2014-02-01T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-07-13",
-                        'end_time' : "2014-07-14"
-                    },            
-                }
-            },
-            'UKDale7': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-03-19",
-                        'end_time' : "2013-03-20"
-                    },
-                    5: {
-                        'start_time': "2014-07-19",
-                        'end_time' : "2014-07-20"
-                    },             
-                }
-            },
-            'UKDale8': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-03-21",
-                        'end_time' : "2013-03-22"
-                    },
-                    5: {
-                        'start_time': "2014-07-22",
-                        'end_time' : "2014-07-23"
-                    },           
-                }
-            },
-            'UKDale9': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-02",
-                        'end_time' : "2013-04-03"
-                    },             
-                    5: {
-                        'start_time': "2014-07-27",
-                        'end_time' : "2014-07-28"
-                    }, 
-                }
-            },
-            'UKDale10': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-08",
-                        'end_time' : "2013-04-09"
-                    },
-                    5: {
-                        'start_time': "2014-07-29",
-                        'end_time' : "2014-07-30"
-                    },            
-                }
-            },
-            'UKDale11': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-26",
-                        'end_time' : "2013-04-27"
-                    },
-                    5: {
-                        'start_time': "2014-08-01T12:00",
-                        'end_time' : "2014-08-02T12:00"
-                    },            
-                }
-            },
-            'UKDale12': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-28T12:00",
-                        'end_time' : "2013-04-29T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-03",
-                        'end_time' : "2014-08-04"
-                    },             
-                }
-            },
-            'UKDale13': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-01T12:00",
-                        'end_time' : "2013-05-02T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-08",
-                        'end_time' : "2014-08-09"
-                    },             
-                }
-            },
-            'UKDale14': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-04T12:00",
-                        'end_time' : "2013-05-05T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-10",
-                        'end_time' : "2014-08-11"
-                    },           
-                }
-            },
-            'UKDale15': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-10",
-                        'end_time' : "2013-05-11"
-                    },
-                    5: {
-                        'start_time': "2014-08-13",
-                        'end_time' : "2014-08-14"
-                    },             
-                }
-            },
-            'UKDale16': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-14T12:00",
-                        'end_time' : "2013-05-15T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-16",
-                        'end_time' : "2014-08-17"
-                    },             
-                }
-            },
-            'UKDale17': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-18",
-                        'end_time' : "2013-05-19"
-                    },
-                    5: {
-                        'start_time': "2014-08-19",
-                        'end_time' : "2014-08-20"
-                    },     
-                }
-            },
-            'UKDale18': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-20T12:00",
-                        'end_time' : "2013-05-21T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-22",
-                        'end_time' : "2014-08-23"
-                    },             
-                }
-            },
-            'UKDale19': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-22T12:00",
-                        'end_time' : "2013-05-23T12:00"
-                    },
-                    5: {
-                        'start_time': "2014-08-24",
-                        'end_time' : "2014-08-25"
-                    },               
-                }
-            },
-            'UKDale20': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-05-31",
-                        'end_time' : "2013-06-01"
-                    },
-                    5: {
-                        'start_time': "2014-08-27",
-                        'end_time' : "2014-08-28"
-                    },           
-                }
-            },
-            'UKDale21': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-02",
-                        'end_time' : "2013-06-03"
-                    },
-                    5: {
-                        'start_time': "2014-08-29",
-                        'end_time' : "2014-08-31"
-                    },             
-                }
-            },
-            'UKDale22': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-04",
-                        'end_time' : "2013-06-07"
-                    },             
-                    5: {
-                        'start_time': "2014-09-01",
-                        'end_time' : "2014-09-02"
-                    },  
-                }
-            },
-            'UKDale23': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-08",
-                        'end_time' : "2013-06-09"
-                    },
-                    5: {
-                        'start_time': "2014-09-03",
-                        'end_time' : "2014-09-04"
-                    },             
-                }
-            },
-            'UKDale24': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-10",
-                        'end_time' : "2013-06-12"
-                    },
-                    5: {
-                        'start_time': "2014-09-06",
-                        'end_time' : "2014-09-07"
-                    },             
-                }
-            },
-            'UKDale25': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-19",
-                        'end_time' : "2013-06-20"
-                    },
-                    5: {
-                        'start_time': "2014-09-09",
-                        'end_time' : "2014-09-10"
-                    },             
-                }
-            },
-            'UKDale26': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-23",
-                        'end_time' : "2013-06-24"
-                    },
-                    5: {
-                        'start_time': "2014-09-14",
-                        'end_time' : "2014-09-16"
-                    },             
-                }
-            },
-            'UKDale27': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-06-28",
-                        'end_time' : "2013-06-29"
-                    },
-                    5: {
-                        'start_time': "2014-09-17",
-                        'end_time' : "2014-09-18"
-                    },            
-                }
-            },
-            'UKDale28': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-19",
-                        'end_time' : "2014-09-20"
-                    },            
                 }
             },
         }
@@ -1040,23 +512,23 @@ dish_washer = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
-                        'start_time': "2013-05-26",
-                        'end_time': "2013-06-28"
+                    5: {
+                        'start_time': "2014-07-01",
+                        'end_time': "2014-09-01"
                     }
                 }
             },
-            'Eco': {
-                'path': '../../../datasets/eco_h5/eco.h5',
-                'buildings': {
-                    2: {
-                        'start_time': "2012-10-01",
-                        'end_time': "2012-11-01"
-                    } 
-                }
-            }
+            #'Eco': {
+            #    'path': '../../../../datasets/eco_h5/eco.h5',
+            #    'buildings': {
+            #        2: {
+            #            'start_time': "2012-10-01",
+            #            'end_time': "2012-11-01"
+            #        } 
+            #    }
+            #}
         },
         'metrics':['mae', 'rmse']
     }
@@ -1067,36 +539,26 @@ kettle = {
     'sample_rate': timestep,
     'appliances': ['kettle'],
     'methods': {
-        #'DAE':DAE({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/DAE/",
-        #    "plots_folder" : base_path + "plots/DAE/",
-        #    "file_prefix" : base_path + "models/DAE/",
-        #    "mains_mean" : 685.76843,
-        #    "mains_std" : 644.20844,
-        #    "appliance_params" : {
-        #        "kettle" : {
-        #            "mean" : 700,
-        #            "std" : 1000
-        #        },
-        #    }
-        #    }),
-        #'Seq2Point':Seq2Point({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Point/",
-        #    "plots_folder" : base_path + "plots/Seq2Point/",
-        #    "file_prefix" : base_path + "models/Seq2Point/",
-        #    "mains_mean" : 685.76843,
-        #    "mains_std" : 644.20844,
-        #    "appliance_params" : {
-        #        "kettle" : {
-        #            "mean" : 700,
-        #            "std" : 1000
-        #        },
-        #    }
-        #}),
+        'DAE':DAE({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/DAE/",
+            "plots_folder" : base_path + "plots/DAE/",
+            "file_prefix" : base_path + "models/DAE/",
+            "mains_mean" : 685.76843,
+            "mains_std" : 644.20844,
+            "on_threshold" : 2000
+        }),
+        'Seq2Point':Seq2Point({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Point/",
+            "plots_folder" : base_path + "plots/Seq2Point/",
+            "file_prefix" : base_path + "models/Seq2Point/",
+            "mains_mean" : 685.76843,
+            "mains_std" : 644.20844,
+            "on_threshold" : 2000
+        }),
         'Seq2Seq':Seq2Seq({
             'n_epochs':epochs,
             'sequence_length':299,
@@ -1106,12 +568,7 @@ kettle = {
             "file_prefix" : base_path + "models/Seq2Seq/",
             "mains_mean" : 685.76843,
             "mains_std" : 644.20844,
-            "appliance_params" : {
-                "kettle" : {
-                    "mean" : 700,
-                    "std" : 1000
-                },
-            }
+            "on_threshold" : 2000
         }),
         "ResNet" : ResNet( {
             "verbose" : 2,
@@ -1128,8 +585,7 @@ kettle = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 32,
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 2000
                 }
             },
             "predicted_column": ("power", "active"),
@@ -1149,8 +605,7 @@ kettle = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 90,
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 2000
                 }
             },
             "predicted_column": ("power", "active"),
@@ -1170,8 +625,7 @@ kettle = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'feature_extractor' : "wt",
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 2000
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -1190,8 +644,7 @@ kettle = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 256,
-                    "mean" : 700,
-                    "std" : 1000
+                    'on_treshold' : 2000
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -1200,103 +653,40 @@ kettle = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     3: {
                         'start_time': "2013-03-01",
-                        'end_time' : "2013-03-03"
-                    },
-                    5: {
-                        'start_time': "2014-07-22",
-                        'end_time' : "2014-09-01"
-                    },             
-                }
-            },
-            'UKDale2': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-03-06",
-                        'end_time' : "2013-03-07"
-                    },           
-                }
-            },
-            'UKDale4': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-03-08",
-                        'end_time' : "2013-03-10"
-                    },             
-                }
-            },
-            'UKDale5': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-03-11",
-                        'end_time' : "2013-03-14"
-                    },             
-                }
-            },
-            'UKDale6': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-03-16",
-                        'end_time' : "2013-03-20"
-                    },            
-                }
-            },
-            'UKDale7': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-03-22",
-                        'end_time' : "2013-03-30"
-                    },             
-                }
-            },
-            'UKDale8': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    3: {
-                        'start_time': "2013-04-02",
-                        'end_time' : "2013-04-05"
-                    },           
-                }
-            },
-            'UKDale9': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {            
-                    3: {
-                        'start_time': "2013-04-06",
                         'end_time' : "2013-04-09"
-                    }, 
+                    },
+                    2: {
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
+                    },             
                 }
-            }
+            },
         }
     },
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
-                        'start_time': "2013-05-21",
-                        'end_time': "2013-06-21"
+                    5: {
+                        'start_time': "2014-07-01",
+                        'end_time': "2014-09-01"
                     }
                 }
             },
-            'Eco': {
-                'path': '../../../datasets/eco_h5/eco.h5',
-                'buildings': {
-                    2: {
-                        'start_time': "2012-12-01",
-                        'end_time': "2013-01-01"
-                    } 
-                }
-            }
+            #'Eco': {
+            #    'path': '../../../../datasets/eco_h5/eco.h5',
+            #    'buildings': {
+            #        2: {
+            #            'start_time': "2012-12-01",
+            #            'end_time': "2013-01-01"
+            #        } 
+            #    }
+            #}
         },
         'metrics':['mae', 'rmse']
     }
@@ -1308,36 +698,26 @@ washing_machine = {
     'sample_rate': timestep,
     'appliances': ['washing machine'],
     'methods': {
-        #'DAE':DAE({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/DAE/",
-        #    "plots_folder" : base_path + "plots/DAE/",
-        #    "file_prefix" : base_path + "models/DAE/",
-        #    "mains_mean" : 633.60345,
-        #    "mains_std" : 574.15015,
-        #    "appliance_params" : {
-        #        "washing machine" : {
-        #            "mean" : 400,
-        #            "std" : 700
-        #        },
-        #    }
-        #}),
-        #'Seq2Point':Seq2Point({
-        #    'n_epochs':epochs,
-        #    'sequence_length':299,
-        #    "training_history_folder" : base_path + "history/Seq2Point/",
-        #    "plots_folder" : base_path + "plots/Seq2Point/",
-        #    "file_prefix" : base_path + "models/Seq2Point/",
-        #    "mains_mean" : 633.60345,
-        #    "mains_std" : 574.15015,
-        #    "appliance_params" : {
-        #        "washing machine" : {
-        #            "mean" : 400,
-        #            "std" : 700
-        #        },
-        #    }
-        #}),
+        'DAE':DAE({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/DAE/",
+            "plots_folder" : base_path + "plots/DAE/",
+            "file_prefix" : base_path + "models/DAE/",
+            "mains_mean" : 633.60345,
+            "mains_std" : 574.15015,
+            "on_threshold" : 50
+        }),
+        'Seq2Point':Seq2Point({
+            'n_epochs':epochs,
+            'sequence_length':299,
+            "training_history_folder" : base_path + "history/Seq2Point/",
+            "plots_folder" : base_path + "plots/Seq2Point/",
+            "file_prefix" : base_path + "models/Seq2Point/",
+            "mains_mean" : 633.60345,
+            "mains_std" : 574.15015,
+            "on_threshold" : 50
+        }),
         'Seq2Seq':Seq2Seq({
             'n_epochs':epochs,
             'sequence_length':299,
@@ -1347,12 +727,7 @@ washing_machine = {
             "file_prefix" : base_path + "models/Seq2Seq/",
             "mains_mean" : 633.60345,
             "mains_std" : 574.15015,
-            "appliance_params" : {
-                "washing machine" : {
-                    "mean" : 400,
-                    "std" : 700
-                },
-            }
+            "on_threshold" : 50
         }),
         "ResNet" : ResNet( {
             "verbose" : 2,
@@ -1369,8 +744,7 @@ washing_machine = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 32,
-                    "mean" : 400,
-                    "std" : 700
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -1390,8 +764,7 @@ washing_machine = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'n_nodes' : 90,
-                    "mean" : 400,
-                    "std" : 700
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
@@ -1411,8 +784,7 @@ washing_machine = {
                     'epochs' : epochs,
                     'batch_size' : 256,
                     'feature_extractor' : "wt",
-                    "mean" : 400,
-                    "std" : 700
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -1431,8 +803,7 @@ washing_machine = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 256,
-                    "mean" : 400,
-                    "std" : 700
+                    'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -1441,274 +812,60 @@ washing_machine = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
-                        'start_time': "2014-01-30",
-                        'end_time' : "2014-02-03"
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },
-                    5: {
-                        'start_time': "2014-07-01",
-                        'end_time' : "2014-07-03"
-                    },             
-                }
-            },
-            'UKDale2': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-04",
-                        'end_time' : "2014-02-05"
-                    },
-                    5: {
-                        'start_time': "2014-07-04",
-                        'end_time' : "2014-07-06"
+                    2: {
+                        'start_time': "2013-04-17",
+                        'end_time': "2013-10-09",
                     },            
                 }
             },
-            'UKDale3': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-07",
-                        'end_time' : "2014-02-08"
-                    },
-                    5: {
-                        'start_time': "2014-07-08",
-                        'end_time' : "2014-07-10"
-                    },          
-                }
-            },
-            'UKDale4': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-09",
-                        'end_time' : "2014-02-10"
-                    },
-                    5: {
-                        'start_time': "2014-07-13",
-                        'end_time' : "2014-07-14"
-                    },             
-                }
-            },
-            'UKDale5': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-11",
-                        'end_time' : "2014-02-12"
-                    },
-                    5: {
-                        'start_time': "2014-07-16",
-                        'end_time' : "2014-07-18"
-                    },           
-                }
-            },
-            'UKDale6': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-13",
-                        'end_time' : "2014-02-20"
-                    },
-                    5: {
-                        'start_time': "2014-07-20",
-                        'end_time' : "2014-07-23"
-                    },            
-                }
-            },
-            'UKDale7': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2014-02-24",
-                        'end_time' : "2014-02-27"
-                    },
-                    5: {
-                        'start_time': "2014-07-24",
-                        'end_time' : "2014-07-26"
-                    },             
-                }
-            },
-            'UKDale8': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-03-21",
-                        'end_time' : "2013-03-23"
-                    },
-                    5: {
-                        'start_time': "2014-07-27",
-                        'end_time' : "2014-07-29"
-                    },           
-                }
-            },
-            'UKDale9': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-03-24",
-                        'end_time' : "2013-03-25"
-                    },             
-                    5: {
-                        'start_time': "2014-07-30",
-                        'end_time' : "2014-07-31"
-                    }, 
-                }
-            },
-            'UKDale10': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-03-26",
-                        'end_time' : "2013-03-29"
-                    },
-                    5: {
-                        'start_time': "2014-08-01",
-                        'end_time' : "2014-08-02"
-                    },            
-                }
-            },
-            'UKDale11': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-02",
-                        'end_time' : "2013-04-04"
-                    },
-                    5: {
-                        'start_time': "2014-08-06",
-                        'end_time' : "2014-08-07"
-                    },            
-                }
-            },
-            'UKDale12': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-05",
-                        'end_time' : "2013-04-06"
-                    },
-                    5: {
-                        'start_time': "2014-08-13",
-                        'end_time' : "2014-08-15"
-                    },             
-                }
-            },
-            'UKDale13': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-08",
-                        'end_time' : "2013-04-09"
-                    },
-                    5: {
-                        'start_time': "2014-08-18",
-                        'end_time' : "2014-08-19"
-                    },             
-                }
-            },
-            'UKDale14': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2013-04-12",
-                        'end_time' : "2013-04-15"
-                    },
-                    5: {
-                        'start_time': "2014-08-24",
-                        'end_time' : "2014-08-26"
-                    },           
-                }
-            },
-            'UKDale15': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-08-31",
-                        'end_time' : "2014-09-01"
-                    },             
-                }
-            },
-            'UKDale16': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-05",
-                        'end_time' : "2014-09-06"
-                    },             
-                }
-            },
-            'UKDale17': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-10",
-                        'end_time' : "2014-09-12"
-                    },     
-                }
-            },
-            'UKDale18': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-14",
-                        'end_time' : "2014-09-15"
-                    },             
-                }
-            },
-            'UKDale19': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
-                'buildings': {
-                    5: {
-                        'start_time': "2014-09-16",
-                        'end_time' : "2014-09-20"
-                    },               
-                }
-            }
         }
     },
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    2: {
-                        'start_time': "2013-05-26",
-                        'end_time': "2013-07-01"
+                    5: {
+                        'start_time': "2014-07-01",
+                        'end_time': "2014-09-01"
                     }
                 }
             },
-            'Eco': {
-                'path': '../../../datasets/eco_h5/eco.h5',
-                'buildings': {
-                    1: {
-                        'start_time': "2012-12-01",
-                        'end_time': "2013-01-01"
-                    } 
-                }
-            }
+            #'Eco': {
+            #    'path': '../../../../datasets/eco_h5/eco.h5',
+            #    'buildings': {
+            #        1: {
+            #            'start_time': "2012-12-01",
+            #            'end_time': "2013-01-01"
+            #        } 
+            #    }
+            #}
         },
         'metrics':['mae', 'rmse']
     }
 }
 
-#### Training and testing Fridge ####
-#results = API(fridge)
-#
-##Get all the results in the experiment and print them.
-#errors_keys = results.errors_keys
-#errors = results.errors
-#
-#for app in results.appliances:
-#    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
-#    for classifier in errors[0].columns:
-#        f.write(5*"-" + classifier + "-"*5 + "\n")
-#        for i in range(len(errors)):
-#            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
-#
-###################################################
+### Training and testing Fridge ####
+results = API(fridge)
+
+#Get all the results in the experiment and print them.
+errors_keys = results.errors_keys
+errors = results.errors
+
+for app in results.appliances:
+    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
+    for classifier in errors[0].columns:
+        f.write(5*"-" + classifier + "-"*5 + "\n")
+        for i in range(len(errors)):
+            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
+
+##################################################
 
 ### Training and testing Microwave ####
 results = API(microwave)

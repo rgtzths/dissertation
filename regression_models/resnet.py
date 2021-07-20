@@ -3,6 +3,7 @@ from os.path import join, isfile
 from os import listdir
 import json
 import math
+import random
 
 from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
@@ -11,6 +12,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 import pandas as pd
+import numpy as np
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -46,7 +48,8 @@ class ResNet():
             "timestep": 2,
             'epochs' : 1,
             'batch_size' : 1024,
-            'n_nodes' : 90
+            'n_nodes' : 90,
+            "on_treshold" : 50
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -90,6 +93,7 @@ class ResNet():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
                 app_mean = appliance_model.get("mean", None)
                 app_std = appliance_model.get("std", None)
+                on_treshold =  appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
 
                 if self.mains_mean is None:
                     X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
@@ -105,12 +109,21 @@ class ResNet():
                 else:
                     y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
-                binary_y = [ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean]
+                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
+                
+                negatives = np.where(binary_y == 0)[0]
+                positives = np.where(binary_y == 1)[0]
+
+                negatives = list(random.sample(set(negatives), positives.shape[0]))
+                undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+                X_train = X_train[undersampled_dataset]
+                y_train = y_train[undersampled_dataset]
+
+                binary_y = [ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean]
                 n_activatons = sum(binary_y)
                 on_examples = n_activatons / len(binary_y)
                 off_examples = (len(binary_y) - n_activatons) / len(binary_y)
-
-                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=binary_y)
 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
@@ -145,9 +158,9 @@ class ResNet():
                         y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
-                        shuffle=True,
+                        shuffle=False,
                         callbacks=[reduce_lr, checkpoint],
-                        validation_data=(X_cv, y_cv),
+                        validation_split=self.cv,
                         verbose=self.verbose
                         )         
 
@@ -173,18 +186,10 @@ class ResNet():
                 train_rmse = math.sqrt(mean_squared_error(y_train, pred))
                 train_mae = mean_absolute_error(y_train, pred)
 
-                pred = self.model[app_name].predict(X_cv) * app_std + app_mean
-
-                cv_rmse = math.sqrt(mean_squared_error(y_cv, pred))
-                cv_mae = mean_absolute_error(y_cv, pred)
-
                 if self.verbose == 2:
                     print("Training scores")    
                     print("RMSE: ", train_rmse )
                     print("MAE: ", train_mae )
-                    print("Cross Validation scores")    
-                    print("RMSE: ", cv_rmse )
-                    print("MAE: ", cv_mae )
                 
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
@@ -198,8 +203,6 @@ class ResNet():
                     f.write(app_name + " Std: " + str(app_std) + "\n")
                     f.write("Train RMSE: "+str(train_rmse)+ "\n")
                     f.write("Train MAE: "+str(train_mae)+ "\n")
-                    f.write("CV RMSE: "+str(cv_rmse)+ "\n")
-                    f.write("CV MAE: "+str(cv_mae)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
