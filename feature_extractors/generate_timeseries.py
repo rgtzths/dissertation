@@ -83,8 +83,8 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
 
     if app_mean is None:
         l = np.array(pd.concat(dfs,axis=0))
-        app_mean = np.mean(l, axis=0)
-        app_std = np.std(l, axis=0)
+        app_mean = np.mean(l, axis=0)[0]
+        app_std = np.std(l, axis=0)[0]
 
     #Starting the conversion (goes through all the dataframes)
     for df in dfs:

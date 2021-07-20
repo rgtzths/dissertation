@@ -1,8 +1,3 @@
-import warnings
-
-from matplotlib.pyplot import hist
-warnings.filterwarnings('ignore',category=FutureWarning)
-warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
@@ -19,7 +14,6 @@ from sklearn.model_selection import train_test_split
 
 import pandas as pd
 
-
 #import sys
 #sys.path.insert(1, "../utils")
 #sys.path.insert(1, "../feature_extractors")
@@ -29,13 +23,6 @@ from generate_timeseries import generate_appliance_timeseries, generate_main_tim
 
 import utils
 import plots
-
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
 
 class MLP():
     def __init__(self, params):
@@ -49,6 +36,9 @@ class MLP():
         self.load_model_path = params.get('load_model_folder',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 0)
+
+        self.mains_mean = params.get("mains_mean", None)
+        self.mains_std = params.get("mains_std", None)
         
         self.appliances = params.get('appliances', {})
 
@@ -83,8 +73,6 @@ class MLP():
         #In case of existing a model path, load every model in that path.
         if self.load_model_path:
             self.load_model(self.load_model_path)
-            self.mains_mean = params.get("mean", None)
-            self.mains_std = params.get("std", None)
 
     def partial_fit(self, train_mains, train_appliances):
 
@@ -104,22 +92,47 @@ class MLP():
                 epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
                 feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+                app_mean = appliance_model.get("mean", None)
+                app_std = appliance_model.get("std", None)
 
                 if feature_extractor == "wt":
                     print("Using Discrete Wavelet Transforms as Features")
                     wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-                    X_train, self.mains_mean, self.mains_std = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap)
+                    if self.mains_mean is None:
+                        X_train, self.mains_mean, self.mains_std = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap)
+                    else:
+                        X_train = get_discrete_features(train_mains, wavelet, timestep, timewindow, overlap, self.mains_mean, self.mains_std)[0]
                 else:
                     print("Using the Timeseries as Features")
-                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                    if self.mains_mean is None:
+                        X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                    else:
+                        X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
                     X_train = X_train.reshape(X_train.shape[0], -1)
                 
-                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                if app_mean is None:
+                    y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                    appliance_model["mean"] = app_mean
+                    appliance_model["std"] = app_std
+                else:
+                    y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
-                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=[ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean])
+                binary_y = [ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean]
+                n_activatons = sum(binary_y)
+                on_examples = n_activatons / len(binary_y)
+                off_examples = (len(binary_y) - n_activatons) / len(binary_y)
+
+                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=binary_y)
 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
+                    print("Nº of activations for training: ", str(n_activatons))
+                    print("On Percentage: ", str(on_examples))
+                    print("Off Percentage: ", str(off_examples))
+                    print("Mains Mean: ", str(self.mains_mean))
+                    print("Mains Std: ", str(self.mains_std))
+                    print(app_name + " Mean: ", str(app_mean))
+                    print(app_name + " Std: ", str(app_std))
                 
                 if self.verbose != 0:
                     print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -161,23 +174,38 @@ class MLP():
                 self.model[app_name] = model
                 
                 #Gets the trainning data score
-                pred = self.model[app_name].predict(X_train)
-                                                
-                rmse = math.sqrt(mean_squared_error(y_train, pred))
-                mae = mean_absolute_error(y_train, pred)
+                pred = self.model[app_name].predict(X_train) * app_std + app_mean
+
+                train_rmse = math.sqrt(mean_squared_error(y_train, pred))
+                train_mae = mean_absolute_error(y_train, pred)
+
+                pred = self.model[app_name].predict(X_cv) * app_std + app_mean
+
+                cv_rmse = math.sqrt(mean_squared_error(y_cv, pred))
+                cv_mae = mean_absolute_error(y_cv, pred)
 
                 if self.verbose == 2:
-                    print("Training data scores")    
-                    print("RMSE: ", rmse )
-                    print("MAE: ", mae )
+                    print("Training scores")    
+                    print("RMSE: ", train_rmse )
+                    print("MAE: ", train_mae )
+                    print("Cross Validation scores")    
+                    print("RMSE: ", cv_rmse )
+                    print("MAE: ", cv_mae )
                 
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
                     f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
-                    f.write("Data Mean: " + str(self.mains_mean) + "\n")
-                    f.write("Data Std: " + str(self.mains_std) + "\n")
-                    f.write("Train RMSE: "+str(rmse)+ "\n")
-                    f.write("Train MAE: "+str(mae)+ "\n")
+                    f.write("Nº of activations for training: " + str(n_activatons) + "\n")
+                    f.write("On Percentage: " + str(on_examples) + "\n")
+                    f.write("Off Percentage: " + str(off_examples) + "\n")
+                    f.write("Mains Mean: " + str(self.mains_mean) + "\n")
+                    f.write("Mains Std: " + str(self.mains_std) + "\n")
+                    f.write(app_name + " Mean: " + str(app_mean) + "\n")
+                    f.write(app_name + " Std: " + str(app_std) + "\n")
+                    f.write("Train RMSE: "+str(train_rmse)+ "\n")
+                    f.write("Train MAE: "+str(train_mae)+ "\n")
+                    f.write("CV RMSE: "+str(cv_rmse)+ "\n")
+                    f.write("CV MAE: "+str(cv_mae)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
@@ -198,6 +226,8 @@ class MLP():
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
             timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
             feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+            app_mean = appliance_model.get("mean", None)
+            app_std = appliance_model.get("std", None)
             
             if feature_extractor == "wt":
                 print("Using Discrete Wavelet Transforms as Features")
@@ -214,7 +244,7 @@ class MLP():
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
             
-            pred = self.model[app_name].predict(X_test)
+            pred = self.model[app_name].predict(X_test)* app_std + app_mean
 
             pred = [p[0] for p in pred]
 
