@@ -32,6 +32,7 @@ fridge = {
     'methods': {
         'DAE':DAE({
             'n_epochs':epochs,
+            "batch_size" : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/DAE/",
             "plots_folder" : base_path + "plots/DAE/",
@@ -42,6 +43,7 @@ fridge = {
         }),
         'Seq2Point':Seq2Point({
             'n_epochs':epochs,
+            "batch_size" : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/Seq2Point/",
             "plots_folder" : base_path + "plots/Seq2Point/",
@@ -146,15 +148,15 @@ fridge = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
                         'start_time': "2013-04-17",
-                        'end_time': "2013-10-09",
+                        'end_time': "2013-07-17",
                     },
                     2: {
                         'start_time': "2013-04-17",
-                        'end_time': "2013-10-09",
+                        'end_time': "2013-07-17",
                     }           
                 }
             },
@@ -163,7 +165,7 @@ fridge = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
                         'start_time': "2014-07-01",
@@ -186,7 +188,7 @@ fridge = {
     #'train': {    
     #    'datasets': {
     #        'UKDale': {
-    #            'path': '../../../../datasets/ukdale/ukdale.h5',
+    #            'path': '../../../datasets/ukdale/ukdale.h5',
     #            'buildings': {
     #                1: {
     #                    'start_time': "2014-02-01",
@@ -203,7 +205,7 @@ fridge = {
     #'test': {
     #    'datasets': {
     #        'UKDale': {
-    #            'path': '../../../../datasets/ukdale/ukdale.h5',
+    #            'path': '../../../datasets/ukdale/ukdale.h5',
     #            'buildings': {
     #                5: {
     #                    'start_time': "2013-05-22",
@@ -223,6 +225,7 @@ microwave = {
     'methods': {
         'DAE':DAE({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/DAE/",
             "plots_folder" : base_path + "plots/DAE/",
@@ -233,6 +236,7 @@ microwave = {
         }),
         'Seq2Point':Seq2Point({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/Seq2Point/",
             "plots_folder" : base_path + "plots/Seq2Point/",
@@ -335,7 +339,7 @@ microwave = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
                         'start_time': "2013-04-17",
@@ -352,7 +356,7 @@ microwave = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
                         'start_time': "2014-07-01",
@@ -383,6 +387,7 @@ dish_washer = {
         'DAE':DAE({
             'n_epochs':epochs,
             'sequence_length':299,
+            'batch_size' : 256,
             "training_history_folder" : base_path + "history/DAE/",
             "plots_folder" : base_path + "plots/DAE/",
             "file_prefix" : base_path + "models/DAE/",
@@ -392,6 +397,7 @@ dish_washer = {
         }),
         'Seq2Point':Seq2Point({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/Seq2Point/",
             "plots_folder" : base_path + "plots/Seq2Point/",
@@ -495,7 +501,7 @@ dish_washer = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
                         'start_time': "2013-04-17",
@@ -512,7 +518,7 @@ dish_washer = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
                         'start_time': "2014-07-01",
@@ -541,6 +547,7 @@ kettle = {
     'methods': {
         'DAE':DAE({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/DAE/",
             "plots_folder" : base_path + "plots/DAE/",
@@ -561,6 +568,7 @@ kettle = {
         }),
         'Seq2Seq':Seq2Seq({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "batch_size" : 256,
             "training_history_folder" : base_path + "history/Seq2Seq/",
@@ -653,7 +661,7 @@ kettle = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     3: {
                         'start_time': "2013-03-01",
@@ -670,7 +678,7 @@ kettle = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
                         'start_time': "2014-07-01",
@@ -700,6 +708,7 @@ washing_machine = {
     'methods': {
         'DAE':DAE({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/DAE/",
             "plots_folder" : base_path + "plots/DAE/",
@@ -710,6 +719,7 @@ washing_machine = {
         }),
         'Seq2Point':Seq2Point({
             'n_epochs':epochs,
+            'batch_size' : 256,
             'sequence_length':299,
             "training_history_folder" : base_path + "history/Seq2Point/",
             "plots_folder" : base_path + "plots/Seq2Point/",
@@ -812,7 +822,7 @@ washing_machine = {
     'train': {    
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     1: {
                         'start_time': "2013-04-17",
@@ -829,7 +839,7 @@ washing_machine = {
     'test': {
         'datasets': {
             'UKDale': {
-                'path': '../../../../datasets/ukdale/ukdale.h5',
+                'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
                     5: {
                         'start_time': "2014-07-01",

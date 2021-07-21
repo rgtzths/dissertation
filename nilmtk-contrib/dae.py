@@ -96,11 +96,11 @@ class DAE(Disaggregator):
             negatives = list(random.sample(set(negatives), positives.shape[0]))
             undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
 
-            X_train = train_main[undersampled_dataset]
-            y_train = power[undersampled_dataset]
+            train_main = train_main[undersampled_dataset]
+            power = power[undersampled_dataset]
 
             history = model.fit(
-                    X_train, y_train,
+                    train_main, power,
                     validation_split=0.15,
                     batch_size=self.batch_size,
                     epochs=self.n_epochs,
