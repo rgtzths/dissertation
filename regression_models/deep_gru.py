@@ -5,13 +5,12 @@ import json
 import math
 import random
 
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn.model_selection import train_test_split
 
 import pandas as pd
 import numpy as np
@@ -118,10 +117,9 @@ class DeepGRU():
                 X_train = X_train[undersampled_dataset]
                 y_train = y_train[undersampled_dataset]
 
-                binary_y = [ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean]
-                n_activatons = sum(binary_y)
-                on_examples = n_activatons / len(binary_y)
-                off_examples = (len(binary_y) - n_activatons) / len(binary_y)
+                n_activatons = positives.shape[0]
+                on_examples = n_activatons / y_train.shape[0]
+                off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
@@ -242,35 +240,54 @@ class DeepGRU():
     def save_model(self, folder_name):
         #For each appliance trained store its model
         for app in self.model:
-            self.model[app].save(join(folder_name, app + "_" + self.MODEL_NAME + ".h5"))
+            self.model[app].save(join(folder_name, app + ".h5"))
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app))
+            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
-        #Creates a specific model.
-        model = Sequential()
+        input = Input(input_shape)
+
         #Block 1
-        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru1 = GRU(n_nodes, return_sequences=True)(input)
+        leaky1 = LeakyReLU(alpha=0.1)(gru1)
+        drop1 = Dropout(0.2)(leaky1)
         #Block 2
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru2 = GRU(n_nodes*2, return_sequences=True)(drop1)
+        leaky2 = LeakyReLU(alpha=0.1)(gru2)
+        drop2 = Dropout(0.2)(leaky2)
         #Block 3
-        model.add(GRU(int(n_nodes/2)))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Dense Layer
-        model.add(Dense(int(n_nodes/4), activation='relu'))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru3 = GRU(int(n_nodes/2))(drop2)
+        leaky3 = LeakyReLU(alpha=0.1)(gru3)
+        drop3 = Dropout(0.2)(leaky3)
+        #Dense Layers
+        dense1 = Dense(int(n_nodes/4), activation='relu')(drop3)
+        leaky4 = LeakyReLU(alpha=0.1)(dense1)
+        drop4 = Dropout(0.2)(leaky4)
         #Classification Layer
-        model.add(Dense(1))
+        output = Dense(1)(drop4)
+
+        model = Model(inputs=input, outputs=output)
         model.compile(optimizer=Adam(0.00001), loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+
+        return model
+
+    def create_transfer_model(self, transfer_path, input_shape):
+        trained_model = load_model(transfer_path)
+        trained_model.layers.pop(0)
+        trained_model.layers.pop(-1)
+        for layer in trained_model.layers:
+            layer.trainable = False
+
+        new_input = Input(input_shape)
+        freezed_layers = trained_model(new_input)
+        new_output = Dense(1)(freezed_layers)
+
+        model = Model(inputs=new_input, outputs=new_output)
+        
+        model.compile(loss='mean_squared_error', optimizer=Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
 
         return model
