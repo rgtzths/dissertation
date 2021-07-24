@@ -1,6 +1,10 @@
 BuildSys
 ISGT - Já passou a data 15 maio
-https://www.mdpi.com/journal/sustainability - journal
-www.nature.com/scientificdata - journal
+ACM e-Energy - Já passou
+Journal of modern power systems and clean energy - Não estão a fazer call for papers para NILM
+ieeeglobalsip - Não têm announcments próximos.
+
+https://www.mdpi.com/journal/sustainability - journal - Não consegui encontrar onde enquadrar o nosso artigo (posso enviar um email)
 http://eecsi.org/2021/ - Até 1 agosto
-https://icmlc.com/cfp.html - ML em geral até 10 Sep
+https://icmlc.com/cfp.html - ML até 10 Sep
+
