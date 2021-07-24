@@ -174,8 +174,8 @@ class DeepGRU():
                 #Gets the trainning data score
                 pred = self.model[app_name].predict(X_train) * app_std + app_mean
 
-                train_rmse = math.sqrt(mean_squared_error(y_train, pred))
-                train_mae = mean_absolute_error(y_train, pred)
+                train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
+                train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
 
                 if self.verbose == 2:
                     print("Training scores")    
@@ -250,28 +250,22 @@ class DeepGRU():
 
     def create_model(self, n_nodes, input_shape):
         input = Input(input_shape)
-
         #Block 1
         gru1 = GRU(n_nodes, return_sequences=True)(input)
-        leaky1 = LeakyReLU(alpha=0.1)(gru1)
-        drop1 = Dropout(0.2)(leaky1)
         #Block 2
-        gru2 = GRU(n_nodes*2, return_sequences=True)(drop1)
-        leaky2 = LeakyReLU(alpha=0.1)(gru2)
-        drop2 = Dropout(0.2)(leaky2)
+        gru2 = GRU(n_nodes*2, return_sequences=True)(gru1)
         #Block 3
-        gru3 = GRU(int(n_nodes/2))(drop2)
-        leaky3 = LeakyReLU(alpha=0.1)(gru3)
-        drop3 = Dropout(0.2)(leaky3)
+        gru3 = GRU(n_nodes*2, return_sequences=True)(gru2)
+        #Block 4
+        gru4 = GRU(n_nodes)(gru3)
         #Dense Layers
-        dense1 = Dense(int(n_nodes/4), activation='relu')(drop3)
-        leaky4 = LeakyReLU(alpha=0.1)(dense1)
-        drop4 = Dropout(0.2)(leaky4)
+        dense1 = Dense(int(n_nodes*2), activation='relu')(gru4)
+        drop1 = Dropout(0.5)(dense1)
         #Classification Layer
-        output = Dense(1)(drop4)
+        output = Dense(1)(drop1)
 
         model = Model(inputs=input, outputs=output)
-        model.compile(optimizer=Adam(0.00001), loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
@@ -288,6 +282,6 @@ class DeepGRU():
 
         model = Model(inputs=new_input, outputs=new_output)
         
-        model.compile(loss='mean_squared_error', optimizer=Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model

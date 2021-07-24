@@ -194,8 +194,8 @@ class MLP():
             #Gets the trainning data score
             pred = self.model[app_name].predict(X_train) * app_std + app_mean
 
-            train_rmse = math.sqrt(mean_squared_error(y_train, pred))
-            train_mae = mean_absolute_error(y_train, pred)
+            train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
+            train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
@@ -279,13 +279,12 @@ class MLP():
         #Creates a specific model.
         input_layer = Input(input_shape)
         dense1 = Dense(n_nodes, activation='relu')(input_layer)
-        dense2 = Dense(int(n_nodes/2), activation='relu')(dense1)
-        dense3 = Dense(int(n_nodes/4), activation='relu')(dense2)
-        dense4 = Dense(int(n_nodes/4), activation='relu')(dense3)
-        dropout = Dropout(0.1)(dense4)
-        output_layer = Dense(1)(dropout)
+        dense2 = Dense(int(n_nodes/4), activation='relu')(dense1)
+        dense3 = Dense(n_nodes, activation='relu')(dense2)
+        dense4 = Dense(int(n_nodes/2), activation='relu')(dense3)
+        output_layer = Dense(1)(dense4)
         model = Model(inputs=input_layer, outputs=output_layer)
-        model.compile(loss='mean_squared_error', optimizer=Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
@@ -302,6 +301,6 @@ class MLP():
 
         model = Model(inputs=new_input, outputs=new_output)
         
-        model.compile(loss='mean_squared_error', optimizer=Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model

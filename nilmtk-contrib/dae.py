@@ -75,10 +75,12 @@ class DAE(Disaggregator):
         for appliance_name, power in train_appliances:
             if appliance_name not in self.models:
                 print("First model training for", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                model = self.return_network()
+                
+            else:
+                print("Started Retraining model for", appliance_name)
+                model = self.models[appliance_name]
 
-            print("Started Retraining model for", appliance_name)
-            model = self.models[appliance_name]
             filepath = self.file_prefix + "-{}-epoch{}.h5".format(
                     "_".join(appliance_name.split()),
                     current_epoch,
@@ -109,6 +111,7 @@ class DAE(Disaggregator):
             )
             model.load_weights(filepath)
 
+            self.models[appliance_name] = model
             history = json.dumps(history.history)
 
             if self.training_history_folder is not None:

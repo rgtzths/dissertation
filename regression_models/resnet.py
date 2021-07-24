@@ -186,8 +186,8 @@ class ResNet():
             #Gets the trainning data score
             pred = self.model[app_name].predict(X_train) * app_std + app_mean
 
-            train_rmse = math.sqrt(mean_squared_error(y_train, pred))
-            train_mae = mean_absolute_error(y_train, pred)
+            train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
+            train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
@@ -281,8 +281,10 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
+        drop1 = keras.layers.Dropout(0.5)(output_block_1)
+
         # BLOCK 2
-        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(output_block_1)
+        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
@@ -299,35 +301,39 @@ class ResNet():
 
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
-
+        
+        drop2 = keras.layers.Dropout(0.5)(output_block_2)
         # BLOCK 3
 
-        conv_x = keras.layers.Conv2D(int(n_nodes / 2), 8, 1, padding='same')(output_block_2)
+        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
-        conv_y = keras.layers.Conv2D(int(n_nodes / 2), 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.Conv2D(int(n_nodes * 2), 5, 1, padding='same')(conv_x)
         conv_y = keras.layers.BatchNormalization()(conv_y)
         conv_y = keras.layers.Activation('relu')(conv_y)
 
-        conv_z = keras.layers.Conv2D(int(n_nodes / 2), 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.Conv2D(int(n_nodes * 2), 3, 1, padding='same')(conv_y)
         conv_z = keras.layers.BatchNormalization()(conv_z)
 
-        shortcut_y = keras.layers.Conv2D(int(n_nodes / 2), 1, 1, padding='same')(output_block_2)
-        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
 
         output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
-
+        
         # FINAL
 
-        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
+        full = keras.layers.Flatten()(output_block_3)
 
-        output_layer = keras.layers.Dense(1)(full)
+        drop3 = keras.layers.Dropout(0.5)(full)
+
+        dense = keras.layers.Dense(1024, activation='relu')(drop3)
+
+        output_layer = keras.layers.Dense(1)(dense)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
@@ -344,6 +350,6 @@ class ResNet():
 
         model = keras.models.Model(inputs=new_input, outputs=new_output)
         
-        model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
