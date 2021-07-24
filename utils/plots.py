@@ -34,8 +34,10 @@ def plot_model_history_classification(model_history, destination_folder):
     plt.ylabel("Matthews Correlation Coeficient")
     plt.title("Evolution of the MCC of the model")
     plt.legend()
-
+    
     fig.savefig(destination_folder+"mcc.png", dpi=300.0, bbox_inches='tight', orientation="landscape")
+
+    plt.close('all')
 
 def plot_model_history_regression(model_history, destination_folder):
     
@@ -72,5 +74,7 @@ def plot_model_history_regression(model_history, destination_folder):
     plt.legend()
 
     fig.savefig(destination_folder+"mae.png", dpi=300.0, bbox_inches='tight', orientation="landscape")
+
+    plt.close('all')
 
 

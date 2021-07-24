@@ -1,15 +1,13 @@
-from warnings import warn
 from nilmtk.disaggregate import Disaggregator
-from tensorflow.keras.layers import Conv1D, Dense, Dropout, Reshape, Flatten
+from tensorflow.keras.layers import Conv1D, Dense, Reshape, Flatten
 import pandas as pd
 import numpy as np
 from collections import OrderedDict 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
-import tensorflow.keras.backend as K
-from statistics import mean
 import os
 import json
+import random
 
 from sklearn.model_selection import train_test_split
 
@@ -38,6 +36,7 @@ class DAE(Disaggregator):
         self.appliance_params = params.get('appliance_params',{})
         self.save_model_path = params.get('save-model-path', None)
         self.load_model_path = params.get('pretrained-model-path',None)
+        self.on_treshold = params.get('on_treshold', 50)
 
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
@@ -76,28 +75,43 @@ class DAE(Disaggregator):
         for appliance_name, power in train_appliances:
             if appliance_name not in self.models:
                 print("First model training for", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                model = self.return_network()
+                
+            else:
+                print("Started Retraining model for", appliance_name)
+                model = self.models[appliance_name]
 
-            print("Started Retraining model for", appliance_name)
-            model = self.models[appliance_name]
             filepath = self.file_prefix + "-{}-epoch{}.h5".format(
                     "_".join(appliance_name.split()),
                     current_epoch,
             )
             checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+            
+            app_mean = self.appliance_params[app_name]['mean']
+            app_std = self.appliance_params[app_name]['std']
 
-            X_train, X_cv, y_train, y_cv = train_test_split(train_main, power, test_size=.15, stratify=[ 1 if x > 80 else 0 for x in power[:, -1]])
+            binary_y = np.array([ 1 if x > self.on_treshold else 0 for x in (power[:, -1]*app_std) + app_mean])
+            
+            negatives = np.where(binary_y == 0)[0]
+            positives = np.where(binary_y == 1)[0]
+
+            negatives = list(random.sample(set(negatives), positives.shape[0]))
+            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+            train_main = train_main[undersampled_dataset]
+            power = power[undersampled_dataset]
 
             history = model.fit(
-                    X_train, y_train,
-                    validation_data=(X_cv, y_cv),
+                    train_main, power,
+                    validation_split=0.15,
                     batch_size=self.batch_size,
                     epochs=self.n_epochs,
                     callbacks=[ checkpoint ],
-                    shuffle=True,
+                    shuffle=False,
             )
             model.load_weights(filepath)
 
+            self.models[appliance_name] = model
             history = json.dumps(history.history)
 
             if self.training_history_folder is not None:

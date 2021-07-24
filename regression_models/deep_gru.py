@@ -1,21 +1,19 @@
-import warnings
-warnings.filterwarnings('ignore',category=FutureWarning)
-warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
 import json
 import math
+import random
 
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn.model_selection import train_test_split
 
 import pandas as pd
+import numpy as np
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -50,7 +48,8 @@ class DeepGRU():
             "timestep": 2,
             'epochs' : 1,
             'batch_size' : 1024,
-            'n_nodes' : 90
+            'n_nodes' : 90,
+            "on_treshold" : 50
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -93,6 +92,7 @@ class DeepGRU():
                 n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
                 app_mean = appliance_model.get("mean", None)
                 app_std = appliance_model.get("std", None)
+                on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
 
                 if self.mains_mean is None:
                     X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
@@ -106,12 +106,20 @@ class DeepGRU():
                 else:
                     y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
-                binary_y = [ 1 if x > 80 else 0 for x in (y_train*app_std) + app_mean]
-                n_activatons = sum(binary_y)
-                on_examples = n_activatons / len(binary_y)
-                off_examples = (len(binary_y) - n_activatons) / len(binary_y)
+                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
+                
+                negatives = np.where(binary_y == 0)[0]
+                positives = np.where(binary_y == 1)[0]
 
-                X_train, X_cv, y_train, y_cv = train_test_split(X_train, y_train, test_size=self.cv, stratify=binary_y)
+                negatives = list(random.sample(set(negatives), positives.shape[0]))
+                undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+                X_train = X_train[undersampled_dataset]
+                y_train = y_train[undersampled_dataset]
+
+                n_activatons = positives.shape[0]
+                on_examples = n_activatons / y_train.shape[0]
+                off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
 
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
@@ -142,9 +150,9 @@ class DeepGRU():
                         epochs=epochs, 
                         batch_size=batch_size, 
                         verbose=self.verbose, 
-                        shuffle=True,
+                        shuffle=False,
                         callbacks=[checkpoint],
-                        validation_data=(X_cv, y_cv),
+                        validation_split=self.cv,
                         )
 
                 history = json.dumps(history.history)
@@ -166,21 +174,13 @@ class DeepGRU():
                 #Gets the trainning data score
                 pred = self.model[app_name].predict(X_train) * app_std + app_mean
 
-                train_rmse = math.sqrt(mean_squared_error(y_train, pred))
-                train_mae = mean_absolute_error(y_train, pred)
-
-                pred = self.model[app_name].predict(X_cv) * app_std + app_mean
-
-                cv_rmse = math.sqrt(mean_squared_error(y_cv, pred))
-                cv_mae = mean_absolute_error(y_cv, pred)
+                train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
+                train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
 
                 if self.verbose == 2:
                     print("Training scores")    
                     print("RMSE: ", train_rmse )
                     print("MAE: ", train_mae )
-                    print("Cross Validation scores")    
-                    print("RMSE: ", cv_rmse )
-                    print("MAE: ", cv_mae )
                 
                 if self.results_folder is not None:
                     f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
@@ -194,8 +194,6 @@ class DeepGRU():
                     f.write(app_name + " Std: " + str(app_std) + "\n")
                     f.write("Train RMSE: "+str(train_rmse)+ "\n")
                     f.write("Train MAE: "+str(train_mae)+ "\n")
-                    f.write("CV RMSE: "+str(cv_rmse)+ "\n")
-                    f.write("CV MAE: "+str(cv_mae)+ "\n")
                     f.close()
             else:
                 print("Using Loaded Model")
@@ -242,35 +240,48 @@ class DeepGRU():
     def save_model(self, folder_name):
         #For each appliance trained store its model
         for app in self.model:
-            self.model[app].save(join(folder_name, app + "_" + self.MODEL_NAME + ".h5"))
+            self.model[app].save(join(folder_name, app + ".h5"))
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app))
+            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
-        #Creates a specific model.
-        model = Sequential()
+        input = Input(input_shape)
         #Block 1
-        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru1 = GRU(n_nodes, return_sequences=True)(input)
         #Block 2
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru2 = GRU(n_nodes*2, return_sequences=True)(gru1)
         #Block 3
-        model.add(GRU(int(n_nodes/2)))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
-        #Dense Layer
-        model.add(Dense(int(n_nodes/4), activation='relu'))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        gru3 = GRU(n_nodes*2, return_sequences=True)(gru2)
+        #Block 4
+        gru4 = GRU(n_nodes)(gru3)
+        #Dense Layers
+        dense1 = Dense(int(n_nodes*2), activation='relu')(gru4)
+        drop1 = Dropout(0.5)(dense1)
         #Classification Layer
-        model.add(Dense(1))
-        model.compile(optimizer=Adam(0.00001), loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+        output = Dense(1)(drop1)
+
+        model = Model(inputs=input, outputs=output)
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
+        return model
+
+    def create_transfer_model(self, transfer_path, input_shape):
+        trained_model = load_model(transfer_path)
+        trained_model.layers.pop(0)
+        trained_model.layers.pop(-1)
+        for layer in trained_model.layers:
+            layer.trainable = False
+
+        new_input = Input(input_shape)
+        freezed_layers = trained_model(new_input)
+        new_output = Dense(1)(freezed_layers)
+
+        model = Model(inputs=new_input, outputs=new_output)
+        
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
