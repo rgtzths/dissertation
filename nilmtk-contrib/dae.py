@@ -1,15 +1,14 @@
 from nilmtk.disaggregate import Disaggregator
-from tensorflow.keras.layers import Conv1D, Dense, Reshape, Flatten
+from tensorflow.keras.layers import Conv1D, Dense, Reshape, Flatten, Input
 import pandas as pd
 import numpy as np
 from collections import OrderedDict 
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model, Model
 from tensorflow.keras.callbacks import ModelCheckpoint
 import os
 import json
 import random
-
-from sklearn.model_selection import train_test_split
+import math
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -26,21 +25,22 @@ class DAE(Disaggregator):
         Iniititalize the moel with the given parameters
         """
         self.MODEL_NAME = "DAE"
-        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
+        self.file_prefix = params.get('file_prefix', "")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
         self.batch_size = params.get('batch_size',512)
-        self.mains_mean = params.get('mains_mean',1000)
-        self.mains_std = params.get('mains_std',600)
+        self.mains_mean = params.get('mains_mean',None)
+        self.mains_std = params.get('mains_std',None)
         self.appliance_params = params.get('appliance_params',{})
-        self.save_model_path = params.get('save-model-path', None)
         self.load_model_path = params.get('pretrained-model-path',None)
+        self.appliances = params.get('appliances', {})
         self.on_treshold = params.get('on_treshold', 50)
 
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
+
         self.plots_folder = params.get("plots_folder", None)
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
@@ -54,10 +54,12 @@ class DAE(Disaggregator):
         """
         The partial fit function
         """
-
+        print("...............DAE partial_fit running...............")
         # If no appliance wise parameters are specified, then they are computed from the data
         if len(self.appliance_params) == 0:
             self.set_appliance_params(train_appliances)
+        if self.mains_mean is None:
+            self.set_mains_params(train_main)
 
         # To preprocess the data and bring it to a valid shape
         if do_preprocessing:
@@ -73,18 +75,23 @@ class DAE(Disaggregator):
 
         train_appliances = new_train_appliances
         for appliance_name, power in train_appliances:
+            
+            appliance_model = self.appliances.get(appliance_name, {})
+            transfer_path = appliance_model.get("transfer_path", None)
+
             if appliance_name not in self.models:
-                print("First model training for", appliance_name)
-                model = self.return_network()
+                if transfer_path is not None:
+                    print("Using transfer learning for ", appliance_name)
+                    model = self.create_transfer_model(transfer_path)
+                else:
+                    print("First model training for", appliance_name)
+                    model = self.return_network()
                 
             else:
                 print("Started Retraining model for", appliance_name)
                 model = self.models[appliance_name]
 
-            filepath = self.file_prefix + "-{}-epoch{}.h5".format(
-                    "_".join(appliance_name.split()),
-                    current_epoch,
-            )
+            filepath = self.file_prefix + "{}.h5".format("_".join(appliance_name.split()))
             checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
             
             app_mean = self.appliance_params[app_name]['mean']
@@ -123,41 +130,23 @@ class DAE(Disaggregator):
                 utils.create_path(self.plots_folder + "/" + app_name + "/")
                 plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
-        if self.save_model_path:
-            self.save_model()
-
     def load_model(self):
         print ("Loading the model using the pretrained-weights")        
         model_folder = self.load_model_path
-        with open(os.path.join(model_folder, "model.json"), "r") as f:
-            model_string = f.read().strip()
-            params_to_load = json.loads(model_string)
-
-
-        self.sequence_length = int(params_to_load['sequence_length'])
-        self.mains_mean = params_to_load['mains_mean']
-        self.mains_std = params_to_load['mains_std']
-        self.appliance_params = params_to_load['appliance_params']
 
         for appliance_name in self.appliance_params:
             self.models[appliance_name] = self.return_network()
             self.models[appliance_name].load_weights(os.path.join(model_folder,appliance_name+".h5"))
 
 
-    def save_model(self):
-        
-        os.makedirs(self.save_model_path)    
-        params_to_save = {}
-        params_to_save['appliance_params'] = self.appliance_params
-        params_to_save['sequence_length'] = self.sequence_length
-        params_to_save['mains_mean'] = self.mains_mean
-        params_to_save['mains_std'] = self.mains_std
+    def save_model(self, save_model_path):
+
+        if not os.path.isdir(save_model_path):
+            os.makedirs(save_model_path)    
+
         for appliance_name in self.models:
             print ("Saving model for ", appliance_name)
-            self.models[appliance_name].save_weights(os.path.join(self.save_model_path,appliance_name+".h5"))
-
-        with open(os.path.join(self.save_model_path,'model.json'),'w') as file:
-            file.write(json.dumps(params_to_save))
+            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
 
 
 
@@ -187,11 +176,32 @@ class DAE(Disaggregator):
         model = Sequential()
         model.add(Conv1D(8, 4, activation="linear", input_shape=(self.sequence_length, 1), padding="same", strides=1))
         model.add(Flatten())
-        model.add(Dense((self.sequence_length)*8, activation='relu'))
+        model.add(Dense(2400, activation='relu'))
         model.add(Dense(128, activation='relu'))
         model.add(Dense((self.sequence_length)*8, activation='relu'))
         model.add(Reshape(((self.sequence_length), 8)))
         model.add(Conv1D(1, 4, activation="linear", padding="same", strides=1))
+        
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+        
+        return model
+
+    def create_transfer_model(self, transfer_path):
+        model = Sequential()
+        model.add(Conv1D(8, 4, activation="linear", input_shape=(self.sequence_length, 1), padding="same", strides=1))
+        model.add(Flatten())
+        model.add(Dense(2400, activation='relu'))
+        model.add(Dense(128, activation='relu'))
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+
+        model.add(Dense((self.sequence_length)*8, activation='relu'))
+        model.add(Reshape(((self.sequence_length), 8)))
+        model.add(Conv1D(1, 4, activation="linear", padding="same", strides=1))
+        
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
         return model
 
@@ -259,4 +269,9 @@ class DAE(Disaggregator):
             if app_std<1:
                 app_std = 100
             self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
+
+    def set_mains_params(self, train_mains):
+        l = np.array(pd.concat(train_mains, axis=0))
+        self.mains_mean = np.mean(l, axis=0)
+        self.mains_std = np.std(l, axis=0)
 

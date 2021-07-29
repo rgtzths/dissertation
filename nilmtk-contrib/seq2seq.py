@@ -4,10 +4,9 @@ import pandas as pd
 from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 import random
-
-from sklearn.model_selection import train_test_split
+import os 
 
 import json
 #import sys
@@ -28,16 +27,18 @@ class Seq2Seq(Disaggregator):
     def __init__(self, params):
 
         self.MODEL_NAME = "Seq2Seq"
-        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
+        self.file_prefix = params.get('file_prefix', "")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
         self.models = OrderedDict()
-        self.mains_mean = 1800
-        self.mains_std = 600
+        self.mains_mean = params.get('mains_mean',None)
+        self.mains_std = params.get('mains_std',None)
         self.batch_size = params.get('batch_size',512)
-        self.on_treshold = params.get('on_treshold', 50)
         self.appliance_params = params.get('appliance_params',{})
+        self.on_treshold = params.get('on_treshold', 50)
+        self.appliances = params.get('appliances', {})
+
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
             raise (SequenceLengthError)
@@ -45,6 +46,7 @@ class Seq2Seq(Disaggregator):
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
+
         self.plots_folder = params.get("plots_folder", None)
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
@@ -53,6 +55,8 @@ class Seq2Seq(Disaggregator):
         print("...............Seq2Seq partial_fit running...............")
         if len(self.appliance_params) == 0:
             self.set_appliance_params(train_appliances)
+        if self.mains_mean is None:
+            self.set_mains_params(train_main)
 
         if do_preprocessing:
             train_main, train_appliances = self.call_preprocessing(
@@ -68,9 +72,17 @@ class Seq2Seq(Disaggregator):
 
         train_appliances = new_train_appliances
         for appliance_name, power in train_appliances:
+
+            appliance_model = self.appliances.get(appliance_name, {})
+            transfer_path = appliance_model.get("transfer_path", None)
+
             if appliance_name not in self.models:
-                print("First model training for ", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                if transfer_path is not None:
+                    print("Using transfer learning for ", appliance_name)
+                    self.models[appliance_name] = self.create_transfer_model(transfer_path)
+                else:
+                    print("First model training for", appliance_name)
+                    self.models[appliance_name] = self.return_network()
             else:
                 print("Started Retraining model for ", appliance_name)
 
@@ -79,10 +91,8 @@ class Seq2Seq(Disaggregator):
                 # Sometimes chunks can be empty after dropping NANS
                 if len(train_main) > 10:
                     # Do validation when you have sufficient samples
-                    filepath = self.file_prefix + "-{}-epoch{}.h5".format(
-                            "_".join(appliance_name.split()),
-                            current_epoch,
-                    )
+                    filepath = self.file_prefix + "{}.h5".format("_".join(appliance_name.split()))
+
                     checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
 
                     app_mean = self.appliance_params[app_name]['mean']
@@ -168,6 +178,11 @@ class Seq2Seq(Disaggregator):
             test_predictions.append(results)
 
         return test_predictions
+    
+    def save_model(self, save_model_path):
+        for appliance_name in self.models:
+            print ("Saving model for ", appliance_name)
+            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
 
     def return_network(self):
 
@@ -184,6 +199,30 @@ class Seq2Seq(Disaggregator):
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(.2))
         model.add(Dense(self.sequence_length))
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
+        return model
+    def create_transfer_model(self, transfer_path):
+        # Model architecture
+        model = Sequential()
+        model.add(Conv1D(30,10,activation="relu",input_shape=(self.sequence_length,1),strides=1))
+        model.add(Conv1D(30, 8, activation='relu', strides=2))
+        model.add(Conv1D(40, 6, activation='relu', strides=1))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Flatten())
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+        
+        model.add(Dense(1024, activation='relu'))
+        model.add(Dropout(.2))
+        model.add(Dense(self.sequence_length))
+
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
@@ -249,4 +288,9 @@ class Seq2Seq(Disaggregator):
             if app_std<1:
                 app_std = 100
             self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
+
+    def set_mains_params(self, train_mains):
+        l = np.array(pd.concat(train_mains, axis=0))
+        self.mains_mean = np.mean(l, axis=0)
+        self.mains_std = np.std(l, axis=0)
 

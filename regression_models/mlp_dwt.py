@@ -5,8 +5,8 @@ import math
 import json
 import random
 
-from tensorflow.keras.models import load_model, Model
-from tensorflow.keras.layers import Dense, Dropout, Input
+from tensorflow.keras.models import load_model, Model, Sequential
+from tensorflow.keras.layers import Dense, Dropout, Input, InputLayer
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -82,7 +82,12 @@ class MLP():
     def partial_fit(self, train_mains, train_appliances):
 
         #For each appliance to be classified
-        for app_name, appliance_power in train_appliances:
+        for appliance_name, appliance_power in train_appliances:
+            if(isinstance(appliance_name, str)):
+                app_name = appliance_name
+            else:
+                app_name = appliance_name[0]
+
             if( self.verbose != 0):
                 print("Preparing Dataset for %s" % app_name)
 
@@ -156,7 +161,7 @@ class MLP():
                     model = self.create_model(n_nodes, (X_train.shape[1],))       
                 else:
                     print("Starting from pre-trained model")
-                    model = self.create_transfer_model(transfer_path, (X_train.shape[1],))
+                    model = self.create_transfer_model(transfer_path, (X_train.shape[1],), n_nodes)
 
             checkpoint = ModelCheckpoint(
                     self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
@@ -277,30 +282,33 @@ class MLP():
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
-        input_layer = Input(input_shape)
-        dense1 = Dense(n_nodes, activation='relu')(input_layer)
-        dense2 = Dense(int(n_nodes/4), activation='relu')(dense1)
-        dense3 = Dense(n_nodes, activation='relu')(dense2)
-        dense4 = Dense(int(n_nodes/2), activation='relu')(dense3)
-        output_layer = Dense(1)(dense4)
-        model = Model(inputs=input_layer, outputs=output_layer)
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.add(Dense(1))
+
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
-    def create_transfer_model(self, transfer_path, input_shape):
-        trained_model = load_model(transfer_path)
-        trained_model.layers.pop(0)
-        trained_model.layers.pop(-1)
-        for layer in trained_model.layers:
+    def create_transfer_model(self, transfer_path, input_shape, n_nodes=256):
+
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+        
+        for layer in model.layers[1:]:
             layer.trainable = False
 
-        new_input = Input(input_shape)
-        freezed_layers = trained_model(new_input)
-        new_output = Dense(1)(freezed_layers)
-
-        model = Model(inputs=new_input, outputs=new_output)
+        model.add(Dense(1))
         
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
-
+        
         return model

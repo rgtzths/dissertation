@@ -5,9 +5,8 @@ import json
 import math
 import random
 
-from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout, Input
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import Model, Sequential, load_model
+from tensorflow.keras.layers import Dense, GRU, Dropout, InputLayer
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -78,125 +77,133 @@ class DeepGRU():
 
         #For each appliance to be classified
         for app_name, appliance_power in train_appliances:
-            if app_name not in self.model:
-                if( self.verbose != 0):
-                    print("Preparing Dataset for %s" % app_name)
+            if( self.verbose != 0):
+                print("Preparing Dataset for %s" % app_name)
 
-                appliance_model = self.appliances.get(app_name, {})
+            appliance_model = self.appliances.get(app_name, {})
 
-                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
-                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
-                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
-                app_mean = appliance_model.get("mean", None)
-                app_std = appliance_model.get("std", None)
-                on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
+            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+            batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+            epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+            n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+            app_mean = appliance_model.get("mean", None)
+            app_std = appliance_model.get("std", None)
+            on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
+            transfer_path = appliance_model.get("transfer_path", None)
 
-                if self.mains_mean is None:
-                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
-                else:
-                    X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
-
-                if app_mean is None:
-                    y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
-                    appliance_model["mean"] = app_mean
-                    appliance_model["std"] = app_std
-                else:
-                    y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
-
-                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
-                
-                negatives = np.where(binary_y == 0)[0]
-                positives = np.where(binary_y == 1)[0]
-
-                negatives = list(random.sample(set(negatives), positives.shape[0]))
-                undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
-
-                X_train = X_train[undersampled_dataset]
-                y_train = y_train[undersampled_dataset]
-
-                n_activatons = positives.shape[0]
-                on_examples = n_activatons / y_train.shape[0]
-                off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
-
-                if( self.verbose != 0):
-                    print("Nº of examples ", str(X_train.shape[0]))
-                    print("Nº of activations for training: ", str(n_activatons))
-                    print("On Percentage: ", str(on_examples))
-                    print("Off Percentage: ", str(off_examples))
-                    print("Mains Mean: ", str(self.mains_mean))
-                    print("Mains Std: ", str(self.mains_std))
-                    print(app_name + " Mean: ", str(app_mean))
-                    print(app_name + " Std: ", str(app_std))
-
-                if self.verbose != 0:
-                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-                
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
-
-                checkpoint = ModelCheckpoint(
-                                self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
-                                monitor='val_loss', 
-                                verbose=self.verbose, 
-                                save_best_only=True, 
-                                mode='min'
-                                )
-
-                #Fits the model to the training data.
-                history = model.fit( X_train, 
-                        y_train, 
-                        epochs=epochs, 
-                        batch_size=batch_size, 
-                        verbose=self.verbose, 
-                        shuffle=False,
-                        callbacks=[checkpoint],
-                        validation_split=self.cv,
-                        )
-
-                history = json.dumps(history.history)
-
-                if self.training_history_folder is not None:
-                    f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                    f.write(history)
-                    f.close()
-
-                if self.plots_folder is not None:
-                    utils.create_path(self.plots_folder + "/" + app_name + "/")
-                    plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
-
-                model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
-                
-                #Stores the trained model.
-                self.model[app_name] = model
-
-                #Gets the trainning data score
-                pred = self.model[app_name].predict(X_train) * app_std + app_mean
-
-                train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
-                train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
-
-                if self.verbose == 2:
-                    print("Training scores")    
-                    print("RMSE: ", train_rmse )
-                    print("MAE: ", train_mae )
-                
-                if self.results_folder is not None:
-                    f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                    f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
-                    f.write("Nº of activations for training: " + str(n_activatons) + "\n")
-                    f.write("On Percentage: " + str(on_examples) + "\n")
-                    f.write("Off Percentage: " + str(off_examples) + "\n")
-                    f.write("Mains Mean: " + str(self.mains_mean) + "\n")
-                    f.write("Mains Std: " + str(self.mains_std) + "\n")
-                    f.write(app_name + " Mean: " + str(app_mean) + "\n")
-                    f.write(app_name + " Std: " + str(app_std) + "\n")
-                    f.write("Train RMSE: "+str(train_rmse)+ "\n")
-                    f.write("Train MAE: "+str(train_mae)+ "\n")
-                    f.close()
+            if self.mains_mean is None:
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
             else:
-                print("Using Loaded Model")
+                X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+
+            if app_mean is None:
+                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                appliance_model["mean"] = app_mean
+                appliance_model["std"] = app_std
+            else:
+                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
+
+            binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
+            
+            negatives = np.where(binary_y == 0)[0]
+            positives = np.where(binary_y == 1)[0]
+
+            negatives = list(random.sample(set(negatives), positives.shape[0]))
+            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+            X_train = X_train[undersampled_dataset]
+            y_train = y_train[undersampled_dataset]
+
+            n_activatons = positives.shape[0]
+            on_examples = n_activatons / y_train.shape[0]
+            off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
+
+            if( self.verbose != 0):
+                print("Nº of examples ", str(X_train.shape[0]))
+                print("Nº of activations for training: ", str(n_activatons))
+                print("On Percentage: ", str(on_examples))
+                print("Off Percentage: ", str(off_examples))
+                print("Mains Mean: ", str(self.mains_mean))
+                print("Mains Std: ", str(self.mains_std))
+                print(app_name + " Mean: ", str(app_mean))
+                print(app_name + " Std: ", str(app_std))
+
+            if self.verbose != 0:
+                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+            
+            if app_name in self.model:
+                print("Starting from previous step")
+                model = self.model[app_name]
+            else:
+                if transfer_path is None:
+                    print("Creating new model")
+                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))       
+                else:
+                    print("Starting from pre-trained model")
+                    model = self.create_transfer_model(transfer_path, (X_train.shape[1], X_train.shape[2]), n_nodes)
+
+            checkpoint = ModelCheckpoint(
+                            self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
+                            monitor='val_loss', 
+                            verbose=1, 
+                            save_best_only=True, 
+                            mode='min'
+                            )
+
+            #Fits the model to the training data.
+            history = model.fit( X_train, 
+                    y_train, 
+                    epochs=epochs, 
+                    batch_size=batch_size, 
+                    verbose=self.verbose, 
+                    shuffle=False,
+                    callbacks=[checkpoint],
+                    validation_split=self.cv,
+                    )
+
+            history = json.dumps(history.history)
+
+            if self.training_history_folder is not None:
+                f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
+                f.write(history)
+                f.close()
+
+            if self.plots_folder is not None:
+                utils.create_path(self.plots_folder + "/" + app_name + "/")
+                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
+
+            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
+            
+            #Stores the trained model.
+            self.model[app_name] = model
+
+            #Gets the trainning data score
+            pred = self.model[app_name].predict(X_train) * app_std + app_mean
+
+            train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
+            train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
+
+            if self.verbose == 2:
+                print("Training scores")    
+                print("RMSE: ", train_rmse )
+                print("MAE: ", train_mae )
+            
+            if self.results_folder is not None:
+                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
+                f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
+                f.write("Nº of activations for training: " + str(n_activatons) + "\n")
+                f.write("On Percentage: " + str(on_examples) + "\n")
+                f.write("Off Percentage: " + str(off_examples) + "\n")
+                f.write("Mains Mean: " + str(self.mains_mean) + "\n")
+                f.write("Mains Std: " + str(self.mains_std) + "\n")
+                f.write(app_name + " Mean: " + str(app_mean) + "\n")
+                f.write(app_name + " Std: " + str(app_std) + "\n")
+                f.write("Train RMSE: "+str(train_rmse)+ "\n")
+                f.write("Train MAE: "+str(train_mae)+ "\n")
+                f.close()
+
             
     def disaggregate_chunk(self, test_mains):
 
@@ -249,39 +256,37 @@ class DeepGRU():
             self.model[app.split(".")[0]] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
-        input = Input(input_shape)
-        #Block 1
-        gru1 = GRU(n_nodes, return_sequences=True)(input)
-        #Block 2
-        gru2 = GRU(n_nodes*2, return_sequences=True)(gru1)
-        #Block 3
-        gru3 = GRU(n_nodes*2, return_sequences=True)(gru2)
-        #Block 4
-        gru4 = GRU(n_nodes)(gru3)
-        #Dense Layers
-        dense1 = Dense(int(n_nodes*2), activation='relu')(gru4)
-        drop1 = Dropout(0.5)(dense1)
-        #Classification Layer
-        output = Dense(1)(drop1)
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(GRU(n_nodes, return_sequences=True))
+        model.add(GRU(n_nodes*2, return_sequences=True))
+        model.add(GRU(n_nodes*2, return_sequences=True))
+        model.add(GRU(n_nodes))
+        model.add(Dense(int(n_nodes*2), activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1))
 
-        model = Model(inputs=input, outputs=output)
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
-    def create_transfer_model(self, transfer_path, input_shape):
-        trained_model = load_model(transfer_path)
-        trained_model.layers.pop(0)
-        trained_model.layers.pop(-1)
-        for layer in trained_model.layers:
-            layer.trainable = False
-
-        new_input = Input(input_shape)
-        freezed_layers = trained_model(new_input)
-        new_output = Dense(1)(freezed_layers)
-
-        model = Model(inputs=new_input, outputs=new_output)
+    def create_transfer_model(self, transfer_path, input_shape, n_nodes=90):
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(GRU(n_nodes, return_sequences=True))
+        model.add(GRU(n_nodes*2, return_sequences=True))
+        model.add(GRU(n_nodes*2, return_sequences=True))
+        model.add(GRU(n_nodes))
         
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+        
+        model.add(Dense(int(n_nodes*2), activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1))
+
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model

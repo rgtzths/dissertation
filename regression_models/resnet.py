@@ -145,7 +145,7 @@ class ResNet():
                     model = self.create_model(n_nodes, X_train.shape[1:])
                 else:
                     print("Starting from pre-trained model")
-                    model = self.create_transfer_model(transfer_path, X_train.shape[1:])
+                    model = self.create_transfer_model(transfer_path, X_train.shape[1:], n_nodes)
                 
             reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
 
@@ -323,13 +323,9 @@ class ResNet():
         
         # FINAL
 
-        full = keras.layers.Flatten()(output_block_3)
+        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
 
-        drop3 = keras.layers.Dropout(0.5)(full)
-
-        dense = keras.layers.Dense(1024, activation='relu')(drop3)
-
-        output_layer = keras.layers.Dense(1)(dense)
+        output_layer = keras.layers.Dense(1)(full)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -337,18 +333,82 @@ class ResNet():
 
         return model
 
-    def create_transfer_model(self, transfer_path, input_shape):
-        trained_model = load_model(transfer_path)
-        trained_model.layers.pop(0)
-        trained_model.layers.pop(-1)
-        for layer in trained_model.layers:
+    def create_transfer_model(self, transfer_path, input_shape, n_nodes=32):
+        
+        input_layer = keras.layers.Input(input_shape)
+
+        # BLOCK 1
+        conv_x = keras.layers.BatchNormalization()(input_layer)
+        conv_x = keras.layers.Conv2D(n_nodes, 8, 1, padding='same')(input_layer)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(n_nodes, 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(n_nodes, 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        # expand channels for the sum
+        shortcut_y = keras.layers.Conv2D(n_nodes, 1, 1, padding='same')(input_layer)
+        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+
+        output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_1 = keras.layers.Activation('relu')(output_block_1)
+
+        drop1 = keras.layers.Dropout(0.5)(output_block_1)
+
+        # BLOCK 2
+        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(n_nodes * 2, 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(n_nodes * 2, 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        # expand channels for the sum
+        shortcut_y = keras.layers.Conv2D(n_nodes * 2, 1, 1, padding='same')(output_block_1)
+        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+
+        output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_2 = keras.layers.Activation('relu')(output_block_2)
+        
+        drop2 = keras.layers.Dropout(0.5)(output_block_2)
+        # BLOCK 3
+
+        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(int(n_nodes * 2), 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(int(n_nodes * 2), 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
+
+        output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_3 = keras.layers.Activation('relu')(output_block_3)
+        
+        # FINAL
+
+        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
+
+        new_output_layer = keras.layers.Dense(1, name="new_output")(full)
+
+        model = keras.models.Model(inputs=input_layer, outputs=new_output_layer)
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers[0:-1]:
             layer.trainable = False
-
-        new_input = keras.layers.Input(input_shape)
-        freezed_layers = trained_model(new_input)
-        new_output = keras.layers.Dense(1)(freezed_layers)
-
-        model = keras.models.Model(inputs=new_input, outputs=new_output)
         
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 

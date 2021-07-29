@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Conv1D, Dense, Dropout, Reshape, Flatten
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
+from tensorflow.keras.models import Sequential, load_model
 import random
+import os
 
-from sklearn.model_selection import train_test_split
 import json
 #import sys
 #sys.path.insert(1, "../utils")
@@ -31,15 +31,16 @@ class Seq2Point(Disaggregator):
 
         self.MODEL_NAME = "Seq2Point"
         self.models = OrderedDict()
-        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
+        self.file_prefix = params.get('file_prefix', "")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10 )
         self.batch_size = params.get('batch_size',512)
         self.appliance_params = params.get('appliance_params',{})
-        self.mains_mean = params.get('mains_mean',1800)
-        self.mains_std = params.get('mains_std',600)
+        self.mains_mean = params.get('mains_mean',None)
+        self.mains_std = params.get('mains_std',None)
         self.on_treshold = params.get('on_treshold', 50)
+        self.appliances = params.get('appliances', {})
 
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
@@ -48,6 +49,7 @@ class Seq2Point(Disaggregator):
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
+
         self.plots_folder = params.get("plots_folder", None)
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
@@ -56,6 +58,8 @@ class Seq2Point(Disaggregator):
         # If no appliance wise parameters are provided, then copmute them using the first chunk
         if len(self.appliance_params) == 0:
             self.set_appliance_params(train_appliances)
+        if self.mains_mean is None:
+            self.set_mains_params(train_main)
 
         print("...............Seq2Point partial_fit running...............")
         # Do the pre-processing, such as  windowing and normalizing
@@ -73,10 +77,18 @@ class Seq2Point(Disaggregator):
         train_appliances = new_train_appliances
 
         for appliance_name, power in train_appliances:
+
+            appliance_model = self.appliances.get(appliance_name, {})
+            transfer_path = appliance_model.get("transfer_path", None)
+
             # Check if the appliance was already trained. If not then create a new model for it
             if appliance_name not in self.models:
-                print("First model training for", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                if transfer_path is not None:
+                    print("Using transfer learning for ", appliance_name)
+                    self.models[appliance_name] = self.create_transfer_model(transfer_path)
+                else:
+                    print("First model training for", appliance_name)
+                    self.models[appliance_name] = self.return_network()
             # Retrain the particular appliance
             else:
                 print("Started Retraining model for", appliance_name)
@@ -86,10 +98,8 @@ class Seq2Point(Disaggregator):
                 # Sometimes chunks can be empty after dropping NANS
                 if len(train_main) > 10:
                     # Do validation when you have sufficient samples
-                    filepath = self.file_prefix + "-{}-epoch{}.h5".format(
-                            "_".join(appliance_name.split()),
-                            current_epoch,
-                    )
+                    filepath = self.file_prefix + "{}.h5".format("_".join(appliance_name.split()))
+
                     checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
                     
                     app_mean = self.appliance_params[app_name]['mean']
@@ -127,7 +137,11 @@ class Seq2Point(Disaggregator):
                         utils.create_path(self.plots_folder + "/" + app_name + "/")
                         plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
-                    
+    def save_model(self, save_model_path):
+        for appliance_name in self.models:
+            print ("Saving model for ", appliance_name)
+            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
+
     def disaggregate_chunk(self,test_main_list,model=None,do_preprocessing=True):
         if model is not None:
             self.models = model
@@ -167,7 +181,34 @@ class Seq2Point(Disaggregator):
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(.2))
         model.add(Dense(1))
+        
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+        
+        return model
+
+    def create_transfer_model(self, transfer_path):
+        # Model architecture
+        model = Sequential()
+        model.add(Conv1D(30,10,activation="relu",input_shape=(self.sequence_length,1),strides=1))
+        model.add(Conv1D(30, 8, activation='relu', strides=1))
+        model.add(Conv1D(40, 6, activation='relu', strides=1))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Flatten())
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+        
+        model.add(Dense(1024, activation='relu'))
+        model.add(Dropout(.2))
+        model.add(Dense(1))
+        
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
         return model
 
     def call_preprocessing(self, mains_lst, submeters_lst, method):
@@ -228,3 +269,8 @@ class Seq2Point(Disaggregator):
                 app_std = 100
             self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
         print (self.appliance_params)
+
+    def set_mains_params(self, train_mains):
+        l = np.array(pd.concat(train_mains, axis=0))
+        self.mains_mean = np.mean(l, axis=0)
+        self.mains_std = np.std(l, axis=0)
