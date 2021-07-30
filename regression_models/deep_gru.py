@@ -95,16 +95,20 @@ class DeepGRU():
                 on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
 
                 if self.mains_mean is None:
-                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap)
+                    X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
                 else:
-                    X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                    X_train = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                    X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
 
                 if app_mean is None:
-                    y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                    y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap)
+                    y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
                     appliance_model["mean"] = app_mean
                     appliance_model["std"] = app_std
                 else:
-                    y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                    y_train = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                    y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
                 binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
                 
@@ -121,6 +125,18 @@ class DeepGRU():
                 on_examples = n_activatons / y_train.shape[0]
                 off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
 
+                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
+                
+                negatives = np.where(binary_y == 0)[0]
+                positives = np.where(binary_y == 1)[0]
+
+                negatives = list(random.sample(set(negatives), positives.shape[0]))
+                undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+                #X_cv = X_cv[undersampled_dataset]
+                #y_cv = y_cv[undersampled_dataset]
+
+                
                 if( self.verbose != 0):
                     print("Nº of examples ", str(X_train.shape[0]))
                     print("Nº of activations for training: ", str(n_activatons))
@@ -139,7 +155,7 @@ class DeepGRU():
                 checkpoint = ModelCheckpoint(
                                 self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                                 monitor='val_loss', 
-                                verbose=self.verbose, 
+                                verbose=1, 
                                 save_best_only=True, 
                                 mode='min'
                                 )
@@ -149,10 +165,10 @@ class DeepGRU():
                         y_train, 
                         epochs=epochs, 
                         batch_size=batch_size, 
-                        verbose=self.verbose, 
+                        verbose=1, 
                         shuffle=False,
                         callbacks=[checkpoint],
-                        validation_split=self.cv,
+                        validation_data=(X_cv, y_cv),
                         )
 
                 history = json.dumps(history.history)
@@ -257,12 +273,13 @@ class DeepGRU():
         #Block 3
         gru3 = GRU(n_nodes*2, return_sequences=True)(gru2)
         #Block 4
-        gru4 = GRU(n_nodes)(gru3)
-        #Dense Layers
-        dense1 = Dense(int(n_nodes*2), activation='relu')(gru4)
-        drop1 = Dropout(0.5)(dense1)
+        gru4 = GRU(n_nodes*2)(gru3)
+
+        #Dense Layers Voltar a adicionar(faz sentido)
+        dense1 = Dense(n_nodes*2, activation='relu')(gru4)
+        
         #Classification Layer
-        output = Dense(1)(drop1)
+        output = Dense(1)(dense1)
 
         model = Model(inputs=input, outputs=output)
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')

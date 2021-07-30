@@ -101,16 +101,20 @@ class MLP():
             transfer_path = appliance_model.get("transfer_path", None)
 
             if self.mains_mean is None:
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap)
+                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
             else:
-                X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
-            
+                X_train = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+
             if app_mean is None:
-                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap)
+                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
                 appliance_model["mean"] = app_mean
                 appliance_model["std"] = app_std
             else:
-                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
             binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
             
@@ -127,13 +131,28 @@ class MLP():
             on_examples = n_activatons / y_train.shape[0]
             off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
 
+            binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
+                
+            negatives = np.where(binary_y == 0)[0]
+            positives = np.where(binary_y == 1)[0]
+
+            negatives = list(random.sample(set(negatives), positives.shape[0]))
+            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+            #X_cv = X_cv[undersampled_dataset]
+            #y_cv = y_cv[undersampled_dataset]
+
             if feature_extractor == "wt":
                 print("Using Discrete Wavelet Transforms as Features")
                 wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                mean = self.mains_mean
+                std = self.mains_std
                 X_train, self.mains_mean, self.mains_std = get_discrete_features(X_train*self.mains_std + self.mains_mean, len(train_mains[0].columns.values), wavelet)
+                X_cv = get_discrete_features(X_cv*std + mean, len(train_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
             else:
                 print("Using the Timeseries as Features")
                 X_train = X_train.reshape(X_train.shape[0], -1)
+                X_cv = X_cv.reshape(X_cv.shape[0], -1)
 
             if( self.verbose != 0):
                 print("Nº of examples ", str(X_train.shape[0]))
@@ -161,7 +180,7 @@ class MLP():
             checkpoint = ModelCheckpoint(
                     self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                     monitor='val_loss', 
-                    verbose=self.verbose, 
+                    verbose=1, 
                     save_best_only=True, 
                     mode='min'
             )
@@ -172,8 +191,8 @@ class MLP():
                     batch_size=batch_size,
                     shuffle=False,
                     callbacks=[checkpoint],
-                    validation_split=self.cv,
-                    verbose=self.verbose
+                    validation_data=(X_cv, y_cv),
+                    verbose=1
             )  
             
             history = json.dumps(history.history)
@@ -279,9 +298,9 @@ class MLP():
         #Creates a specific model.
         input_layer = Input(input_shape)
         dense1 = Dense(n_nodes, activation='relu')(input_layer)
-        dense2 = Dense(int(n_nodes/4), activation='relu')(dense1)
+        dense2 = Dense(int(n_nodes/8), activation='relu')(dense1)
         dense3 = Dense(n_nodes, activation='relu')(dense2)
-        dense4 = Dense(int(n_nodes/2), activation='relu')(dense3)
+        dense4 = Dense(int(n_nodes/8), activation='relu')(dense3)
         output_layer = Dense(1)(dense4)
         model = Model(inputs=input_layer, outputs=output_layer)
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')

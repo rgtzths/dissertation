@@ -94,18 +94,24 @@ class ResNet():
 
 
             if self.mains_mean is None:
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap)
+                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))
+                X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
             else:
-                X_train = generate_main_timeseries(train_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
-            
-            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))
+                X_train = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))
+                X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
 
             if app_mean is None:
-                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap)
+                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap)
+                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
                 appliance_model["mean"] = app_mean
                 appliance_model["std"] = app_std
             else:
-                y_train = generate_appliance_timeseries(appliance_power, False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
             binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
             
@@ -121,6 +127,18 @@ class ResNet():
             n_activatons = positives.shape[0]
             on_examples = n_activatons / y_train.shape[0]
             off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
+
+            binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
+                
+            negatives = np.where(binary_y == 0)[0]
+            positives = np.where(binary_y == 1)[0]
+
+            negatives = list(random.sample(set(negatives), positives.shape[0]))
+            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+
+            #X_cv = X_cv[undersampled_dataset]
+            #y_cv = y_cv[undersampled_dataset]
+
 
             if( self.verbose != 0):
                 print("Nº of examples ", str(X_train.shape[0]))
@@ -152,7 +170,7 @@ class ResNet():
             checkpoint = keras.callbacks.ModelCheckpoint(
                             self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                             monitor='val_loss', 
-                            verbose=self.verbose, 
+                            verbose=1, 
                             save_best_only=True, 
                             mode='min'
                             )
@@ -163,8 +181,8 @@ class ResNet():
                     batch_size=batch_size,
                     shuffle=False,
                     callbacks=[reduce_lr, checkpoint],
-                    validation_split=self.cv,
-                    verbose=self.verbose
+                    validation_data=(X_cv, y_cv),
+                    verbose=1
                     )         
 
             history = str(history.history).replace("'", "\"")
@@ -281,10 +299,10 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        drop1 = keras.layers.Dropout(0.5)(output_block_1)
+        #drop1 = keras.layers.Dropout(0.5)(output_block_1)
 
         # BLOCK 2
-        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
+        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(output_block_1)#(drop1)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
@@ -302,10 +320,10 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        drop2 = keras.layers.Dropout(0.5)(output_block_2)
+        #drop2 = keras.layers.Dropout(0.5)(output_block_2)
         # BLOCK 3
 
-        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
+        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(output_block_2)#(drop2)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
@@ -323,13 +341,9 @@ class ResNet():
         
         # FINAL
 
-        full = keras.layers.Flatten()(output_block_3)
-
-        drop3 = keras.layers.Dropout(0.5)(full)
-
-        dense = keras.layers.Dense(1024, activation='relu')(drop3)
-
-        output_layer = keras.layers.Dense(1)(dense)
+        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
+        ##Add dense layer with 32/64 nodes
+        output_layer = keras.layers.Dense(1)(full)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 

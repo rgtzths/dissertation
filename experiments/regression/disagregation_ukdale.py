@@ -19,7 +19,7 @@ from mlp_dwt import MLP
 base_path= "/home/rteixeira/soa_results/"
 #base_path = "/home/user/article_results/"
 #base_path = "/home/atnoguser/article_results/"
-epochs = 500
+epochs = 300
 timestep = 6
 timewindow = 299 * timestep
 overlap = timewindow - timestep
@@ -30,59 +30,59 @@ fridge = {
     'sample_rate': timestep,
     'appliances': ['fridge'],
     'methods': {
-        'DAE':DAE({
-            'n_epochs':epochs,
-            'batch_size' : 512,
-            'sequence_length':299,
-            "training_history_folder" : base_path + "history/DAE/",
-            "plots_folder" : base_path + "plots/DAE/",
-            "file_prefix" : base_path + "models/DAE/",
-            "mains_mean" : 594.9043,
-            "mains_std" : 513.311,
-            "on_threshold" : 50
-        }),
-        'Seq2Point':Seq2Point({
-            'n_epochs':epochs,
-            'batch_size' : 512,
-            'sequence_length':299,
-            "training_history_folder" : base_path + "history/Seq2Point/",
-            "plots_folder" : base_path + "plots/Seq2Point/",
-            "file_prefix" : base_path + "models/Seq2Point/",
-            "mains_mean" : 594.9043,
-            "mains_std" : 513.311,
-            "on_threshold" : 50
-        }),
-        'Seq2Seq':Seq2Seq({
-            'n_epochs':epochs,
-            'batch_size' : 512,
-            'sequence_length':299,
-            "training_history_folder" : base_path + "history/Seq2Seq/",
-            "plots_folder" : base_path + "plots/Seq2Seq/",
-            "file_prefix" : base_path + "models/Seq2Seq/",
-            "mains_mean" : 594.9043,
-            "mains_std" : 513.311,
-            "on_threshold" : 50
-        }),
-        "ResNet" : ResNet( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/ResNet/",
-            "results_folder" : base_path + "results/ResNet/",
-            "checkpoint_folder" : base_path + "models/ResNet/",
-            "plots_folder" : base_path + "plots/ResNet/",
-            #"load_model_folder" : base_path + "models/ResNet/",
-            "appliances" : {
-                "fridge" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' :  overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 512,
-                    'n_nodes' : 64,
-                    'on_treshold' : 50
-                }
-            },
-            "predicted_column": ("power", "active"),
-        }),
+        #'DAE':DAE({
+        #    'n_epochs':100,
+        #    'batch_size' : 512,
+        #    'sequence_length':299,
+        #    "training_history_folder" : base_path + "history/DAE/",
+        #    "plots_folder" : base_path + "plots/DAE/",
+        #    "file_prefix" : base_path + "models/DAE/",
+        #    "mains_mean" : 594.9043,
+        #    "mains_std" : 513.311,
+        #    "on_threshold" : 50
+        #}),
+        #'Seq2Point':Seq2Point({
+        #    'n_epochs':epochs,
+        #    'batch_size' : 512,
+        #    'sequence_length':299,
+        #    "training_history_folder" : base_path + "history/Seq2Point/",
+        #    "plots_folder" : base_path + "plots/Seq2Point/",
+        #    "file_prefix" : base_path + "models/Seq2Point/",
+        #    "mains_mean" : 594.9043,
+        #    "mains_std" : 513.311,
+        #    "on_threshold" : 50
+        #}),
+        #'Seq2Seq':Seq2Seq({
+        #    'n_epochs':epochs,
+        #    'batch_size' : 512,
+        #    'sequence_length':299,
+        #    "training_history_folder" : base_path + "history/Seq2Seq/",
+        #    "plots_folder" : base_path + "plots/Seq2Seq/",
+        #    "file_prefix" : base_path + "models/Seq2Seq/",
+        #    "mains_mean" : 594.9043,
+        #    "mains_std" : 513.311,
+        #    "on_threshold" : 50
+        #}),
+        #"ResNet" : ResNet( {
+        #    "verbose" : 2,
+        #    "training_history_folder" : base_path + "history/ResNet/",
+        #    "results_folder" : base_path + "results/ResNet/",
+        #    "checkpoint_folder" : base_path + "models/ResNet/",
+        #    "plots_folder" : base_path + "plots/ResNet/",
+        #    #"load_model_folder" : base_path + "models/ResNet/",
+        #    "appliances" : {
+        #        "fridge" : {
+        #            'timewindow' : timewindow,
+        #            'timestep' : timestep,
+        #            'overlap' :  overlap,
+        #            'epochs' : epochs,
+        #            'batch_size' : 512,
+        #            'n_nodes' : 32 ,
+        #            'on_treshold' : 50
+        #        }
+        #    },
+        #    "predicted_column": ("power", "active"),
+        #}),
         "DeepGRU" : DeepGRU({
             'verbose' : 2,
             "training_history_folder" : base_path + "history/DeepGRU/",
@@ -95,35 +95,35 @@ fridge = {
                     'timewindow' : timewindow,
                     'timestep' : timestep,
                     'overlap' :  overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 512,
-                    'n_nodes' : 128,
+                    'epochs' : 100,
+                    'batch_size' : 256,
+                    'n_nodes' : 64,
                     'on_treshold' : 50
                 }
             },
             "predicted_column": ("power", "active"),
         }),
-        "MLP" : MLP( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/MLP/",
-            "results_folder" : base_path + "results/MLP/",
-            "checkpoint_folder" : base_path + "models/MLP/",
-            "plots_folder" : base_path + "plots/MLP/",
-            #"load_model_folder" : base_path + "models/MLP/",
-            "appliances" : {
-                "fridge" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' :  overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 512,
-                    'feature_extractor' : "wt",
-                    'on_treshold' : 50,
-                    "n_nodes":2048,
-                }
-            },
-            "predicted_column": ("power", "active"), 
-        }),
+        #"MLP" : MLP( {
+        #    "verbose" : 2,
+        #    "training_history_folder" : base_path + "history/MLP/",
+        #    "results_folder" : base_path + "results/MLP/",
+        #    "checkpoint_folder" : base_path + "models/MLP/",
+        #    "plots_folder" : base_path + "plots/MLP/",
+        #    #"load_model_folder" : base_path + "models/MLP/",
+        #    "appliances" : {
+        #        "fridge" : {
+        #            'timewindow' : timewindow,
+        #            'timestep' : timestep,
+        #            'overlap' :  overlap,
+        #            'epochs' : epochs,
+        #            'batch_size' : 512,
+        #            'feature_extractor' : "wt",
+        #            'on_treshold' : 50,
+        #            "n_nodes":512,
+        #        }
+        #    },
+        #    "predicted_column": ("power", "active"), 
+        #}),
     },
     'train': {    
         'datasets': {
@@ -132,12 +132,25 @@ fridge = {
                 'buildings': {
                     1: {
                         'start_time': "2013-06-01",
-                        'end_time': "2013-06-15",
+                        'end_time': "2013-06-07",
                     },
-                    2: {
-                        'start_time': "2013-06-15",
-                        'end_time': "2013-07-01",
-                    }           
+                    #2: {
+                    #    'start_time': "2013-06-15",
+                    #    'end_time': "2013-07-01",
+                    #}           
+                }
+            },
+            'UKDale2': {
+                'path': '../../../datasets/ukdale/ukdale.h5',
+                'buildings': {
+                    1: {
+                        'start_time': "2013-06-07",
+                        'end_time': "2013-06-14",
+                    },
+                    #2: {
+                    #    'start_time': "2013-06-15",
+                    #    'end_time': "2013-07-01",
+                    #}           
                 }
             },
         }
@@ -210,7 +223,7 @@ microwave = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 64,
+                    'n_nodes' : 32 ,
                     'on_treshold' : 200
                 }
             },
@@ -230,7 +243,7 @@ microwave = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 128,
+                    'n_nodes' : 256,
                     'on_treshold' : 200
                 }
             },
@@ -252,7 +265,7 @@ microwave = {
                     'batch_size' : 512,
                     'feature_extractor' : "wt",
                     'on_treshold' : 200,
-                    "n_nodes":2048,
+                    "n_nodes":512,
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -343,7 +356,7 @@ dish_washer = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 64,
+                    'n_nodes' : 32 ,
                     "on_threshold" : 50
                 }
             },
@@ -363,7 +376,7 @@ dish_washer = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 128,
+                    'n_nodes' : 256,
                     'on_treshold' : 50
                 }
             },
@@ -385,7 +398,7 @@ dish_washer = {
                     'batch_size' : 512,
                     'feature_extractor' : "wt",
                     'on_treshold' : 50,
-                    "n_nodes":2048,
+                    "n_nodes":512,
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -474,9 +487,9 @@ kettle = {
                     'timewindow' : timewindow,
                     'timestep' : timestep,
                     'overlap' :  overlap,
-                    'epochs' : epochs,
+                    'epochs' : 100,
                     'batch_size' : 512,
-                    'n_nodes' : 64,
+                    'n_nodes' : 54 ,
                     'on_treshold' : 2000
                 }
             },
@@ -494,8 +507,8 @@ kettle = {
                     'timewindow' : timewindow,
                     'timestep' : timestep,
                     'overlap' :  overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 512,
+                    'epochs' : 100,
+                    'batch_size' : 256,
                     'n_nodes' : 128,
                     'on_treshold' : 2000,
                 }
@@ -514,11 +527,11 @@ kettle = {
                     'timewindow' : timewindow,
                     'timestep' : timestep,
                     'overlap' :  overlap,
-                    'epochs' : epochs,
+                    'epochs' : 100,
                     'batch_size' : 512,
                     'feature_extractor' : "wt",
                     'on_treshold' : 2000,
-                    "n_nodes":2048,
+                    "n_nodes":1024,
                 }
             },
             "predicted_column": ("power", "active"), 
@@ -529,12 +542,21 @@ kettle = {
             'UKDale': {
                 'path': '../../../datasets/ukdale/ukdale.h5',
                 'buildings': {
-                    3: {
-                        'start_time': "2013-03-01",
-                        'end_time' : "2013-04-09"
-                    },
+                    #3: {
+                    #    'start_time': "2013-03-01",
+                    #    'end_time' : "2013-04-09"
+                    #},
                     2: {
                         'start_time': "2013-04-17",
+                        'end_time': "2013-09-09",
+                    },             
+                }
+            },
+            'UKDale2': {
+                'path': '../../../datasets/ukdale/ukdale.h5',
+                'buildings': {
+                    2: {
+                        'start_time': "2013-09-09",
                         'end_time': "2013-10-09",
                     },             
                 }
@@ -610,7 +632,7 @@ washing_machine = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 64,
+                    'n_nodes' : 32 ,
                     'on_treshold' : 50
                 }
             },
@@ -630,7 +652,7 @@ washing_machine = {
                     'overlap' :  overlap,
                     'epochs' : epochs,
                     'batch_size' : 512,
-                    'n_nodes' : 128,
+                    'n_nodes' : 256,
                     'on_treshold' : 50
                 }
             },
@@ -652,7 +674,7 @@ washing_machine = {
                     'batch_size' : 512,
                     'feature_extractor' : "wt",
                     'on_treshold' : 50,
-                    "n_nodes":2048
+                    "n_nodes":512
                 }
             },
             "predicted_column": ("power", "active"), 
