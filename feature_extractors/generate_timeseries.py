@@ -9,17 +9,17 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap, mains_mean=None
     Parameters
     ----------
     dfs : array of dataframes
-        dataframes of format timestamp : value to be used during classification.
-    is_test : boolean
-        Defines if the data is to be used during training or testing
-        If true the overlap is ignored and the overlap becomes equal to the lenght of the
-        feature vector -2.
+        dataframes with the aggregated readings.
     timewindow : int
-        Time gap covered by each feature vector in seconds
+        Size of the window in seconds covered by each feature vector
     timestep : int
         Time between each reading in seconds
     overlap : int
         Time overlaping between each reading in seconds
+    mains_mean : double
+        Mean used for normalization of the mains readings
+    mains_std : double
+        Standard deviation used for normalization of the mains readings
     Returns
     -------
     Numpy array of feature vectors
@@ -64,11 +64,19 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
     Parameters
     ----------
     dfs : array of dataframes
-        dataframes of format timestamp : value to be used during classification.
+        dataframes with appliance readings
+    is_classification: boolean
+        Indicates if is classification [0 or 1 for ON/OFF] or regression [real values]
     timewindow : int
-        Time gap covered by each feature vector in min
+        Size of the window in seconds covered by each feature vector
     timestep : int
         Time between each reading in seconds
+    overlap : int
+        Time overlaping between each reading in seconds
+    app_mean : double
+        Mean used for normalization of the appliance readings
+    app_std : double
+        Standard deviation used for normalization of the appliance readings
     Returns
     -------
     Numpy array of feature vectors

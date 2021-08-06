@@ -6,8 +6,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
 import random
-
-from sklearn.model_selection import train_test_split
+import os 
 
 import json
 #import sys
@@ -28,16 +27,18 @@ class Seq2Seq(Disaggregator):
     def __init__(self, params):
 
         self.MODEL_NAME = "Seq2Seq"
-        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
+        self.file_prefix = params.get('file_prefix', "")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
         self.models = OrderedDict()
-        self.mains_mean = 1800
-        self.mains_std = 600
+        self.mains_mean = params.get('mains_mean',None)
+        self.mains_std = params.get('mains_std',None)
         self.batch_size = params.get('batch_size',512)
-        self.on_treshold = params.get('on_treshold', 50)
         self.appliance_params = params.get('appliance_params',{})
+        self.on_treshold = params.get('on_treshold', 50)
+        self.appliances = params.get('appliances', {})
+
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
             raise (SequenceLengthError)
@@ -45,89 +46,93 @@ class Seq2Seq(Disaggregator):
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
+
         self.plots_folder = params.get("plots_folder", None)
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
 
-    def partial_fit(self, train_main, train_appliances, do_preprocessing=True, current_epoch=0, **load_kwargs):
+    def partial_fit(self, train_data, cv_data=None, do_preprocessing=True, current_epoch=0, **load_kwargs):
         print("...............Seq2Seq partial_fit running...............")
         if len(self.appliance_params) == 0:
-            self.set_appliance_params(train_appliances)
+            self.set_appliance_params(train_data)
 
-        if do_preprocessing:
-            train_main, train_appliances = self.call_preprocessing(
-                train_main, train_appliances, 'train')
+        if self.mains_mean is None:
+            self.set_mains_params(list(train_data.values())[0]["mains"])
 
-        train_main = pd.concat(train_main, axis=0)
-        train_main = train_main.values.reshape((-1, self.sequence_length, 1))
-        new_train_appliances = []
-        for app_name, app_dfs in train_appliances:
-            app_df = pd.concat(app_dfs, axis=0)
-            app_df_values = app_df.values.reshape((-1, self.sequence_length))
-            new_train_appliances.append((app_name, app_df_values))
+        for appliance_name, data in train_data.items():
 
-        train_appliances = new_train_appliances
-        for appliance_name, power in train_appliances:
+            if do_preprocessing:
+                train_main, train_appliance = self.call_preprocessing(data["mains"], data["appliance"], appliance_name, 'train')
+
+            train_main = pd.concat(train_main, axis=0).values.reshape((-1, self.sequence_length, 1))
+            train_appliance = pd.concat(train_appliance, axis=0).values.reshape((-1, self.sequence_length))
+
+            if cv_data is not None:
+                if do_preprocessing:
+                    print("Preprocessing")
+                    cv_main, cv_appliance = self.call_preprocessing(cv_data[appliance_name]["mains"], cv_data[appliance_name]["appliance"], appliance_name, 'train')
+                
+                cv_main = pd.concat(cv_main, axis=0).values.reshape((-1,self.sequence_length,1))
+                cv_appliance = pd.concat(cv_appliance, axis=0).values.reshape((-1, self.sequence_length))
+
+            appliance_model = self.appliances.get(appliance_name, {})
+            transfer_path = appliance_model.get("transfer_path", None)
+
             if appliance_name not in self.models:
-                print("First model training for ", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                if transfer_path is not None:
+                    print("Using transfer learning for ", appliance_name)
+                    self.models[appliance_name] = self.create_transfer_model(transfer_path)
+                else:
+                    print("First model training for", appliance_name)
+                    self.models[appliance_name] = self.return_network()
             else:
                 print("Started Retraining model for ", appliance_name)
 
             model = self.models[appliance_name]
-            if train_main.size > 0:
-                # Sometimes chunks can be empty after dropping NANS
-                if len(train_main) > 10:
-                    # Do validation when you have sufficient samples
-                    filepath = self.file_prefix + "-{}-epoch{}.h5".format(
-                            "_".join(appliance_name.split()),
-                            current_epoch,
+
+            filepath = self.file_prefix + "{}.h5".format("_".join(appliance_name.split()))
+
+            checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
+
+            if cv_data is not None:
+                history = model.fit(train_main, 
+                        train_appliance,
+                        epochs=self.n_epochs, 
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        callbacks=[checkpoint],
+                        validation_data=(cv_main, cv_appliance),
+                        verbose=1
+                        )        
+            else:
+                history = model.fit(train_main, 
+                    train_appliance,
+                    epochs=self.n_epochs, 
+                    batch_size=self.batch_size,
+                    shuffle=False,
+                    callbacks=[checkpoint],
+                    validation_split=0.15,
+                    verbose=1
                     )
-                    checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
 
-                    app_mean = self.appliance_params[app_name]['mean']
-                    app_std = self.appliance_params[app_name]['std']
+            model.load_weights(filepath)
 
-                    binary_y = np.array([ 1 if x > self.on_treshold else 0 for x in (power[:, -1]*app_std) + app_mean])
-                    
-                    negatives = np.where(binary_y == 0)[0]
-                    positives = np.where(binary_y == 1)[0]
+            history = json.dumps(history.history)
+            
+            if self.training_history_folder is not None:
+                f = open(self.training_history_folder + "history_"+appliance_name.replace(" ", "_")+".json", "w")
+                f.write(history)
+                f.close()
 
-                    negatives = list(random.sample(set(negatives), positives.shape[0]))
-                    undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
-
-                    train_main = train_main[undersampled_dataset]
-                    power = power[undersampled_dataset]
-
-                    history = model.fit(
-                            train_main, power,
-                            validation_split=0.15,
-                            epochs=self.n_epochs,
-                            batch_size=self.batch_size,
-                            callbacks=[ checkpoint ],
-                            shuffle=False,
-                    )
-                    model.load_weights(filepath)
-
-                    history = json.dumps(history.history)
-                    
-                    if self.training_history_folder is not None:
-                        f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                        f.write(history)
-                        f.close()
-
-                    if self.plots_folder is not None:
-                        utils.create_path(self.plots_folder + "/" + app_name + "/")
-                        plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
+            if self.plots_folder is not None:
+                utils.create_path(self.plots_folder + "/" + appliance_name + "/")
+                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + appliance_name + "/")
 
                     
-    def disaggregate_chunk(self,test_main_list,model=None,do_preprocessing=True):
-        if model is not None:
-            self.models = model
+    def disaggregate_chunk(self, test_mains, appliance_name, do_preprocessing=True):
 
         if do_preprocessing:
-            test_main_list = self.call_preprocessing(
-                test_main_list, submeters_lst=None, method='test')
+            test_main_list = self.call_preprocessing(test_mains, app_df_list=None, appliance_name=None, method='test')
 
         test_predictions = []
         for test_mains_df in test_main_list:
@@ -135,39 +140,41 @@ class Seq2Seq(Disaggregator):
             disggregation_dict = {}
             test_main_array = test_mains_df.values.reshape((-1, self.sequence_length, 1))
 
-            for appliance in self.models:
+            prediction = []
+            model = self.models[appliance_name]
+            prediction = model.predict(test_main_array ,batch_size=self.batch_size)
 
-                prediction = []
-                model = self.models[appliance]
-                prediction = model.predict(test_main_array ,batch_size=self.batch_size)
-
-                #####################
-                # This block is for creating the average of predictions over the different sequences
-                # the counts_arr keeps the number of times a particular timestamp has occured
-                # the sum_arr keeps the number of times a particular timestamp has occured
-                # the predictions are summed for  agiven time, and is divided by the number of times it has occured
+            #####################
+            # This block is for creating the average of predictions over the different sequences
+            # the counts_arr keeps the number of times a particular timestamp has occured
+            # the sum_arr keeps the number of times a particular timestamp has occured
+            # the predictions are summed for  agiven time, and is divided by the number of times it has occured
                 
-                l = self.sequence_length
-                n = len(prediction) + l - 1
-                sum_arr = np.zeros((n))
-                counts_arr = np.zeros((n))
-                o = len(sum_arr)
-                for i in range(len(prediction)):
-                    sum_arr[i:i + l] += prediction[i].flatten()
-                    counts_arr[i:i + l] += 1
-                for i in range(len(sum_arr)):
-                    sum_arr[i] = sum_arr[i] / counts_arr[i]
-
-                #################
-                prediction = self.appliance_params[appliance]['mean'] + (sum_arr * self.appliance_params[appliance]['std'])
-                valid_predictions = prediction.flatten()
-                valid_predictions = np.where(valid_predictions > 0, valid_predictions, 0)
-                df = pd.Series(valid_predictions)
-                disggregation_dict[appliance] = df
+            l = self.sequence_length
+            n = len(prediction) + l - 1
+            sum_arr = np.zeros((n))
+            counts_arr = np.zeros((n))
+            o = len(sum_arr)
+            for i in range(len(prediction)):
+                sum_arr[i:i + l] += prediction[i].flatten()
+                counts_arr[i:i + l] += 1
+            for i in range(len(sum_arr)):
+                sum_arr[i] = sum_arr[i] / counts_arr[i]
+            #################
+            prediction = self.appliance_params[appliance_name]['mean'] + (sum_arr * self.appliance_params[appliance_name]['std'])
+            valid_predictions = prediction.flatten()
+            valid_predictions = np.where(valid_predictions > 0, valid_predictions, 0)
+            df = pd.Series(valid_predictions)
+            disggregation_dict[appliance_name] = df
             results = pd.DataFrame(disggregation_dict, dtype='float32')
             test_predictions.append(results)
 
         return test_predictions
+    
+    def save_model(self, save_model_path):
+        for appliance_name in self.models:
+            print ("Saving model for ", appliance_name)
+            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
 
     def return_network(self):
 
@@ -187,8 +194,32 @@ class Seq2Seq(Disaggregator):
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
+    def create_transfer_model(self, transfer_path):
+        # Model architecture
+        model = Sequential()
+        model.add(Conv1D(30,10,activation="relu",input_shape=(self.sequence_length,1),strides=1))
+        model.add(Conv1D(30, 8, activation='relu', strides=2))
+        model.add(Conv1D(40, 6, activation='relu', strides=1))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Flatten())
 
-    def call_preprocessing(self, mains_lst, submeters_lst, method):
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+        
+        model.add(Dense(1024, activation='relu'))
+        model.add(Dropout(.2))
+        model.add(Dense(self.sequence_length))
+
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
+        return model
+
+    def call_preprocessing(self,  mains_lst, app_df_list, appliance_name, method):
 
         if method == 'train':            
             processed_mains_lst = []
@@ -200,32 +231,19 @@ class Seq2Seq(Disaggregator):
                 new_mains = np.array([new_mains[i:i + n] for i in range(len(new_mains) - n + 1)])
                 new_mains = (new_mains - self.mains_mean) / self.mains_std
                 processed_mains_lst.append(pd.DataFrame(new_mains))
-            #new_mains = pd.DataFrame(new_mains)
-            appliance_list = []
-            for app_index, (app_name, app_df_lst) in enumerate(submeters_lst):
+            
+            app_mean = self.appliance_params[appliance_name]['mean']
+            app_std = self.appliance_params[appliance_name]['std']
 
-                if app_name in self.appliance_params:
-                    app_mean = self.appliance_params[app_name]['mean']
-                    app_std = self.appliance_params[app_name]['std']
-                else:
-                    print ("Parameters for ", app_name ," were not found!")
-                    raise ApplianceNotFoundError()
+            processed_app_dfs = []
+            for app_df in app_df_list:                    
+                new_app_readings = app_df.values.flatten()
+                new_app_readings = np.pad(new_app_readings, (units_to_pad,units_to_pad),'constant',constant_values = (0,0))
+                new_app_readings = np.array([new_app_readings[i:i + n] for i in range(len(new_app_readings) - n + 1)])                    
+                new_app_readings = (new_app_readings - app_mean) / app_std
+                processed_app_dfs.append(pd.DataFrame(new_app_readings))
 
-
-                processed_app_dfs = []
-                for app_df in app_df_lst:                    
-                    new_app_readings = app_df.values.flatten()
-                    new_app_readings = np.pad(new_app_readings, (units_to_pad,units_to_pad),'constant',constant_values = (0,0))
-                    new_app_readings = np.array([new_app_readings[i:i + n] for i in range(len(new_app_readings) - n + 1)])                    
-                    new_app_readings = (new_app_readings - app_mean) / app_std  # /self.max_val
-                    processed_app_dfs.append(pd.DataFrame(new_app_readings))
-                    
-                    
-                appliance_list.append((app_name, processed_app_dfs))
-                #new_app_readings = np.array([ new_app_readings[i:i+n] for i in range(len(new_app_readings)-n+1) ])
-                #print (new_mains.shape, new_app_readings.shape, app_name)
-
-            return processed_mains_lst, appliance_list
+            return processed_mains_lst, processed_app_dfs
 
         else:
             processed_mains_lst = []
@@ -233,20 +251,25 @@ class Seq2Seq(Disaggregator):
                 new_mains = mains.values.flatten()
                 n = self.sequence_length
                 units_to_pad = n // 2
-                #new_mains = np.pad(new_mains, (units_to_pad,units_to_pad),'constant',constant_values = (0,0))
+                new_mains = np.pad(new_mains, (units_to_pad,units_to_pad),'constant',constant_values = (0,0))
                 new_mains = np.array([new_mains[i:i + n] for i in range(len(new_mains) - n + 1)])
                 new_mains = (new_mains - self.mains_mean) / self.mains_std
                 new_mains = new_mains.reshape((-1, self.sequence_length))
                 processed_mains_lst.append(pd.DataFrame(new_mains))
             return processed_mains_lst
 
-    def set_appliance_params(self,train_appliances):
+    def set_appliance_params(self, train_data):
 
-        for (app_name,df_list) in train_appliances:
-            l = np.array(pd.concat(df_list,axis=0))
+        for app_name, data in train_data.items:
+            l = np.array(pd.concat(data["appliance"],axis=0))
             app_mean = np.mean(l)
             app_std = np.std(l)
             if app_std<1:
                 app_std = 100
             self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
+
+    def set_mains_params(self, train_mains):
+        l = np.array(pd.concat(train_mains, axis=0))
+        self.mains_mean = np.mean(l, axis=0)
+        self.mains_std = np.std(l, axis=0)
 

@@ -1,10 +1,10 @@
 from nilmtk.api import API
 
 import sys
-sys.path.insert(1, "../../nilmtk-contrib")
-sys.path.insert(1, "../../regression_models")
-sys.path.insert(1, "../../utils")
-sys.path.insert(1, "../../feature_extractors")
+sys.path.insert(1, "../../../nilmtk-contrib")
+sys.path.insert(1, "../../../regression_models")
+sys.path.insert(1, "../../../utils")
+sys.path.insert(1, "../../../feature_extractors")
 
 from utils import create_path
 from dae import DAE
@@ -16,49 +16,40 @@ from resnet import ResNet
 from deep_gru import DeepGRU
 from mlp_dwt import MLP
 
-ukdale_dataset = '../../../datasets/ukdale/ukdale.h5'
-
 def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
     fridge = {
-        'power': {'mains': ['active'], 'appliance': ['active']},
+        'power': {'mains': ['active'],'appliance': ['active']},
         'sample_rate': timestep,
         'appliances': ['fridge'],
-        "use_activations" : True,
-        "appliances_params" : {
-            "fridge" : {
-                "min_off_time" : 12,
-                "min_on_time" : 60,
-                "number_of_activation_padding": 30,
-                "min_on_power" : 50
-            }
-        },
         'methods': {
-            #'DAE':DAE({
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
-            #'WindowGRU':WindowGRU({
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/WindowGRU/",
-            #    "plots_folder" : base_path + "plots/WindowGRU/",
-            #    "file_prefix" : base_path + "temp_weights/WindowGRU/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "on_threshold" : 200,
+                "appliances" : {
+                    "fridge" : {
+                        'transfer_path': base_path + "models/DAE/fridge.h5"
+                    }
+                },
+            }),
+            'WindowGRU':WindowGRU({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "on_threshold" : 200,
+                "appliances" : {
+                    "fridge" : {
+                        'transfer_path': base_path + "models/WindowGRU/fridge.h5"
+                    }
+                },
+            }),
             'Seq2Point':Seq2Point({
                 'n_epochs':epochs,
                 'batch_size' : batch_size,
@@ -69,116 +60,113 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                 "on_threshold" : 200,
                 "appliances" : {
                     "fridge" : {
+                        'transfer_path': base_path + "models/Seq2Point/fridge.h5"
                     }
                 },
             }),
-            #'Seq2Seq':Seq2Seq({
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 0,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 32,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 90,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"MLP_Raw" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP_Raw/",
-            #    "results_folder" : base_path + "results/MLP_Raw/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
-            #    "plots_folder" : base_path + "plots/MLP_Raw/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'on_treshold' : 50,
-            #        }     
-            #    },
-            #}),
+            'Seq2Seq':Seq2Seq({
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "on_threshold" : 200,
+                "appliances" : {
+                    "fridge" : {
+                        'transfer_path': base_path + "models/Seq2Seq/fridge.h5"
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                #"load_model_folder" : base_path + "temp_weights/ResNet/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 32,
+                        'on_treshold' : 50,
+                        'transfer_path': base_path + "models/ResNet/fridge.h5"
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                #"load_model_folder" : base_path + "temp_weights/DeepGRU/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 90,
+                        'on_treshold' : 50,
+                        'transfer_path': base_path + "models/DeepGRU/fridge.h5"
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                #"load_model_folder" : base_path + "temp_weights/MLP/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 50,
+                        'transfer_path': base_path + "models/MLP/fridge.h5"
+                    }
+                },
+            }),
+            "MLP_Raw" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP_Raw/",
+                "results_folder" : base_path + "results/MLP_Raw/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                "plots_folder" : base_path + "plots/MLP_Raw/",
+                #"load_model_folder" : base_path + "temp_weights/MLP_Raw/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'on_treshold' : 50,
+                        'transfer_path': base_path + "models/MLP_Raw/fridge.h5"
+                    }     
+                },
+            }),
         },
-        'train': {   
+        'train': {    
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         1: {
                             'start_time': "2013-06-17",
                             'end_time': "2013-06-18",
                         },
-                        2: {
-                            'start_time': "2013-06-17",
-                            'end_time': "2013-06-18",
-                        }         
-                    }
-                },
-            }
-        },
-        'cross_validation': {    
-            'datasets': {
-                'UKDale': {
-                    'path': ukdale_dataset,
-                    'buildings': {
                         2: {
                             'start_time': "2013-06-17",
                             'end_time': "2013-06-18",
@@ -190,16 +178,12 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
         'test': {
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         5: {
                             'start_time': "2014-08-01",
                             'end_time': "2014-08-02"
-                        },
-                        2: {
-                            'start_time': "2013-06-17",
-                            'end_time': "2013-06-18",
-                        }   
+                        } 
                     }
                 },
             },
@@ -265,6 +249,7 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/ResNet/",
                 "checkpoint_folder" : base_path + "temp_weights/ResNet/",
                 "plots_folder" : base_path + "plots/ResNet/",
+                #"load_model_folder" : base_path + "temp_weights/ResNet/",
                 "appliances" : {
                     "kettle" : {
                         'timewindow' : timestep*sequence_length,
@@ -283,6 +268,7 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/DeepGRU/",
                 "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
                 "plots_folder" : base_path + "plots/DeepGRU/",
+                #"load_model_folder" : base_path + "temp_weights/DeepGRU/",
                 "appliances" : {
                     "kettle" : {
                         'timewindow' : timestep*sequence_length,
@@ -301,6 +287,7 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP/",
                 "plots_folder" : base_path + "plots/MLP/",
+                #"load_model_folder" : base_path + "temp_weights/MLP/",
                 "appliances" : {
                     "kettle" : {
                         'timewindow' : timestep*sequence_length,
@@ -319,6 +306,7 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP_Raw/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
                 "plots_folder" : base_path + "plots/MLP_Raw/",
+                #"load_model_folder" : base_path + "temp_weights/MLP_Raw/",
                 "appliances" : {
                     "kettle" : {
                         'timewindow' : timestep*sequence_length,
@@ -334,20 +322,15 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
         'train': {    
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
+                        3: {
+                            'start_time': "2013-03-01",
+                            'end_time' : "2013-04-09"
+                        },
                         2: {
                             'start_time': "2013-04-17",
-                            'end_time': "2013-04-18",
-                        },             
-                    }
-                },
-                'UKDale_cv': {
-                    'path': ukdale_dataset,
-                    'buildings': {
-                        2: {
-                            'start_time': "2013-04-18",
-                            'end_time': "2013-04-19",
+                            'end_time': "2013-10-09",
                         },             
                     }
                 },
@@ -356,11 +339,11 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
         'test': {
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         5: {
                             'start_time': "2014-08-01",
-                            'end_time': "2014-08-02"
+                            'end_time': "2014-09-01"
                         }
                     }
                 },
@@ -391,7 +374,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
     microwave = {
         'power': {'mains': ['active'],'appliance': ['active']},
         'sample_rate': timestep,
-        'appliances': ['microwave'],
+        'appliances': ['microwave', 'washing machine', 'dish washer'],
         'methods': {
             'DAE':DAE({
                 'n_epochs':epochs,
@@ -426,6 +409,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/ResNet/",
                 "checkpoint_folder" : base_path + "temp_weights/ResNet/",
                 "plots_folder" : base_path + "plots/ResNet/",
+                #"load_model_folder" : base_path + "temp_weights/ResNet/",
                 "appliances" : {
                     "microwave" : {
                         'timewindow' : timestep*sequence_length,
@@ -444,6 +428,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/DeepGRU/",
                 "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
                 "plots_folder" : base_path + "plots/DeepGRU/",
+                #"load_model_folder" : base_path + "temp_weights/DeepGRU/",
                 "appliances" : {
                     "microwave" : {
                         'timewindow' : timestep*sequence_length,
@@ -462,6 +447,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP/",
                 "plots_folder" : base_path + "plots/MLP/",
+                #"load_model_folder" : base_path + "temp_weights/MLP/",
                 "appliances" : {
                     "microwave" : {
                         'timewindow' : timestep*sequence_length,
@@ -480,6 +466,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP_Raw/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
                 "plots_folder" : base_path + "plots/MLP_Raw/",
+                #"load_model_folder" : base_path + "temp_weights/MLP_Raw/",
                 "appliances" : {
                     "microwave" : {
                         'timewindow' : timestep*sequence_length,
@@ -495,15 +482,15 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
         'train': {    
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         1: {
                             'start_time': "2013-04-17",
-                            'end_time': "2013-04-18",
+                            'end_time': "2013-10-09",
                         },
                         2: {
-                            'start_time': "2013-05-20",
-                            'end_time': "2013-05-22",
+                            'start_time': "2013-04-17",
+                            'end_time': "2013-10-09",
                         }           
                     }
                 },
@@ -512,11 +499,11 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
         'test': {
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         5: {
                             'start_time': "2014-08-01",
-                            'end_time': "2014-08-02"
+                            'end_time': "2014-09-01"
                         } 
                     }
                 },
@@ -583,6 +570,7 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/ResNet/",
                 "checkpoint_folder" : base_path + "temp_weights/ResNet/",
                 "plots_folder" : base_path + "plots/ResNet/",
+                #"load_model_folder" : base_path + "temp_weights/ResNet/",
                 "appliances" : {
                     "dish washer" : {
                         'timewindow' : timestep*sequence_length,
@@ -601,6 +589,7 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/DeepGRU/",
                 "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
                 "plots_folder" : base_path + "plots/DeepGRU/",
+                #"load_model_folder" : base_path + "temp_weights/DeepGRU/",
                 "appliances" : {
                     "dish washer" : {
                         'timewindow' : timestep*sequence_length,
@@ -619,6 +608,7 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP/",
                 "plots_folder" : base_path + "plots/MLP/",
+                #"load_model_folder" : base_path + "temp_weights/MLP/",
                 "appliances" : {
                     "dish washer" : {
                         'timewindow' : timestep*sequence_length,
@@ -637,6 +627,7 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                 "results_folder" : base_path + "results/MLP_Raw/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
                 "plots_folder" : base_path + "plots/MLP_Raw/",
+                #"load_model_folder" : base_path + "temp_weights/MLP_Raw/",
                 "appliances" : {
                     "dish washer" : {
                         'timewindow' : timestep*sequence_length,
@@ -652,15 +643,15 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
         'train': {    
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         1: {
                             'start_time': "2013-04-17",
-                            'end_time': "2013-04-18",
+                            'end_time': "2013-10-09",
                         },
                         2: {
-                            'start_time': "2013-05-20",
-                            'end_time': "2013-05-22",
+                            'start_time': "2013-04-17",
+                            'end_time': "2013-10-09",
                         }           
                     }
                 },
@@ -669,11 +660,11 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
         'test': {
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         5: {
                             'start_time': "2014-08-01",
-                            'end_time': "2014-08-02"
+                            'end_time': "2014-09-01"
                         } 
                     }
                 },
@@ -740,6 +731,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                 "results_folder" : base_path + "results/ResNet/",
                 "checkpoint_folder" : base_path + "temp_weights/ResNet/",
                 "plots_folder" : base_path + "plots/ResNet/",
+                #"load_model_folder" : base_path + "temp_weights/ResNet/",
                 "appliances" : {
                     "washing machine" : {
                         'timewindow' : timestep*sequence_length,
@@ -758,6 +750,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                 "results_folder" : base_path + "results/DeepGRU/",
                 "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
                 "plots_folder" : base_path + "plots/DeepGRU/",
+                #"load_model_folder" : base_path + "temp_weights/DeepGRU/",
                 "appliances" : {
                     "washing machine" : {
                         'timewindow' : timestep*sequence_length,
@@ -776,6 +769,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                 "results_folder" : base_path + "results/MLP/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP/",
                 "plots_folder" : base_path + "plots/MLP/",
+                #"load_model_folder" : base_path + "temp_weights/MLP/",
                 "appliances" : {
                     "washing machine" : {
                         'timewindow' : timestep*sequence_length,
@@ -794,6 +788,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                 "results_folder" : base_path + "results/MLP_Raw/",
                 "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
                 "plots_folder" : base_path + "plots/MLP_Raw/",
+                #"load_model_folder" : base_path + "temp_weights/MLP_Raw/",
                 "appliances" : {
                     "washing machine" : {
                         'timewindow' : timestep*sequence_length,
@@ -809,15 +804,15 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
         'train': {    
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         1: {
                             'start_time': "2013-04-17",
-                            'end_time': "2013-04-18",
+                            'end_time': "2013-10-09",
                         },
                         2: {
-                            'start_time': "2013-05-20",
-                            'end_time': "2013-05-30",
+                            'start_time': "2013-04-17",
+                            'end_time': "2013-10-09",
                         }           
                     }
                 },
@@ -826,11 +821,11 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
         'test': {
             'datasets': {
                 'UKDale': {
-                    'path': ukdale_dataset,
+                    'path': '../../../../../datasets/ukdale/ukdale.h5',
                     'buildings': {
                         5: {
                             'start_time': "2014-08-01",
-                            'end_time': "2014-08-02"
+                            'end_time': "2014-09-01"
                         } 
                     }
                 },
@@ -859,10 +854,9 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
         results.methods[m].save_model(base_path + "models/" + m)
 
 if __name__ == "__main__":
-    base_path= "/home/rteixeira/ukdale_temp/"
+    #base_path= "/home/rteixeira/soa_results/"
     #base_path = "/home/user/article_results/"
-    #base_path = "/home/atnoguser/transfer_results/ukdale/"
-    
+    base_path = "/home/atnoguser/transfer_results/ukdale/"
     epochs = 1
     batch_size = 256
     sequence_length = 299

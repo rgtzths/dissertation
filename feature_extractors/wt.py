@@ -1,12 +1,7 @@
 import numpy as np
-import pandas as pd
 import pywt
 from collections import Counter
 from scipy import stats
-import math
-
-from seasonality import get_seasonality
-
 
 def calculate_entropy(list_values):
     counter_values = Counter(list_values).most_common()

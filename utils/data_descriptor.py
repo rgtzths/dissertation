@@ -1,6 +1,5 @@
 from nilmtk import DataSet
 import warnings
-from nilmtk.utils import print_dict
 warnings.filterwarnings("ignore")
 from pprint import pprint
 from matplotlib import rcParams
@@ -10,11 +9,12 @@ import datetime
     Data access example
 '''
 #dataset = DataSet('../../datasets/avEiro_h5/avEiro.h5')
-#dataset = DataSet('../../datasets/ukdale/ukdale.h5')
-#dataset.set_window(start=datetime.datetime(2013, 1, 1), end=datetime.datetime(2014, 1, 1))
+dataset = DataSet('../../datasets/ukdale/ukdale.h5')
+dataset.set_window(start=datetime.datetime(2013, 2, 18), end=datetime.datetime(2013, 2, 19))
 #dataset = DataSet('../../datasets/ampds2/AMPds2.h5')
 #dataset = DataSet('../../datasets/iAWE/iawe.h5')
-dataset = DataSet('../../datasets/withus_h5/withus.h5')
+#dataset = DataSet('../../datasets/withus_h5/withus.h5')
+
 
 #print("Getting the dataset metadata.")
 #pprint(dataset.metadata)
@@ -33,7 +33,7 @@ dataset = DataSet('../../datasets/withus_h5/withus.h5')
 #print("\n\n")
 #
 #print("Getting the available columns for one meter.")
-#pprint(dataset.buildings[1].elec["fridge"].available_columns())
+pprint(dataset.buildings[1].elec["dish washer"].available_columns())
 #print("\n\n")
 #
 #print("Loading a single collumn of one meter.")
@@ -41,7 +41,7 @@ dataset = DataSet('../../datasets/withus_h5/withus.h5')
 #print("\n\n")
 #
 print("Loading the columns of power (specific physical quantity) of charger.")
-pprint(next(dataset.buildings[3].elec.mains().load(physical_quantity="power")))
+pprint(next(dataset.buildings[1].elec["dish washer"].load(physical_quantity="power")))
 print("\n\n")
 #
 #print("Loading the columns of apparent energy (specific ac type).")

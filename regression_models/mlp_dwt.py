@@ -5,8 +5,8 @@ import math
 import json
 import random
 
-from tensorflow.keras.models import load_model, Model
-from tensorflow.keras.layers import Dense, Dropout, Input
+from tensorflow.keras.models import load_model, Model, Sequential
+from tensorflow.keras.layers import Dense, Dropout, Input, InputLayer
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -79,10 +79,11 @@ class MLP():
         if self.load_model_path:
             self.load_model(self.load_model_path)
 
-    def partial_fit(self, train_mains, train_appliances):
+    def partial_fit(self, train_data, cv_data=None):
 
         #For each appliance to be classified
-        for app_name, appliance_power in train_appliances:
+        for app_name, data in train_data.items():
+
             if( self.verbose != 0):
                 print("Preparing Dataset for %s" % app_name)
 
@@ -101,71 +102,70 @@ class MLP():
             transfer_path = appliance_model.get("transfer_path", None)
 
             if self.mains_mean is None:
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap)
-                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
             else:
-                X_train = generate_main_timeseries(train_mains[0:-1], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
-                X_cv = generate_main_timeseries([train_mains[-1]], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
 
             if app_mean is None:
-                y_train, app_mean, app_std = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap)
-                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train, app_mean, app_std = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap)
                 appliance_model["mean"] = app_mean
                 appliance_model["std"] = app_std
             else:
-                y_train = generate_appliance_timeseries(appliance_power[0:-1], False, timewindow, timestep, overlap, app_mean, app_std)[0]
-                y_cv = generate_appliance_timeseries([appliance_power[-1]], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
 
             binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
             
-            negatives = np.where(binary_y == 0)[0]
             positives = np.where(binary_y == 1)[0]
 
-            negatives = list(random.sample(set(negatives), positives.shape[0]))
-            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+            train_n_activatons = positives.shape[0]
+            train_on_examples = train_n_activatons / y_train.shape[0]
+            train_off_examples = (y_train.shape[0] - train_n_activatons) / y_train.shape[0]
 
-            X_train = X_train[undersampled_dataset]
-            y_train = y_train[undersampled_dataset]
-
-            n_activatons = positives.shape[0]
-            on_examples = n_activatons / y_train.shape[0]
-            off_examples = (y_train.shape[0] - n_activatons) / y_train.shape[0]
-
-            binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
+            if cv_data is not None:
+                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
+                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+            
+                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
                 
-            negatives = np.where(binary_y == 0)[0]
-            positives = np.where(binary_y == 1)[0]
+                cv_positives = np.where(binary_y == 1)[0]
 
-            negatives = list(random.sample(set(negatives), positives.shape[0]))
-            undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
-
-            #X_cv = X_cv[undersampled_dataset]
-            #y_cv = y_cv[undersampled_dataset]
+                cv_n_activatons = cv_positives.shape[0]
+                cv_on_examples = cv_n_activatons / y_cv.shape[0]
+                cv_off_examples = (y_cv.shape[0] - cv_n_activatons) / y_cv.shape[0]
 
             if feature_extractor == "wt":
                 print("Using Discrete Wavelet Transforms as Features")
                 wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
                 mean = self.mains_mean
                 std = self.mains_std
-                X_train, self.mains_mean, self.mains_std = get_discrete_features(X_train*self.mains_std + self.mains_mean, len(train_mains[0].columns.values), wavelet)
-                X_cv = get_discrete_features(X_cv*std + mean, len(train_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
+                X_train, self.mains_mean, self.mains_std = get_discrete_features(X_train*self.mains_std + self.mains_mean, len(data["mains"][0].columns.values), wavelet)
+                if cv_data is not None:
+                    X_cv = get_discrete_features(X_cv*std + mean, len(data["mains"][0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
             else:
                 print("Using the Timeseries as Features")
                 X_train = X_train.reshape(X_train.shape[0], -1)
-                X_cv = X_cv.reshape(X_cv.shape[0], -1)
+                if cv_data is not None:
+                    X_cv = X_cv.reshape(X_cv.shape[0], -1)
 
             if( self.verbose != 0):
-                print("Nº of examples ", str(X_train.shape[0]))
-                print("Nº of activations for training: ", str(n_activatons))
-                print("On Percentage: ", str(on_examples))
-                print("Off Percentage: ", str(off_examples))
+                print("-"*5 + "Train Info" + "-"*5)
+                print("Nº of examples: ", str(X_train.shape[0]))
+                print("Nº of activations: ", str(train_n_activatons))
+                print("On Percentage: ", str(train_on_examples))
+                print("Off Percentage: ", str(train_off_examples))
+                if cv_data is not None:
+                    print("-"*5 + "Cross Validation Info" + "-"*5)
+                    print("Nº of examples: ", str(X_cv.shape[0]))
+                    print("Nº of activations: ", str(cv_n_activatons))
+                    print("On Percentage: ", str(cv_on_examples))
+                    print("Off Percentage: ", str(cv_off_examples))
+                print("-"*10)
                 print("Mains Mean: ", str(self.mains_mean))
                 print("Mains Std: ", str(self.mains_std))
                 print(app_name + " Mean: ", str(app_mean))
                 print(app_name + " Std: ", str(app_std))
             
-            if self.verbose != 0:
-                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             if app_name in self.model:
                 print("Starting from previous step")
                 model = self.model[app_name]
@@ -175,8 +175,11 @@ class MLP():
                     model = self.create_model(n_nodes, (X_train.shape[1],))       
                 else:
                     print("Starting from pre-trained model")
-                    model = self.create_transfer_model(transfer_path, (X_train.shape[1],))
-
+                    model = self.create_transfer_model(transfer_path, (X_train.shape[1],), n_nodes)
+            
+            if self.verbose != 0:
+                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+            
             checkpoint = ModelCheckpoint(
                     self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                     monitor='val_loss', 
@@ -185,15 +188,26 @@ class MLP():
                     mode='min'
             )
             
-            history = model.fit(X_train, 
+            if cv_data is not None:
+                history = model.fit(X_train, 
+                        y_train,
+                        epochs=epochs, 
+                        batch_size=batch_size,
+                        shuffle=False,
+                        callbacks=[checkpoint],
+                        validation_data=(X_cv, y_cv),
+                        verbose=1
+                        )        
+            else:
+                history = model.fit(X_train, 
                     y_train,
                     epochs=epochs, 
                     batch_size=batch_size,
                     shuffle=False,
                     callbacks=[checkpoint],
-                    validation_data=(X_cv, y_cv),
+                    validation_split=0.15,
                     verbose=1
-            )  
+                    ) 
             
             history = json.dumps(history.history)
 
@@ -210,11 +224,15 @@ class MLP():
 
             #Stores the trained model.
             self.model[app_name] = model
-            #Gets the trainning data score
-            pred = self.model[app_name].predict(X_train) * app_std + app_mean
 
-            train_rmse = math.sqrt(mean_squared_error(y_train* app_std + app_mean, pred))
-            train_mae = mean_absolute_error(y_train* app_std + app_mean, pred)
+            #Gets the trainning data score
+            X = np.concatenate((X_train, X_cv), axis=0)
+            y = np.concatenate((y_train, y_cv), axis=0)
+
+            pred = self.model[app_name].predict(X) * app_std + app_mean
+
+            train_rmse = math.sqrt(mean_squared_error(y * app_std + app_mean, pred))
+            train_mae = mean_absolute_error(y * app_std + app_mean, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
@@ -223,10 +241,18 @@ class MLP():
             
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                f.write("Nº of examples for training: " + str(y_train.shape[0]) + "\n")
-                f.write("Nº of activations for training: " + str(n_activatons) + "\n")
-                f.write("On Percentage: " + str(on_examples) + "\n")
-                f.write("Off Percentage: " + str(off_examples) + "\n")
+                f.write("-"*5 + "Train Info" + "-"*5)
+                f.write("Nº of examples: "+ str(X_train.shape[0]))
+                f.write("Nº of activations: "+ str(train_n_activatons))
+                f.write("On Percentage: "+ str(train_on_examples))
+                f.write("Off Percentage: "+ str(train_off_examples))
+                if cv_data is not None:
+                    f.write("-"*5 + "Cross Validation Info" + "-"*5)
+                    f.write("Nº of examples: "+ str(X_cv.shape[0]))
+                    f.write("Nº of activations: "+ str(cv_n_activatons))
+                    f.write("On Percentage: "+ str(cv_on_examples))
+                    f.write("Off Percentage: "+ str(cv_off_examples))
+                f.write("-"*10)
                 f.write("Mains Mean: " + str(self.mains_mean) + "\n")
                 f.write("Mains Std: " + str(self.mains_std) + "\n")
                 f.write(app_name + " Mean: " + str(app_mean) + "\n")
@@ -235,49 +261,51 @@ class MLP():
                 f.write("Train MAE: "+str(train_mae)+ "\n")
                 f.close()
 
-    def disaggregate_chunk(self, test_mains):
+    def disaggregate_chunk(self, test_mains, app_name):
 
         test_predictions_list = []
 
         appliance_powers_dict = {}
         
-        for i, app_name in enumerate(self.model):
+        if self.verbose != 0:
+            print("Preparing the Test Data for %s" % app_name)
 
-            if self.verbose != 0:
-                print("Preparing the Test Data for %s" % app_name)
+        appliance_model = self.appliances.get(app_name)
+        timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+        overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+        timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+        feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
+        app_mean = appliance_model.get("mean", None)
+        app_std = appliance_model.get("std", None)
+        
 
-            appliance_model = self.appliances.get(app_name)
-            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-            feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
-            app_mean = appliance_model.get("mean", None)
-            app_std = appliance_model.get("std", None)
-            
+        if feature_extractor == "wt":
+            print("Using Discrete Wavelet Transforms as Features")
+            X_test, mean, std = generate_main_timeseries(test_mains, timewindow, timestep, overlap)
+            wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+            X_test = get_discrete_features(X_test*std + mean,len(test_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
+        else:
+            print("Using the Timeseries as Features")
+            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+            X_test = X_test.reshape(X_test.shape[0], -1)
+        
+        if( self.verbose != 0):
+            print("Nº of examples", X_test.shape[0])
 
-            if feature_extractor == "wt":
-                print("Using Discrete Wavelet Transforms as Features")
-                X_test, mean, std = generate_main_timeseries(test_mains, timewindow, timestep, overlap)
-                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-                X_test = get_discrete_features(X_test*std + mean,len(test_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
-            else:
-                print("Using the Timeseries as Features")
-                X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
-                X_test = X_test.reshape(X_test.shape[0], -1)
-            
-            if( self.verbose != 0):
-                print("Nº of examples", X_test.shape[0])
+        if self.verbose != 0:
+            print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
+        
+        pred = self.model[app_name].predict(X_test)* app_std + app_mean
 
-            if self.verbose != 0:
-                print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
-            
-            pred = self.model[app_name].predict(X_test)* app_std + app_mean
+        pred = [p[0] for p in pred]
 
-            pred = [p[0] for p in pred]
+        index = []
+        for main in test_mains:
+            index += main.index
 
-            column = pd.Series(
-                    pred, index=test_mains[0].index, name=i)
-            appliance_powers_dict[app_name] = column
+        column = pd.Series(
+                pred, index=index, name=0)
+        appliance_powers_dict[app_name] = column
         
         test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
@@ -296,30 +324,33 @@ class MLP():
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
-        input_layer = Input(input_shape)
-        dense1 = Dense(n_nodes, activation='relu')(input_layer)
-        dense2 = Dense(int(n_nodes/8), activation='relu')(dense1)
-        dense3 = Dense(n_nodes, activation='relu')(dense2)
-        dense4 = Dense(int(n_nodes/8), activation='relu')(dense3)
-        output_layer = Dense(1)(dense4)
-        model = Model(inputs=input_layer, outputs=output_layer)
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/8), activation='relu'))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/8), activation='relu'))
+        model.add(Dense(1))
+
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
 
-    def create_transfer_model(self, transfer_path, input_shape):
-        trained_model = load_model(transfer_path)
-        trained_model.layers.pop(0)
-        trained_model.layers.pop(-1)
-        for layer in trained_model.layers:
+    def create_transfer_model(self, transfer_path, input_shape, n_nodes=256):
+
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(n_nodes, activation='relu'))
+        model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+        
+        for layer in model.layers[1:]:
             layer.trainable = False
 
-        new_input = Input(input_shape)
-        freezed_layers = trained_model(new_input)
-        new_output = Dense(1)(freezed_layers)
-
-        model = Model(inputs=new_input, outputs=new_output)
+        model.add(Dense(1))
         
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
-
+        
         return model

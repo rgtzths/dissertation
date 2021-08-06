@@ -2,14 +2,15 @@ from os.path import join, isdir
 from os import listdir
 import re
 import pandas as pd
-import numpy as np
 
 from nilmtk.measurement import LEVEL_NAMES
 
 import sys
-sys.path.insert(1, "../../")
-from data_clean import clean_data
+sys.path.insert(1, "../")
+sys.path.insert(1, "../../utils")
 
+from data_clean import clean_data
+import utils
 
 def _find_all_houses(input_path):
     """
@@ -77,7 +78,7 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep
     for house_id in houses:
         print("Loading house ", house_id)
 
-        filenames = []
+        utils.create_path('{}/house_{}'.format(output_path, house_id))
         #Goes through all the appliances
         for appliance in appliances:
             print("\tConverting ", appliance)
@@ -86,7 +87,7 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep
             #If it is mains there are multiple readings otherwise there is only power
             if appliance == "mains":
                 #Loads all the readings
-                for measure in column_mapping:
+                for measure in columns_names:
 
                     csv_filename = aveiro_path + "house_" + str(house_id) + "/" + str(appliance) + "/" + measure + ".csv"
                     df = pd.read_csv(csv_filename)
@@ -138,7 +139,7 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep
 
             df = clean_data(df, timestep, interpolate)
             
-            df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
+            df.columns = pd.MultiIndex.from_tuples([columns_names[x] for x in df.columns])
             df.columns.set_names(LEVEL_NAMES, inplace=True)
             
             df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
@@ -146,22 +147,24 @@ def convert_aveiro(aveiro_path, output_path, columns_names, appliances, timestep
 
     print("Done converting avEiro to Timeseries!")
 
-filespath = "../../../../datasets/avEiro/"
-output_path = "../../../../datasets/avEiro_classification"
+if __name__ == "__main__":
 
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
+    filespath = "../../../datasets/avEiro/"
+    output_path = "../../../datasets/avEiro_processed"
 
-appliances = [
-    "mains",
-    "heatpump",
-    "carcharger"
-]
+    column_mapping = {
+        "power" : ("power", "apparent"),
+        "vrms" : ("voltage", "")
+    }
 
-timestep = 2
+    appliances = [
+        "mains",
+        "heatpump",
+        "carcharger"
+    ]
 
-interpolate = "previous"
+    timestep = 2
 
-convert_aveiro(filespath, output_path, column_mapping, appliances, timestep, interpolate)
+    interpolate = "previous"
+
+    convert_aveiro(filespath, output_path, column_mapping, appliances, timestep, interpolate)

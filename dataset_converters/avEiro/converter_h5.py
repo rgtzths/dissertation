@@ -9,11 +9,10 @@ from os.path import join, isdir, join
 from os import listdir
 import re
 import pandas as pd
-import numpy as np
 
 import sys
-sys.path.insert(1, "../../")
-sys.path.insert(1, "../../../utils")
+sys.path.insert(1, "../")
+sys.path.insert(1, "../../utils")
 
 from data_clean import clean_data
 import utils
@@ -33,7 +32,7 @@ def convert_aveiro(aveiro_path, output_filename, timestep, interpolate):
     base_path = ""
     for directory in  output_filename.split("/")[0:-1]:
         base_path += directory + "/"
-    utils.create_path( base_path)
+    utils.create_path(base_path)
     store = get_datastore(output_filename, "HDF", mode='w')
 
     check_directory_exists(aveiro_path)
@@ -163,24 +162,25 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
-#Mapping between the names on the dataset and the names used in nilmtk
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
+if __name__ == "__main__":
+    #Mapping between the names on the dataset and the names used in nilmtk
+    column_mapping = {
+        "power" : ("power", "apparent"),
+        "vrms" : ("voltage", "")
+    }
 
-#Mapping between the names on the dataset and the indexes used in the nilmtk
-appliance_meter_mapping = {
-    "mains" : 1,
-    "heatpump" : 2,
-    "carcharger" : 3
-}
+    #Mapping between the names on the dataset and the indexes used in the nilmtk
+    appliance_meter_mapping = {
+        "mains" : 1,
+        "heatpump" : 2,
+        "carcharger" : 3
+    }
 
-aveiro_path = "../../../../datasets/avEiro/"
-metada_path = aveiro_path + "metadata"
-output_filename = "../../../../datasets/avEiro_h5/avEiro.h5"
+    aveiro_path = "../../../datasets/avEiro/"
+    metada_path = aveiro_path + "metadata"
+    output_filename = "../../../datasets/avEiro/avEiro.h5"
 
-interpolate = "previous"
-timestep = 2
+    interpolate = "previous"
+    timestep = 2
 
-convert_aveiro(aveiro_path, output_filename, timestep, interpolate)
+    convert_aveiro(aveiro_path, output_filename, timestep, interpolate)

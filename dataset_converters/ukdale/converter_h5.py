@@ -14,14 +14,13 @@ import pandas as pd
 import numpy as np
 
 import sys
-sys.path.insert(1, "../../")
-sys.path.insert(1, "../../../utils")
-
-ONE_SEC_COLUMNS = [('power', 'active'), ('power', 'apparent'), ('voltage', '')]
-TZ = 'Europe/London'
+sys.path.insert(1, "../")
+sys.path.insert(1, "../../utils")
 
 from data_clean import clean_data
 import utils
+
+TZ = 'Europe/London'
 
 def convert_ukdale(ukdale_path, output_filename, format='HDF', drop_duplicates=True):
     """Converts the UK-DALE dataset to NILMTK HDF5 format.
@@ -256,4 +255,4 @@ def _matching_ints(strings, regex):
     return ints
 
 if __name__ == "__main__":
-    convert_ukdale("../../../../datasets/ukdale/", "../../../../datasets/ukdale_h5/ukdale.h5" , format='HDF', drop_duplicates=True)
+    convert_ukdale("../../../datasets/ukdale/", "../../../datasets/ukdale/ukdale.h5" , format='HDF', drop_duplicates=True)

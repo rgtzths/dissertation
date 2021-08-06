@@ -2,8 +2,6 @@ import datetime
 import warnings
 warnings.filterwarnings("ignore")
 
-from scipy.stats import randint, loguniform
-
 from run_experiment import run
 
 import sys
@@ -11,7 +9,6 @@ sys.path.insert(1, "../../classification_models")
 sys.path.insert(1, "../../utils")
 sys.path.insert(1, "../../feature_extractors")
 
-from seq2point import Seq2Point
 from gru import GRU_RNN
 from deep_gru import DeepGRU
 from lstm import LSTM_RNN

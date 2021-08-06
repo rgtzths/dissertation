@@ -13,320 +13,398 @@ from seq2seq import Seq2Seq
 from resnet import ResNet
 from deep_gru import DeepGRU
 from mlp_dwt import MLP
+from WindowGRU import WindowGRU
 
-base_path= "/home/rteixeira/thesis_results/regression/"
-#base_path = "/home/user/thesis_results/regression/"
-epochs = 1
-timestep = 2
-timewindow = 90 * timestep
-overlap = timewindow - timestep
+from  utils import create_path
 
-#Experiment Definition
-heatpump = {
-    'power': {'mains': ['apparent'], 'appliance': ['apparent']},
-    'sample_rate': timestep,
-    'appliances': ['heat pump'],
-    'methods': {
-        'DAE':DAE({'n_epochs':epochs,'batch_size':1024}),
-        'Seq2Point':Seq2Point({'n_epochs':epochs,'batch_size':1024}),
-        'Seq2Seq':Seq2Seq({'n_epochs':epochs,'batch_size':1024}),
-        "ResNet" : ResNet( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/ResNet/",
-            "results_folder" : base_path + "results/ResNet/",
-            "checkpoint_folder" : base_path + "models/ResNet/",
-            "plots_folder" : base_path + "plots/ResNet/",
-            #"load_model_folder" : base_path + "models/ResNet/",
-            "appliances" : {
-                "heat pump" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'n_nodes' : 90
-                }
-            },
-        }),
-        "DeepGRU" : DeepGRU({
-            'verbose' : 2,
-            "training_history_folder" : base_path + "history/DeepGRU/",
-            "results_folder" : base_path + "results/DeepGRU/",
-            "checkpoint_folder" : base_path + "models/DeepGRU/",
-            "plots_folder" : base_path + "plots/DeepGRU/",
-            #"load_model_folder" : base_path + "models/DeepGRU/",
-            "appliances" : {
-                "heat pump" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'n_nodes' : 90
-                }
-            },
-        }),
-        "MLP" : MLP( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/MLP/",
-            "results_folder" : base_path + "results/MLP/",
-            "checkpoint_folder" : base_path + "models/MLP/",
-            "plots_folder" : base_path + "plots/MLP/",
-            #"load_model_folder" : base_path + "models/MLP/",
-            "appliances" : {
-                "heat pump" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'feature_extractor' : "dwt"
-                }
-            },
-            "predicted_column": ("power", "apparent"), 
-        }),
-    },
-    'train': {    
-        'datasets': {
-            'avEiro': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-10-05',
-                        'end_time': '2020-10-09'
+aveiro_dataset = '../../../datasets/aveiro/avEiro.h5'
+
+def run_heat_pump(base_path, timestep, epochs, batch_size, sequence_length):
+    #Experiment Definition
+    heatpump = {
+        'power': {'mains': ['apparent'], 'appliance': ['apparent']},
+        'sample_rate': timestep,
+        'appliances': ['heat pump'],
+        'methods': {
+            'DAE':DAE({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "heat pump" : {
                     }
-                }                
-            },
-            'avEiro2': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-10-20',
-                        'end_time': '2020-10-27'
+                },
+            }),
+            'WindowGRU':WindowGRU({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "heat pump" : {
                     }
-                }                
-            },
-            'avEiro3': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-11-01',
-                        'end_time': '2020-11-08'
+                },
+            }),
+            'Seq2Point':Seq2Point({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "heat pump" : {
                     }
-                }                
-            },
-            'avEiro4': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-12-09',
-                        'end_time': '2020-12-17'
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "heat pump" : {
                     }
-                }                
-            },
-        }
-    },
-    'test': {
-        'datasets': {
-            'avEiro': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2021-01-15',
-                        'end_time': '2021-02-05'
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "heat pump" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 32,
+                        'on_treshold' : 50,
                     }
-                }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "heat pump" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 90,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "heat pump" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP_Raw" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP_Raw/",
+                "results_folder" : base_path + "results/MLP_Raw/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                "plots_folder" : base_path + "plots/MLP_Raw/",
+                "appliances" : {
+                    "heat pump" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'on_treshold' : 50,
+                    }     
+                },
+            }),
+        },
+        'train': {    
+            'datasets': {
+                'avEiro_train': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2020-10-01',
+                            'end_time': '2020-10-02'
+                        }
+                    }                
+                },
+                'avEiro_cv': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2020-10-02',
+                            'end_time': '2020-10-03'
+                        }
+                    }                
+                },
             }
         },
-        'metrics':['mae', 'rmse']
-    }
-}
-
-charger = {
-    'power': {'mains': ['apparent'], 'appliance': ['apparent']},
-    'sample_rate': timestep,
-    'appliances': ['charger'],
-    'methods': {
-        'DAE':DAE({'n_epochs':epochs,'batch_size':1024}),
-        'Seq2Point':Seq2Point({'n_epochs':epochs,'batch_size':1024}),
-        'Seq2Seq':Seq2Seq({'n_epochs':epochs,'batch_size':1024}),
-        "ResNet" : ResNet( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/ResNet/",
-            "results_folder" : base_path + "results/ResNet/",
-            "checkpoint_folder" : base_path + "models/ResNet/",
-            "plots_folder" : base_path + "plots/ResNet/",
-            #"load_model_folder" : base_path + "models/ResNet/",
-            "appliances" : {
-                "charger" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'n_nodes' : 90
+        'test': {
+            'datasets': {
+                'avEiro': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2021-01-04',
+                            'end_time': '2021-01-05'
+                        }
+                    }
                 }
             },
-        }),
-        "DeepGRU" : DeepGRU({
-            'verbose' : 2,
-            "training_history_folder" : base_path + "history/DeepGRU/",
-            "results_folder" : base_path + "results/DeepGRU/",
-            "checkpoint_folder" : base_path + "models/DeepGRU/",
-            "plots_folder" : base_path + "plots/DeepGRU/",
-            #"load_model_folder" : base_path + "models/DeepGRU/",
-            "appliances" : {
-                "charger" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'n_nodes' : 90
-                }
-            },
-        }),
-        "MLP" : MLP( {
-            "verbose" : 2,
-            "training_history_folder" : base_path + "history/MLP/",
-            "results_folder" : base_path + "results/MLP/",
-            "checkpoint_folder" : base_path + "models/MLP/",
-            "plots_folder" : base_path + "plots/MLP/",
-            #"load_model_folder" : base_path + "models/MLP/",
-            "appliances" : {
-                "charger" : {
-                    'timewindow' : timewindow,
-                    'timestep' : timestep,
-                    'overlap' : overlap,
-                    'epochs' : epochs,
-                    'batch_size' : 1024,
-                    'feature_extractor' : "dwt"
-                }
-            },
-            "predicted_column": ("power", "apparent"), 
-        }),
-    },
-    'train': {    
-        'datasets': {
-            'avEiro': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-11-14',
-                        'end_time': '2020-11-15'
-                    }
-                }                
-            },
-            'avEiro2': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-11-16',
-                        'end_time': '2020-11-20'
-                    }
-                }                
-            },
-            'avEiro3': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-11-23',
-                        'end_time': '2020-11-29'
-                    }
-                }                
-            },
-            'avEiro4': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-12-02',
-                        'end_time': '2020-12-06'
-                    }
-                }                
-            },
-            'avEiro4': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-12-09',
-                        'end_time': '2020-12-13'
-                    }
-                }                
-            },
-            'avEiro5': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2020-12-16',
-                        'end_time': '2020-12-21'
-                    }
-                }                
-            },
-            'avEiro6': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2021-01-02',
-                        'end_time': '2020-01-04'
-                    }
-                }                
-            },
-            'avEiro7': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2021-01-06',
-                        'end_time': '2020-01-06'
-                    }
-                }                
-            },
+            'metrics':['mae', 'rmse']
         }
-    },
-    'test': {
-        'datasets': {
-            'avEiro': {
-                'path': '../../../datasets/avEiro_h5/avEiro.h5',
-                'buildings': {
-                    1: {
-                        'start_time': '2021-01-06',
-                        'end_time': '2021-01-21'
+    }
+    ## Training and testing Heat Pump ####
+    results = API(heatpump)
+
+    #Get all the results in the experiment and print them.
+    errors_keys = results.errors_keys
+    errors = results.errors
+
+    for app in results.appliances:
+        f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
+        for classifier in errors[0].columns:
+            f.write(5*"-" + classifier + "-"*5 + "\n")
+            for i in range(len(errors)):
+                f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
+
+    ##################################################
+
+    for m in results.methods:
+        create_path(base_path + "models/" + m)
+        results.methods[m].save_model(base_path + "models/" + m)
+
+def run_charger(base_path, timestep, epochs, batch_size, sequence_length):
+    charger = {
+        'power': {'mains': ['apparent'], 'appliance': ['apparent']},
+        'sample_rate': timestep,
+        'appliances': ['charger'],
+        'methods': {
+            'DAE':DAE({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "charger" : {
                     }
-                }
+                },
+            }),
+            'WindowGRU':WindowGRU({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "charger" : {
+                    }
+                },
+            }),
+            'Seq2Point':Seq2Point({
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "charger" : {
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "on_threshold" : 50,
+                "appliances" : {
+                    "charger" : {
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "charger" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 32,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "charger" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 90,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "charger" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP_Raw" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP_Raw/",
+                "results_folder" : base_path + "results/MLP_Raw/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                "plots_folder" : base_path + "plots/MLP_Raw/",
+                "appliances" : {
+                    "charger" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'on_treshold' : 50,
+                    }     
+                },
+            }),
+        },
+        'train': {    
+            'datasets': {
+                'avEiro_train': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2020-11-14',
+                            'end_time': '2020-11-15'
+                        }
+                    }                
+                },
+                'avEiro_cv': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2020-11-15',
+                            'end_time': '2020-11-16'
+                        }
+                    }                
+                },
             }
         },
-        'metrics':['mae', 'rmse']
+        'test': {
+            'datasets': {
+                'avEiro': {
+                    "path": aveiro_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': '2021-01-04',
+                            'end_time': '2021-01-05'
+                        }
+                    }
+                }
+            },
+            'metrics':['mae', 'rmse']
+        }
     }
-}
 
-## Training and testing Heat Pump ####
-results = API(heatpump)
+    ## Training and testing Car charger ####
 
-#Get all the results in the experiment and print them.
-errors_keys = results.errors_keys
-errors = results.errors
+    results = API(charger)
 
-for app in results.appliances:
-    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
-    for classifier in errors[0].columns:
-        f.write(5*"-" + classifier + "-"*5 + "\n")
-        for i in range(len(errors)):
-            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
+    #Get all the results in the experiment and print them.
+    errors_keys = results.errors_keys
+    errors = results.errors
 
-##################################################
+    for app in results.appliances:
+        f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
+        for classifier in errors[0].columns:
+            f.write(5*"-" + classifier + "-"*5 + "\n")
+            for i in range(len(errors)):
+                f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
 
-## Training and testing Car charger ####
+    ##################################################
 
-results = API(heatpump)
+    for m in results.methods:
+        create_path(base_path + "models/" + m)
+        results.methods[m].save_model(base_path + "models/" + m)
 
-#Get all the results in the experiment and print them.
-errors_keys = results.errors_keys
-errors = results.errors
 
-for app in results.appliances:
-    f = open(base_path + "results_" + app.replace(" ", "_") + ".txt", "w")
-    for classifier in errors[0].columns:
-        f.write(5*"-" + classifier + "-"*5 + "\n")
-        for i in range(len(errors)):
-            f.write(errors_keys[i].split("_")[-1].upper() + " : " + str(errors[i][classifier][app]) + "\n")
+if __name__ == "__main__":
+    base_path= "/home/rteixeira/temp/"
+    #base_path = "/home/user/article_results/"
+    #base_path = "/home/atnoguser/transfer_results/ukdale/"
+    epochs = 1
+    batch_size = 256
+    sequence_length = 299
+    timestep = 2
 
-##################################################
+    run_heat_pump(base_path, timestep, epochs, batch_size, sequence_length)
+    run_charger(base_path, timestep, epochs, batch_size, sequence_length)

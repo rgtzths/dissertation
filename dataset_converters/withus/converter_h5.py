@@ -7,16 +7,12 @@ from nilm_metadata import save_yaml_to_datastore
 
 from os.path import join, isdir, join
 from os import listdir
-import re
 import pandas as pd
-import numpy as np
 import math
 
 import sys
-sys.path.insert(1, "../../")
-sys.path.insert(1, "../../../utils")
+sys.path.insert(1, "../../utils")
 
-from data_clean import clean_data
 import utils
 
 def convert_withus(withus_path, output_filename):

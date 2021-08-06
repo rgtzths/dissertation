@@ -1,17 +1,19 @@
-from os.path import join, isdir, isfile
+from os.path import join, isdir
 from os import listdir
 import re
 import pandas as pd
-import numpy as np
 
 from nilmtk.measurement import LEVEL_NAMES
 
 import sys
-sys.path.insert(1, "../../")
+sys.path.insert(1, "../")
+sys.path.insert(1, "../../utils")
 
 from data_clean import clean_data
+import utils
 
-def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
+
+def convert_ukdale(ukdale_path, output_path, timestep, interpolate, house_appliances_mappings):
     """
     Converts the ukdale dataset into a timeseries dataset.
     Parameters
@@ -33,7 +35,8 @@ def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
     for house_id in houses:
         print("Loading house ", house_id)
 
-        filenames = []
+        utils.create_path( '{}/house_{}/'.format(output_path, house_id))
+        
         #Goes through all the appliances to be converted from that house
         for appliance, meter in house_appliances_mappings["house"+str(house_id)].items():
             print("Converting ", appliance)
@@ -59,10 +62,6 @@ def convert_ukdale(ukdale_path, output_path, timeframe, timestep, interpolate):
 
             df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])
             df.columns.set_names(LEVEL_NAMES, inplace=True)     
-
-            n=5
-            #df["power"]["apparent"] = df["power"]["apparent"].rolling(window=n).mean().values
-            df["power"]["apparent"] = df["power"]["apparent"].ewm(span=n, adjust=False).mean().values
             
             df.to_csv('{}/house_{}/{}.csv'.format(output_path, house_id, appliance))
             
@@ -112,52 +111,52 @@ def _matching_ints(strings, regex):
     ints.sort()
     return ints
 
-#Mappings between the houses and the appliances we want to convert
-house_appliances_mappings = {
-    "house1" : {
-        "mains" : "1",
-        "washer_dryer": "5",
-        "dish_washer": "6",
-        "fridge_freezer": "12",
-        "microwave": "13",
-        "boiler": "2"
-    },
-    "house2" : {
-        "mains" : "1",
-        "washing_machine": "12",
-        "dish_washer": "13",
-        "kettle": "8",
-        "toaster": "16",
-        "fridge": "14",
-        "microwave": "15",
-    },
-    "house3" : {
-        "mains" : "1",
-        "kettle": "2",
-    },
-    "house5" : {
-        "mains" : "1",
-        "electric_oven": "20",
-        "dish_washer": "22",
-        "kettle": "18",
-        "toaster":"15",
-        "fridge_freezer": "19",
-        "microwave": "23",
-        "washer_dryer" : "24"
-    },
-    "house4" : {}
-}
+if __name__ == "__main__":
+    #Mappings between the houses and the appliances we want to convert
+    house_appliances_mappings = {
+        "house1" : {
+            "mains" : "1",
+            "washer_dryer": "5",
+            "dish_washer": "6",
+            "fridge_freezer": "12",
+            "microwave": "13",
+            "boiler": "2"
+        },
+        "house2" : {
+            "mains" : "1",
+            "washing_machine": "12",
+            "dish_washer": "13",
+            "kettle": "8",
+            "toaster": "16",
+            "fridge": "14",
+            "microwave": "15",
+        },
+        "house3" : {
+            "mains" : "1",
+            "kettle": "2",
+        },
+        "house5" : {
+            "mains" : "1",
+            "electric_oven": "20",
+            "dish_washer": "22",
+            "kettle": "18",
+            "toaster":"15",
+            "fridge_freezer": "19",
+            "microwave": "23",
+            "washer_dryer" : "24"
+        },
+        "house4" : {}
+    }
 
-column_mapping = {
-    "power" : ("power", "apparent"),
-    "vrms" : ("voltage", "")
-}
+    column_mapping = {
+        "power" : ("power", "apparent"),
+        "vrms" : ("voltage", "")
+    }
 
-filespath = "../../../../datasets/ukdale/"
-output_path = "../../../../datasets/ukdale_classification"
+    filespath = "../../../datasets/ukdale/"
+    output_path = "../../../datasets/ukdale_processed"
 
-timeframe = 10
-timestep = 6
-interpolate = 'average'
+    timestep = 6
+    interpolate = 'average'
 
-convert_ukdale(filespath, output_path, timeframe, timestep, interpolate)
+    convert_ukdale(filespath, output_path, timestep, interpolate)

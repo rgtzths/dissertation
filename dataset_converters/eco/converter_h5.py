@@ -1,10 +1,8 @@
 import pandas as pd
 import numpy as np
-import math
-from os import listdir, getcwd
-from os.path import isdir, join, dirname, abspath
-from pandas import concat
-from nilmtk.utils import get_module_directory, check_directory_exists
+from os import listdir
+from os.path import isdir, join
+from nilmtk.utils import check_directory_exists
 from nilmtk.datastore import Key
 from nilmtk.measurement import LEVEL_NAMES
 from nilm_metadata import convert_yaml_to_hdf5
@@ -129,6 +127,7 @@ def convert_eco(dataset_loc, hdf_filename, timezone):
                         df_phase = df_phase[power_active != -1]
                         power_active = df_phase['power', 'active']
                         
+                        # Calculate power apparent from the active and reactive power and add it to the columns.
                         df_phase.columns.set_names(LEVEL_NAMES, inplace=True)
                         power_apparent = np.sqrt( np.power(df_phase["power"]["active"], 2) +  np.power(df_phase["power"]["reactive"], 2))
 
@@ -187,4 +186,4 @@ def convert_eco(dataset_loc, hdf_filename, timezone):
 #is only called when this file is the main file... only test purpose
 if __name__ == '__main__':
     convert_eco('../../../datasets/eco/',
-                   '../../../datasets/eco_h5/eco.h5', 'UTC')
+                   '../../../datasets/eco/eco.h5', 'UTC')

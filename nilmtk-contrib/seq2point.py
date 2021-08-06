@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Conv1D, Dense, Dropout, Reshape, Flatten
+from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
 import random
+import os
 
-from sklearn.model_selection import train_test_split
 import json
 #import sys
 #sys.path.insert(1, "../utils")
@@ -31,15 +31,16 @@ class Seq2Point(Disaggregator):
 
         self.MODEL_NAME = "Seq2Point"
         self.models = OrderedDict()
-        self.file_prefix = "{}-temp-weights".format(params.get('file_prefix', "") + self.MODEL_NAME.lower())
+        self.file_prefix = params.get('file_prefix', "")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10 )
         self.batch_size = params.get('batch_size',512)
         self.appliance_params = params.get('appliance_params',{})
-        self.mains_mean = params.get('mains_mean',1800)
-        self.mains_std = params.get('mains_std',600)
+        self.mains_mean = params.get('mains_mean',None)
+        self.mains_std = params.get('mains_std',None)
         self.on_treshold = params.get('on_treshold', 50)
+        self.appliances = params.get('appliances', {})
 
         if self.sequence_length%2==0:
             print ("Sequence length should be odd!")
@@ -48,107 +49,116 @@ class Seq2Point(Disaggregator):
         self.training_history_folder = params.get("training_history_folder", None)
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
+
         self.plots_folder = params.get("plots_folder", None)
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
 
-    def partial_fit(self, train_main, train_appliances, do_preprocessing=True, current_epoch=0, **load_kwargs):
+    def partial_fit(self, train_data, cv_data=None, do_preprocessing=True, current_epoch=0, **load_kwargs):
         # If no appliance wise parameters are provided, then copmute them using the first chunk
         if len(self.appliance_params) == 0:
-            self.set_appliance_params(train_appliances)
+            self.set_appliance_params(train_data)
+
+        if self.mains_mean is None:
+            self.set_mains_params(list(train_data.values())[0]["mains"])
 
         print("...............Seq2Point partial_fit running...............")
         # Do the pre-processing, such as  windowing and normalizing
-        if do_preprocessing:
-            train_main, train_appliances = self.call_preprocessing(
-                train_main, train_appliances, 'train')
 
-        train_main = pd.concat(train_main, axis=0)
-        train_main = train_main.values.reshape((-1, self.sequence_length, 1))
-        new_train_appliances = []
-        for app_name, app_df in train_appliances:
-            app_df = pd.concat(app_df, axis=0)
-            app_df_values = app_df.values.reshape((-1, 1))
-            new_train_appliances.append((app_name, app_df_values))
-        train_appliances = new_train_appliances
+        for appliance_name, data in train_data.items():
 
-        for appliance_name, power in train_appliances:
+            if do_preprocessing:
+                train_main, train_appliance = self.call_preprocessing(data["mains"], data["appliance"], appliance_name, 'train')
+
+            train_main = pd.concat(train_main, axis=0).values.reshape((-1, self.sequence_length, 1))
+            train_appliance = pd.concat(train_appliance, axis=0).values.reshape((-1, 1))
+            
+            if cv_data is not None:
+                if do_preprocessing:
+                    print("Preprocessing")
+                    cv_main, cv_appliance = self.call_preprocessing(cv_data[appliance_name]["mains"], cv_data[appliance_name]["appliance"], appliance_name, 'train')
+                
+                cv_main = pd.concat(cv_main, axis=0).values.reshape((-1,self.sequence_length,1))
+                cv_appliance = pd.concat(cv_appliance, axis=0).values.reshape((-1, 1))
+
+            appliance_model = self.appliances.get(appliance_name, {})
+            transfer_path = appliance_model.get("transfer_path", None)
+
             # Check if the appliance was already trained. If not then create a new model for it
             if appliance_name not in self.models:
-                print("First model training for", appliance_name)
-                self.models[appliance_name] = self.return_network()
+                if transfer_path is not None:
+                    print("Using transfer learning for ", appliance_name)
+                    self.models[appliance_name] = self.create_transfer_model(transfer_path)
+                else:
+                    print("First model training for", appliance_name)
+                    self.models[appliance_name] = self.return_network()
             # Retrain the particular appliance
             else:
                 print("Started Retraining model for", appliance_name)
 
             model = self.models[appliance_name]
-            if train_main.size > 0:
-                # Sometimes chunks can be empty after dropping NANS
-                if len(train_main) > 10:
-                    # Do validation when you have sufficient samples
-                    filepath = self.file_prefix + "-{}-epoch{}.h5".format(
-                            "_".join(appliance_name.split()),
-                            current_epoch,
+
+            filepath = self.file_prefix + "{}.h5".format("_".join(appliance_name.split()))
+
+            checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
+
+            if cv_data is not None:
+                history = model.fit(train_main, 
+                        train_appliance,
+                        epochs=self.n_epochs, 
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        callbacks=[checkpoint],
+                        validation_data=(cv_main, cv_appliance),
+                        verbose=1
+                        )        
+            else:
+                history = model.fit(train_main, 
+                    train_appliance,
+                    epochs=self.n_epochs, 
+                    batch_size=self.batch_size,
+                    shuffle=False,
+                    callbacks=[checkpoint],
+                    validation_split=0.15,
+                    verbose=1
                     )
-                    checkpoint = ModelCheckpoint(filepath,monitor='val_loss',verbose=1,save_best_only=True,mode='min')
-                    
-                    app_mean = self.appliance_params[app_name]['mean']
-                    app_std = self.appliance_params[app_name]['std']
 
-                    binary_y = np.array([ 1 if x > self.on_treshold else 0 for x in power*app_std + app_mean])
-                    
-                    negatives = np.where(binary_y == 0)[0]
-                    positives = np.where(binary_y == 1)[0]
+            model.load_weights(filepath)
 
-                    negatives = list(random.sample(set(negatives), positives.shape[0]))
-                    undersampled_dataset = np.sort(np.concatenate((positives, negatives)))
+            history = json.dumps(history.history)
+            
+            if self.training_history_folder is not None:
+                f = open(self.training_history_folder + "history_"+appliance_name.replace(" ", "_")+".json", "w")
+                f.write(history)
+                f.close()
 
-                    train_main = train_main[undersampled_dataset]
-                    power = power[undersampled_dataset]
+            if self.plots_folder is not None:
+                utils.create_path(self.plots_folder + "/" + appliance_name + "/")
+                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + appliance_name + "/")
 
-                    history = model.fit(
-                            train_main, power,
-                            validation_split=0.15,
-                            epochs=self.n_epochs,
-                            batch_size=self.batch_size,
-                            callbacks=[checkpoint],
-                            shuffle=False,
-                    )
-                    model.load_weights(filepath)
+    def save_model(self, save_model_path):
+        for appliance_name in self.models:
+            print ("Saving model for ", appliance_name)
+            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
 
-                    history = json.dumps(history.history)
-                    
-                    if self.training_history_folder is not None:
-                        f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                        f.write(history)
-                        f.close()
-
-                    if self.plots_folder is not None:
-                        utils.create_path(self.plots_folder + "/" + app_name + "/")
-                        plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
-
-                    
-    def disaggregate_chunk(self,test_main_list,model=None,do_preprocessing=True):
-        if model is not None:
-            self.models = model
+    def disaggregate_chunk(self, test_mains, appliance_name, do_preprocessing=True):
 
         # Preprocess the test mains such as windowing and normalizing
-
         if do_preprocessing:
-            test_main_list = self.call_preprocessing(test_main_list, submeters_lst=None, method='test')
+            test_main_list = self.call_preprocessing(test_mains, app_df_list=None, appliance_name=None, method='test')
 
         test_predictions = []
         for test_main in test_main_list:
             test_main = test_main.values
             test_main = test_main.reshape((-1, self.sequence_length, 1))
             disggregation_dict = {}
-            for appliance in self.models:
-                prediction = self.models[appliance].predict(test_main,batch_size=self.batch_size)
-                prediction = self.appliance_params[appliance]['mean'] + prediction * self.appliance_params[appliance]['std']
-                valid_predictions = prediction.flatten()
-                valid_predictions = np.where(valid_predictions > 0, valid_predictions, 0)
-                df = pd.Series(valid_predictions)
-                disggregation_dict[appliance] = df
+            
+            prediction = self.models[appliance_name].predict(test_main,batch_size=self.batch_size)
+            prediction = self.appliance_params[appliance_name]['mean'] + prediction * self.appliance_params[appliance_name]['std']
+            valid_predictions = prediction.flatten()
+            valid_predictions = np.where(valid_predictions > 0, valid_predictions, 0)
+            df = pd.Series(valid_predictions)
+            disggregation_dict[appliance_name] = df
             results = pd.DataFrame(disggregation_dict, dtype='float32')
             test_predictions.append(results)
         return test_predictions
@@ -167,10 +177,37 @@ class Seq2Point(Disaggregator):
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(.2))
         model.add(Dense(1))
+        
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+        
         return model
 
-    def call_preprocessing(self, mains_lst, submeters_lst, method):
+    def create_transfer_model(self, transfer_path):
+        # Model architecture
+        model = Sequential()
+        model.add(Conv1D(30,10,activation="relu",input_shape=(self.sequence_length,1),strides=1))
+        model.add(Conv1D(30, 8, activation='relu', strides=1))
+        model.add(Conv1D(40, 6, activation='relu', strides=1))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Conv1D(50, 5, activation='relu', strides=1))
+        model.add(Dropout(.2))
+        model.add(Flatten())
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers:
+            layer.trainable = False
+        
+        model.add(Dense(1024, activation='relu'))
+        model.add(Dropout(.2))
+        model.add(Dense(1))
+        
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
+        return model
+
+    def call_preprocessing(self, mains_lst, app_df_list, appliance_name, method):
 
         if method == 'train':
             # Preprocessing for the train data
@@ -183,26 +220,19 @@ class Seq2Point(Disaggregator):
                 new_mains = np.array([new_mains[i:i + n] for i in range(len(new_mains) - n + 1)])
                 new_mains = (new_mains - self.mains_mean) / self.mains_std
                 mains_df_list.append(pd.DataFrame(new_mains))
+            
+            processed_appliance_dfs = []
+            for app_df in app_df_list:
+                app_mean = self.appliance_params[appliance_name]['mean']
+                app_std = self.appliance_params[appliance_name]['std']
 
-            appliance_list = []
-            for app_index, (app_name, app_df_list) in enumerate(submeters_lst):
-                if app_name in self.appliance_params:
-                    app_mean = self.appliance_params[app_name]['mean']
-                    app_std = self.appliance_params[app_name]['std']
-                else:
-                    print ("Parameters for ", app_name ," were not found!")
-                    raise ApplianceNotFoundError()
+                new_app_readings = app_df.values.reshape((-1, 1))
+                # This is for choosing windows
+                new_app_readings = (new_app_readings - app_mean) / app_std  
+                # Return as a list of dataframe
+                processed_appliance_dfs.append(pd.DataFrame(new_app_readings))
 
-                processed_appliance_dfs = []
-
-                for app_df in app_df_list:
-                    new_app_readings = app_df.values.reshape((-1, 1))
-                    # This is for choosing windows
-                    new_app_readings = (new_app_readings - app_mean) / app_std  
-                    # Return as a list of dataframe
-                    processed_appliance_dfs.append(pd.DataFrame(new_app_readings))
-                appliance_list.append((app_name, processed_appliance_dfs))
-            return mains_df_list, appliance_list
+            return mains_df_list, processed_appliance_dfs
 
         else:
             # Preprocessing for the test data
@@ -218,13 +248,18 @@ class Seq2Point(Disaggregator):
                 mains_df_list.append(pd.DataFrame(new_mains))
             return mains_df_list
 
-    def set_appliance_params(self,train_appliances):
+    def set_appliance_params(self, train_data):
         # Find the parameters using the first
-        for (app_name,df_list) in train_appliances:
-            l = np.array(pd.concat(df_list,axis=0))
+        for app_name, data in train_data.items():
+            l = np.array(pd.concat(data["appliance"],axis=0))
             app_mean = np.mean(l)
             app_std = np.std(l)
             if app_std<1:
                 app_std = 100
             self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
         print (self.appliance_params)
+
+    def set_mains_params(self, train_mains):
+        l = np.array(pd.concat(train_mains, axis=0))
+        self.mains_mean = np.mean(l, axis=0)
+        self.mains_std = np.std(l, axis=0)

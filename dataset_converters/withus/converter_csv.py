@@ -7,10 +7,10 @@ import datetime
 from nilmtk.measurement import LEVEL_NAMES
 
 import sys
-sys.path.insert(1, "../../")
-sys.path.insert(1, "../../../utils")
-import utils
+sys.path.insert(1, "../")
+sys.path.insert(1, "../../utils")
 
+import utils
 from data_clean import clean_data
 
 def load_period(base_url, device, beginning, end, username, password, is_meter):
@@ -173,6 +173,6 @@ interpolate = "previous"
 
 base_url = "http://withus.av.it.pt/api/v1/ed/"
 
-output_path = "../../../../datasets/withus_classification"
+output_path = "../../../../datasets/withus"
 
 download_and_convert(base_url, username, password, appliances_mapping, timestep, interpolate, output_path)

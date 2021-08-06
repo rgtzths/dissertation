@@ -8,13 +8,10 @@ import json
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-from scipy.stats import randint
-from sklearn.metrics import matthews_corrcoef, confusion_matrix, make_scorer
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import matthews_corrcoef, confusion_matrix
 
 import numpy as np
 
