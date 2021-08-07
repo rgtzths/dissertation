@@ -3,7 +3,6 @@ from os.path import join, isfile
 from os import listdir
 import json
 import math
-import random
 
 from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
@@ -29,9 +28,9 @@ class ResNet():
         #Name used to identify the Model Name.
         self.MODEL_NAME = params.get('model_name', 'ResNet')
         #Percentage of values used as cross validation data from the training data.
-        self.cv = params.get('cv', 0.16)
+        self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
-        self.load_model_path = params.get('load_model_folder',None)
+        self.load_model_path = params.get('pretrained-model-path',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 0)
         
@@ -39,12 +38,11 @@ class ResNet():
 
         self.mains_std = params.get("mains_std", None)
 
-        self.appliances = params.get('appliances', {})
+        self.appliances = params["appliances"]
 
         self.default_appliance = {
             "timewindow": 180,
             "overlap": 178,
-            "timestep": 2,
             'epochs' : 1,
             'batch_size' : 1024,
             'n_nodes' : 90,
@@ -82,7 +80,7 @@ class ResNet():
             appliance_model = self.appliances.get(app_name, {})
 
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            timestep = appliance_model["timestep"]
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
             batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
             epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
@@ -127,7 +125,7 @@ class ResNet():
                 cv_on_examples = cv_n_activatons / y_cv.shape[0]
                 cv_off_examples = (y_cv.shape[0] - cv_n_activatons) / y_cv.shape[0]
 
-            if( self.verbose != 0):
+            if( self.verbose == 2):
                 print("-"*5 + "Train Info" + "-"*5)
                 print("Nº of examples: ", str(X_train.shape[0]))
                 print("Nº of activations: ", str(train_n_activatons))
@@ -147,25 +145,30 @@ class ResNet():
 
             #Checks if the model already exists and if it doesn't creates a new one.          
             if app_name in self.model:
-                print("Starting from previous step")
+                if( self.verbose > 0):
+                    print("Starting from previous step")
                 model = self.model[app_name]
             else:
                 if transfer_path is None:
-                    print("Creating new model")
+                    if( self.verbose > 0):
+                        print("Creating new model")
                     model = self.create_model(n_nodes, X_train.shape[1:])
                 else:
-                    print("Starting from pre-trained model")
+                    if( self.verbose > 0):
+                        print("Starting from pre-trained model")
                     model = self.create_transfer_model(transfer_path, X_train.shape[1:], n_nodes)
 
             if self.verbose != 0:
                 print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
 
             reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
+            
+            verbose = 1 if self.verbose >= 1 else 0
 
             checkpoint = keras.callbacks.ModelCheckpoint(
                             self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                             monitor='val_loss', 
-                            verbose=1, 
+                            verbose=verbose, 
                             save_best_only=True, 
                             mode='min'
                             )
@@ -178,7 +181,7 @@ class ResNet():
                         shuffle=False,
                         callbacks=[reduce_lr, checkpoint],
                         validation_data=(X_cv, y_cv),
-                        verbose=1
+                        verbose=verbose
                         )        
             else:
                 history = model.fit(X_train, 
@@ -187,8 +190,8 @@ class ResNet():
                     batch_size=batch_size,
                     shuffle=False,
                     callbacks=[reduce_lr, checkpoint],
-                    validation_split=0.15,
-                    verbose=1
+                    validation_split=self.cv_split,
+                    verbose=verbose
                     )   
 
             history = str(history.history).replace("'", "\"")
@@ -246,7 +249,6 @@ class ResNet():
     def disaggregate_chunk(self, test_mains, app_name):
 
         test_predictions_list = []
-
         appliance_powers_dict = {}
 
         if self.verbose != 0:
@@ -255,7 +257,7 @@ class ResNet():
         appliance_model = self.appliances.get(app_name, {})
 
         timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-        timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+        timestep = appliance_model["timestep"]
         overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
         app_mean = appliance_model.get("mean", None)
         app_std = appliance_model.get("std", None)
@@ -269,17 +271,10 @@ class ResNet():
         if self.verbose != 0:
             print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
-        pred = self.model[app_name].predict(X_test)* app_std + app_mean
-        pred = [p[0] for p in pred]
-        
-        index = []
-        for main in test_mains:
-            index += main.index
+        pred = self.model[app_name].predict(X_test).flatten()* app_std + app_mean
+        pred = np.where(pred > 0, pred, 0)
 
-        column = pd.Series(
-                pred, index=index, name=0)
-        appliance_powers_dict[app_name] = column
-        
+        appliance_powers_dict[app_name] = pd.Series(pred)
         test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
         return test_predictions_list

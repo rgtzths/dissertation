@@ -33,129 +33,137 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
-            #'WindowGRU':WindowGRU({
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/WindowGRU/",
-            #    "plots_folder" : base_path + "plots/WindowGRU/",
-            #    "file_prefix" : base_path + "temp_weights/WindowGRU/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "fridge" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
+            'WindowGRU':WindowGRU({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "results_folder" : base_path + "results/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "appliances" : {
+                    "fridge" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
             'Seq2Point':Seq2Point({
+                "verbose" : 2,
                 'n_epochs':epochs,
                 'batch_size' : batch_size,
                 'sequence_length': sequence_length,
                 "training_history_folder" : base_path + "history/Seq2Point/",
                 "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
                 "file_prefix" : base_path + "temp_weights/Seq2Point/",
-                "on_threshold" : 200,
                 "appliances" : {
                     "fridge" : {
+                        "on_threshold" : 200,
                     }
                 },
             }),
-            #'Seq2Seq':Seq2Seq({
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "on_threshold" : 200,
-            #    "appliances" : {
-            #        "fridge" : {
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 0,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 32,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 90,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"MLP_Raw" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP_Raw/",
-            #    "results_folder" : base_path + "results/MLP_Raw/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
-            #    "plots_folder" : base_path + "plots/MLP_Raw/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'on_treshold' : 50,
-            #        }     
-            #    },
-            #}),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "fridge" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 32,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 90,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP_Raw" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP_Raw/",
+                "results_folder" : base_path + "results/MLP_Raw/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                "plots_folder" : base_path + "plots/MLP_Raw/",
+                "appliances" : {
+                    "fridge" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'on_treshold' : 50,
+                    }     
+                },
+            }),
         },
         'train': {   
             'datasets': {
@@ -165,11 +173,7 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                         1: {
                             'start_time': "2013-06-17",
                             'end_time': "2013-06-18",
-                        },
-                        2: {
-                            'start_time': "2013-06-17",
-                            'end_time': "2013-06-18",
-                        }         
+                        }        
                     }
                 },
             }
@@ -195,11 +199,7 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                         5: {
                             'start_time': "2014-08-01",
                             'end_time': "2014-08-02"
-                        },
-                        2: {
-                            'start_time': "2013-06-17",
-                            'end_time': "2013-06-18",
-                        }   
+                        }  
                     }
                 },
             },

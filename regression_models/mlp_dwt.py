@@ -3,19 +3,15 @@ from os.path import join, isfile
 from os import listdir
 import math
 import json
-import random
 
-from tensorflow.keras.models import load_model, Model, Sequential
-from tensorflow.keras.layers import Dense, Dropout, Input, InputLayer
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model, Sequential
+from tensorflow.keras.layers import Dense, InputLayer
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn.model_selection import train_test_split
 
 import pandas as pd
 import numpy as np
-from tensorflow.python.keras.backend import dropout
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -34,9 +30,9 @@ class MLP():
         #Name used to identify the Model Name.
         self.MODEL_NAME = params.get('model_name', 'MLP')
         #Percentage of values used as cross validation data from the training data.
-        self.cv = params.get('cv', 0.16)
+        self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
-        self.load_model_path = params.get('load_model_folder',None)
+        self.load_model_path = params.get('pretrained-model-path',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 0)
 
@@ -44,14 +40,13 @@ class MLP():
 
         self.mains_std = params.get("mains_std", None)
         
-        self.appliances = params.get('appliances', {})
+        self.appliances = params["appliances"]
 
         self.default_appliance = {
             "timewindow": 180,
             "overlap": 178,
-            "timestep": 2,
             "batch_size": 1024,
-            "epochs": 1,
+            "epochs": 300,
             "n_nodes":256,
             "on_treshold" : 50,
             "feature_extractor": "",
@@ -91,7 +86,7 @@ class MLP():
 
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            timestep = appliance_model["timestep"]
             batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
             epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
             n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
@@ -101,10 +96,30 @@ class MLP():
             on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
             transfer_path = appliance_model.get("transfer_path", None)
 
-            if self.mains_mean is None:
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+            if feature_extractor == "wt":
+                if self.verbose > 0:
+                    print("Using Discrete Wavelet Transforms as Features")
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                X_train, mean, std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                X_train, self.mains_mean, self.mains_std = get_discrete_features(X_train*std + mean, len(data["mains"][0].columns.values), wavelet)
+
+                if cv_data is not None:
+                    X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mean, std)[0]
+                    X_cv = get_discrete_features(X_cv*std + mean, len(data["mains"][0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
+
             else:
-                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                if self.verbose > 0:
+                    print("Using the Timeseries as Features")
+                if self.mains_mean is None:
+                    X_train, self.mains_mean, self.mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                else:
+                    X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+
+                X_train = X_train.reshape(X_train.shape[0], -1)
+
+                if cv_data is not None:
+                    X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                    X_cv = X_cv.reshape(X_cv.shape[0], -1)
 
             if app_mean is None:
                 y_train, app_mean, app_std = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap)
@@ -122,8 +137,6 @@ class MLP():
             train_off_examples = (y_train.shape[0] - train_n_activatons) / y_train.shape[0]
 
             if cv_data is not None:
-                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
-                X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
                 y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
             
                 binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
@@ -134,21 +147,7 @@ class MLP():
                 cv_on_examples = cv_n_activatons / y_cv.shape[0]
                 cv_off_examples = (y_cv.shape[0] - cv_n_activatons) / y_cv.shape[0]
 
-            if feature_extractor == "wt":
-                print("Using Discrete Wavelet Transforms as Features")
-                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-                mean = self.mains_mean
-                std = self.mains_std
-                X_train, self.mains_mean, self.mains_std = get_discrete_features(X_train*self.mains_std + self.mains_mean, len(data["mains"][0].columns.values), wavelet)
-                if cv_data is not None:
-                    X_cv = get_discrete_features(X_cv*std + mean, len(data["mains"][0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
-            else:
-                print("Using the Timeseries as Features")
-                X_train = X_train.reshape(X_train.shape[0], -1)
-                if cv_data is not None:
-                    X_cv = X_cv.reshape(X_cv.shape[0], -1)
-
-            if( self.verbose != 0):
+            if( self.verbose == 2):
                 print("-"*5 + "Train Info" + "-"*5)
                 print("Nº of examples: ", str(X_train.shape[0]))
                 print("Nº of activations: ", str(train_n_activatons))
@@ -167,23 +166,28 @@ class MLP():
                 print(app_name + " Std: ", str(app_std))
             
             if app_name in self.model:
-                print("Starting from previous step")
+                if self.verbose > 0:
+                    print("Starting from previous step")
                 model = self.model[app_name]
             else:
                 if transfer_path is None:
-                    print("Creating new model")
+                    if self.verbose > 0:
+                        print("Creating new model")
                     model = self.create_model(n_nodes, (X_train.shape[1],))       
                 else:
-                    print("Starting from pre-trained model")
+                    if self.verbose > 0:
+                        print("Starting from pre-trained model")
                     model = self.create_transfer_model(transfer_path, (X_train.shape[1],), n_nodes)
             
             if self.verbose != 0:
                 print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
             
+            verbose = 1 if self.verbose >= 1 else 0
+
             checkpoint = ModelCheckpoint(
                     self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                     monitor='val_loss', 
-                    verbose=1, 
+                    verbose=verbose, 
                     save_best_only=True, 
                     mode='min'
             )
@@ -196,7 +200,7 @@ class MLP():
                         shuffle=False,
                         callbacks=[checkpoint],
                         validation_data=(X_cv, y_cv),
-                        verbose=1
+                        verbose=verbose
                         )        
             else:
                 history = model.fit(X_train, 
@@ -205,8 +209,8 @@ class MLP():
                     batch_size=batch_size,
                     shuffle=False,
                     callbacks=[checkpoint],
-                    validation_split=0.15,
-                    verbose=1
+                    validation_split=self.cv_split,
+                    verbose=verbose
                     ) 
             
             history = json.dumps(history.history)
@@ -264,49 +268,42 @@ class MLP():
     def disaggregate_chunk(self, test_mains, app_name):
 
         test_predictions_list = []
-
         appliance_powers_dict = {}
         
-        if self.verbose != 0:
+        if self.verbose > 0:
             print("Preparing the Test Data for %s" % app_name)
 
         appliance_model = self.appliances.get(app_name)
+
         timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
         overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-        timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+        timestep = appliance_model["timestep"]
         feature_extractor = appliance_model.get("feature_extractor", self.default_appliance['feature_extractor'])
         app_mean = appliance_model.get("mean", None)
         app_std = appliance_model.get("std", None)
         
-
         if feature_extractor == "wt":
-            print("Using Discrete Wavelet Transforms as Features")
+            if( self.verbose > 0):
+                print("Using Discrete Wavelet Transforms as Features")
             X_test, mean, std = generate_main_timeseries(test_mains, timewindow, timestep, overlap)
             wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
-            X_test = get_discrete_features(X_test*std + mean,len(test_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
+            X_test = get_discrete_features(X_test*std + mean, len(test_mains[0].columns.values), wavelet, self.mains_mean, self.mains_std)[0]
         else:
-            print("Using the Timeseries as Features")
+            if( self.verbose > 0):
+                print("Using the Timeseries as Features")
             X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
             X_test = X_test.reshape(X_test.shape[0], -1)
         
-        if( self.verbose != 0):
+        if( self.verbose == 2):
             print("Nº of examples", X_test.shape[0])
 
-        if self.verbose != 0:
+        if self.verbose > 0:
             print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
         
-        pred = self.model[app_name].predict(X_test)* app_std + app_mean
+        pred = self.model[app_name].predict(X_test).flatten()* app_std + app_mean
+        pred = np.where(pred > 0, pred, 0)
 
-        pred = [p[0] for p in pred]
-
-        index = []
-        for main in test_mains:
-            index += main.index
-
-        column = pd.Series(
-                pred, index=index, name=0)
-        appliance_powers_dict[app_name] = column
-        
+        appliance_powers_dict[app_name] = pd.Series(pred)
         test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
         return test_predictions_list
