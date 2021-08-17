@@ -50,12 +50,14 @@ def calculate_wavelet(values, n_columns, waveletname):
 
 def get_discrete_features(X, n_columns, waveletname, mains_mean=None, mains_std=None):
     
-    X = [calculate_wavelet(i, n_columns, waveletname) for i in X]
+    X = np.array([calculate_wavelet(i, n_columns, waveletname) for i in X])
     
     if mains_mean is None:
         mains_mean = np.mean(X, axis=0)
         mains_std = np.std(X, axis=0)
-
-    X = (X - mains_mean) / mains_std
+        if mains_std < 1:
+            mains_std = 100
+    
+    X = (X - mains_mean) / mains_std 
 
     return X, mains_mean, mains_std

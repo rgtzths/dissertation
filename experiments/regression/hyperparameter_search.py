@@ -1333,9 +1333,6 @@ def run_washing_machine(base_path, timewindow, timestep, epochs):
 
     ##################################################
 
-
-
-
 if __name__ == "__main__":
     timewindows = [128, 256, 512, 1024]
     output_path= "/home/rteixeira/thesis_results/regression/"

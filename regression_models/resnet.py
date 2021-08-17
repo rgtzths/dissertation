@@ -32,7 +32,7 @@ class ResNet():
         #If this variable is not None than the class loads the appliance models present in the folder.
         self.load_model_path = params.get('pretrained-model-path',None)
         #Dictates the ammount of information to be presented during training and regression.
-        self.verbose = params.get('verbose', 0)
+        self.verbose = params.get('verbose', 1)
         
         self.mains_mean = params.get("mains_mean", None)
 
@@ -211,8 +211,12 @@ class ResNet():
             self.model[app_name] = model
 
             #Gets the trainning data score
-            X = np.concatenate((X_train, X_cv), axis=0)
-            y = np.concatenate((y_train, y_cv), axis=0)
+            if cv_data is not None:
+                X = np.concatenate((X_train, X_cv), axis=0)
+                y = np.concatenate((y_train, y_cv), axis=0)
+            else:
+                X = X_train
+                y = y_train
 
             pred = self.model[app_name].predict(X) * app_std + app_mean
 
@@ -226,18 +230,18 @@ class ResNet():
             
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                f.write("-"*5 + "Train Info" + "-"*5)
-                f.write("Nº of examples: "+ str(X_train.shape[0]))
-                f.write("Nº of activations: "+ str(train_n_activatons))
-                f.write("On Percentage: "+ str(train_on_examples))
-                f.write("Off Percentage: "+ str(train_off_examples))
+                f.write("-"*5 + "Train Info" + "-"*5+ "\n")
+                f.write("Nº of examples: "+ str(X_train.shape[0])+ "\n")
+                f.write("Nº of activations: "+ str(train_n_activatons)+ "\n")
+                f.write("On Percentage: "+ str(train_on_examples)+ "\n")
+                f.write("Off Percentage: "+ str(train_off_examples)+ "\n")
                 if cv_data is not None:
-                    f.write("-"*5 + "Cross Validation Info" + "-"*5)
-                    f.write("Nº of examples: "+ str(X_cv.shape[0]))
-                    f.write("Nº of activations: "+ str(cv_n_activatons))
-                    f.write("On Percentage: "+ str(cv_on_examples))
-                    f.write("Off Percentage: "+ str(cv_off_examples))
-                f.write("-"*10)
+                    f.write("-"*5 + "Cross Validation Info" + "-"*5+ "\n")
+                    f.write("Nº of examples: "+ str(X_cv.shape[0])+ "\n")
+                    f.write("Nº of activations: "+ str(cv_n_activatons)+ "\n")
+                    f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
+                    f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
+                f.write("-"*10+ "\n")
                 f.write("Mains Mean: " + str(self.mains_mean) + "\n")
                 f.write("Mains Std: " + str(self.mains_std) + "\n")
                 f.write(app_name + " Mean: " + str(app_mean) + "\n")

@@ -27,7 +27,7 @@ class DAE(Disaggregator):
         self.MODEL_NAME = "DAE"
         self.models = OrderedDict()
         self.file_prefix = params.get('file_prefix', "")
-        self.verbose =  params.get('verbose', 0)
+        self.verbose =  params.get('verbose', 1)
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
@@ -184,8 +184,12 @@ class DAE(Disaggregator):
 
             #Gets the trainning data score
             #Concatenates training and cross_validation
-            X = np.concatenate((train_main, cv_main), axis=0)
-            y = np.concatenate((train_appliance, cv_appliance), axis=0).flatten()
+            if cv_data is not None:
+                X = np.concatenate((train_main, cv_main), axis=0)
+                y = np.concatenate((train_appliance, cv_appliance), axis=0).flatten()
+            else:
+                X = train_main
+                y = train_appliance.flatten()
 
             pred = self.models[appliance_name].predict(X) * std + mean
             pred = pred.flatten()
@@ -200,18 +204,18 @@ class DAE(Disaggregator):
             
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + appliance_name.replace(" ", "_") + ".txt", "w")
-                f.write("-"*5 + "Train Info" + "-"*5)
-                f.write("Nº of examples: "+ str(train_appliance.shape[0]))
-                f.write("Nº of activations: "+ str(train_n_activatons))
-                f.write("On Percentage: "+ str(train_on_examples))
-                f.write("Off Percentage: "+ str(train_off_examples))
+                f.write("-"*5 + "Train Info" + "-"*5+ "\n")
+                f.write("Nº of examples: "+ str(train_appliance.shape[0])+ "\n")
+                f.write("Nº of activations: "+ str(train_n_activatons)+ "\n")
+                f.write("On Percentage: "+ str(train_on_examples)+ "\n")
+                f.write("Off Percentage: "+ str(train_off_examples)+ "\n")
                 if cv_data is not None:
-                    f.write("-"*5 + "Cross Validation Info" + "-"*5)
-                    f.write("Nº of examples: "+ str(cv_appliance.shape[0]))
-                    f.write("Nº of activations: "+ str(cv_n_activatons))
-                    f.write("On Percentage: "+ str(cv_on_examples))
-                    f.write("Off Percentage: "+ str(cv_off_examples))
-                f.write("-"*10)
+                    f.write("-"*5 + "Cross Validation Info" + "-"*5+ "\n")
+                    f.write("Nº of examples: "+ str(cv_appliance.shape[0])+ "\n")
+                    f.write("Nº of activations: "+ str(cv_n_activatons)+ "\n")
+                    f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
+                    f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
+                f.write("-"*10+ "\n")
                 f.write("Mains Mean: " + str(self.mains_mean) + "\n")
                 f.write("Mains Std: " + str(self.mains_std) + "\n")
                 f.write(appliance_name + " Mean: " + str(mean) + "\n")
@@ -295,7 +299,7 @@ class DAE(Disaggregator):
         if method=='train':
             processed_mains = []
             for mains in mains_lst:                
-                mains = self.normalize_input(mains.values,sequence_length,self.mains_mean,self.mains_std,True)
+                mains = self.normalize_input(mains.values, sequence_length, self.mains_mean, self.mains_std,True)
                 processed_mains.append(pd.DataFrame(mains))
 
             processed_app_dfs = []
@@ -333,12 +337,14 @@ class DAE(Disaggregator):
         excess_entries =  sequence_length - (data.size % sequence_length)       
         lst = np.array([0] * excess_entries)
         arr = np.concatenate((data.flatten(), lst),axis=0) 
+
         if overlapping:  
             windowed_y = np.array([ arr[i:i+n] for i in range(len(arr)-n+1) ])
         else:
             windowed_y = arr.reshape((-1,sequence_length))        
-        windowed_y = windowed_y - mean
-        return (windowed_y/std).reshape((-1,sequence_length))
+        windowed_y = (windowed_y - mean )/std
+
+        return windowed_y.reshape((-1,sequence_length))
 
     def set_appliance_params(self,train_data):
         for app_name, data in train_data.items():

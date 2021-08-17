@@ -1,403 +1,188 @@
-######################################## Prof Diogo ########################################
-
-### Heat pump ###
-"houses" : {
-    1 : [
-        (datetime.datetime(2020, 10, 5), datetime.datetime(2020, 10, 9))
-        (datetime.datetime(2020, 10, 20), datetime.datetime(2020, 10, 27)),
-        (datetime.datetime(2020, 11, 1), datetime.datetime(2020, 11, 8)),
-        (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 17)),
-        (datetime.datetime(2021, 1, 15), datetime.datetime(2021, 2, 5))
-        ]
-}
-
-### Car charger ###
-"houses" : {
-    1 : [ 
-        (datetime.datetime(2020, 11, 14), datetime.datetime(2020, 11, 15)),
-        (datetime.datetime(2020, 11, 16), datetime.datetime(2020, 11, 20)),
-        (datetime.datetime(2020, 11, 23), datetime.datetime(2020, 11, 29)),
-        (datetime.datetime(2020, 12, 2), datetime.datetime(2020, 12, 6)),
-        (datetime.datetime(2020, 12, 9), datetime.datetime(2020, 12, 13)),
-        (datetime.datetime(2020, 12, 16), datetime.datetime(2020, 12, 21)),
-        (datetime.datetime(2021, 1, 2), datetime.datetime(2021, 1, 4)),
-        (datetime.datetime(2021, 1, 5), datetime.datetime(2021, 1, 6)),
-        (datetime.datetime(2021, 1, 6), datetime.datetime(2021, 1, 9)),
-        (datetime.datetime(2021, 1, 11), datetime.datetime(2021, 1, 21)),
-        ]
-}
-
-######################################## UKDale ########################################
-## Casa 5 -2 meses de medidas simultaneas
-## Casa 2 - 4 meses de medidas simultaneas
-### Fridge Freezer ###
-
-"houses" : {
-    1 : [
-        (datetime.datetime(2014, 2, 1), datetime.datetime(2014, 3, 1)),
-        (datetime.datetime(2016, 9, 1), datetime.datetime(2016, 10, 1))
-    ]
-    5 : [
-        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 30)),
-        (datetime.datetime(2014, 7, 30), datetime.datetime(2014, 8, 30)),
-    ]
-}
-
-### Washer Dryer ###
-
-"houses" : {
-    1 : [
-        (datetime.datetime(2014, 1, 30), datetime.datetime(2014, 2, 3)),
-        (datetime.datetime(2014, 2, 4), datetime.datetime(2014, 2, 5)),
-        (datetime.datetime(2014, 2, 7), datetime.datetime(2014, 2, 8)),
-        (datetime.datetime(2014, 2, 9), datetime.datetime(2014, 2, 10)),
-        (datetime.datetime(2014, 2, 11), datetime.datetime(2014, 2, 12)),
-        (datetime.datetime(2014, 2, 13), datetime.datetime(2014, 2, 20)),
-        (datetime.datetime(2014, 2, 24), datetime.datetime(2014, 2, 27)),
-        (datetime.datetime(2013, 3, 21), datetime.datetime(2013, 3, 23)),
-        (datetime.datetime(2013, 3, 24), datetime.datetime(2013, 3, 25)),   
-        (datetime.datetime(2013, 3, 26), datetime.datetime(2013, 3, 29)),
-        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 4)),  
-        (datetime.datetime(2013, 4, 5), datetime.datetime(2013, 4, 6)), 
-        (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
-        (datetime.datetime(2013, 4, 12), datetime.datetime(2013, 4, 15)),
-    ]
-    5 : [
-        (datetime.datetime(2014, 7, 1), datetime.datetime(2014, 7, 3)),
-        (datetime.datetime(2014, 7, 4), datetime.datetime(2014, 7, 6)),
-        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 10)),
-        (datetime.datetime(2014, 7, 13), datetime.datetime(2014, 7, 14)),
-        (datetime.datetime(2014, 7, 16), datetime.datetime(2014, 7, 18)),
-        (datetime.datetime(2014, 7, 20), datetime.datetime(2014, 7, 23)),
-        (datetime.datetime(2014, 7, 24), datetime.datetime(2014, 7, 26)),
-        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 29)),
-        (datetime.datetime(2014, 7, 30), datetime.datetime(2014, 7, 31)),
-        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 2)),
-        (datetime.datetime(2014, 8, 6), datetime.datetime(2014, 8, 7)),
-        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 15)),
-        (datetime.datetime(2014, 8, 18), datetime.datetime(2014, 8, 19)),
-        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 26)),
-        (datetime.datetime(2014, 8, 31), datetime.datetime(2014, 9, 1)),
-        (datetime.datetime(2014, 9, 5), datetime.datetime(2014, 9, 6)),#26
-        (datetime.datetime(2014, 9, 10), datetime.datetime(2014, 9, 12)),
-        (datetime.datetime(2014, 9, 14), datetime.datetime(2014, 9, 15)),
-        (datetime.datetime(2014, 9, 16), datetime.datetime(2014, 9, 20)),
-        
-    ]
-}
-
-### Dish Washer ###
-
-"houses" : {
-    1 : [
-        (datetime.datetime(2014, 1, 5), datetime.datetime(2014, 1, 6)),
-        (datetime.datetime(2014, 1, 11), datetime.datetime(2014, 1, 12)),
-        (datetime.datetime(2014, 1, 8, 12), datetime.datetime(2014, 1, 9, 12)),
-        (datetime.datetime(2014, 1, 17, 12), datetime.datetime(2014, 1, 18, 12)),
-        (datetime.datetime(2014, 1, 21, 12), datetime.datetime(2014, 1, 22, 12)),
-        (datetime.datetime(2014, 1, 31, 12), datetime.datetime(2014, 2, 1, 12)),
-        (datetime.datetime(2013, 3, 19), datetime.datetime(2013, 3, 20)),
-        (datetime.datetime(2013, 3, 21), datetime.datetime(2013, 3, 22)),
-        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 3)),
-        (datetime.datetime(2013, 4, 8), datetime.datetime(2013, 4, 9)),  
-        (datetime.datetime(2013, 4, 26), datetime.datetime(2013, 4, 27)),
-        (datetime.datetime(2013, 4, 28, 12), datetime.datetime(2013, 4, 29, 12)), 
-        (datetime.datetime(2013, 5, 1, 12), datetime.datetime(2013, 5, 2, 12)),
-        (datetime.datetime(2013, 5, 4, 12), datetime.datetime(2013, 5, 5, 12)),
-        (datetime.datetime(2013, 5, 10), datetime.datetime(2013, 5, 11)),
-        (datetime.datetime(2013, 5, 14, 12), datetime.datetime(2013, 5, 15, 12)),
-        (datetime.datetime(2013, 5, 18), datetime.datetime(2013, 5, 19)),
-        (datetime.datetime(2013, 5, 20, 12), datetime.datetime(2013, 5, 21, 12)),
-        (datetime.datetime(2013, 5, 22, 12), datetime.datetime(2013, 5, 23, 12)),
-        (datetime.datetime(2013, 5, 31), datetime.datetime(2013, 6, 1)),
-        (datetime.datetime(2013, 6, 2), datetime.datetime(2013, 6, 3)),
-        (datetime.datetime(2013, 6, 4), datetime.datetime(2013, 6, 7)),
-        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 9)),
-        (datetime.datetime(2013, 6, 10), datetime.datetime(2013, 6, 12)),
-        (datetime.datetime(2013, 6, 19), datetime.datetime(2013, 6, 20)),
-        (datetime.datetime(2013, 6, 23), datetime.datetime(2013, 6, 24)),
-        (datetime.datetime(2013, 6, 28), datetime.datetime(2013, 6, 29)),
-    ]
-    2 : [
-        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 24)),
-        (datetime.datetime(2013, 5, 25), datetime.datetime(2013, 6, 15)),
-        (datetime.datetime(2013, 6, 16), datetime.datetime(2013, 6, 19)),
-        (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 23)),
-        (datetime.datetime(2013, 6, 24), datetime.datetime(2013, 6, 28)),
-    ]
-    5 : [
-        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 1)),
-        (datetime.datetime(2014, 7, 3), datetime.datetime(2014, 7, 4)),
-        (datetime.datetime(2014, 7, 6), datetime.datetime(2014, 7, 7)),
-        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
-        (datetime.datetime(2014, 7, 11), datetime.datetime(2014, 7, 12)),
-        (datetime.datetime(2014, 7, 13), datetime.datetime(2014, 7, 14)),
-        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 20)),
-        (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 23)),
-        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 28)),
-        (datetime.datetime(2014, 7, 29), datetime.datetime(2014, 7, 30)),
-        (datetime.datetime(2014, 8, 1, 12), datetime.datetime(2014, 8, 2, 12)),
-        (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 4)),
-        (datetime.datetime(2014, 8, 8), datetime.datetime(2014, 8, 9)),
-        (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 11)),
-        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 14)),
-        (datetime.datetime(2014, 8, 16), datetime.datetime(2014, 8, 17)),
-        (datetime.datetime(2014, 8, 19), datetime.datetime(2014, 8, 20)),
-        (datetime.datetime(2014, 8, 22), datetime.datetime(2014, 8, 23)),
-        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 25)),
-        (datetime.datetime(2014, 8, 27), datetime.datetime(2014, 8, 28)),
-        (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 8, 31)),
-        (datetime.datetime(2014, 9, 1), datetime.datetime(2014, 9, 2)),
-        (datetime.datetime(2014, 9, 3), datetime.datetime(2014, 9, 4)),
-        (datetime.datetime(2014, 9, 6), datetime.datetime(2014, 9, 7)),
-        (datetime.datetime(2014, 9, 9), datetime.datetime(2014, 9, 10)),#26
-        (datetime.datetime(2014, 9, 14), datetime.datetime(2014, 9, 16)),
-        (datetime.datetime(2014, 9, 17), datetime.datetime(2014, 9, 18)),
-        (datetime.datetime(2014, 9, 19), datetime.datetime(2014, 9, 20)),
-
-    ]
-}
 
 
-### Microwave ###
+#####################  UKDALE #####################
 
-"houses" : {
-    1 : [
-        (datetime.datetime(2013, 6, 25), datetime.datetime(2013, 7, 9)),
-        (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 18)),
-        (datetime.datetime(2013, 7, 28), datetime.datetime(2013, 8, 9)),
-    ]
-    2 : [
-        (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 7, 5)),
-        (datetime.datetime(2013, 7, 5), datetime.datetime(2013, 8, 5)),
-    ]
-    5 : [
-        (datetime.datetime(2014, 7, 8), datetime.datetime(2014, 7, 9)),
-        (datetime.datetime(2014, 7, 10), datetime.datetime(2014, 7, 11)),
-        (datetime.datetime(2014, 7, 12), datetime.datetime(2014, 7, 17)),
-        (datetime.datetime(2014, 7, 21), datetime.datetime(2014, 7, 22)),
-        (datetime.datetime(2014, 7, 28), datetime.datetime(2014, 7, 29)),
-        (datetime.datetime(2014, 8, 4), datetime.datetime(2014, 8, 5)),
-        (datetime.datetime(2014, 8, 7), datetime.datetime(2014, 8, 8)),
-        (datetime.datetime(2014, 8, 10), datetime.datetime(2014, 8, 12)),
-        (datetime.datetime(2014, 8, 13), datetime.datetime(2014, 8, 16)),
-        (datetime.datetime(2014, 8, 20), datetime.datetime(2014, 8, 25)),
-        (datetime.datetime(2014, 8, 26), datetime.datetime(2014, 8, 28)),
-        (datetime.datetime(2014, 8, 29), datetime.datetime(2014, 9, 2)),#28
-        (datetime.datetime(2014, 9, 5), datetime.datetime(2014, 9, 6)),
-        (datetime.datetime(2014, 9, 7), datetime.datetime(2014, 9, 8)),
-    ]
-}
+### CASA 1
 
-### Washing Machine ###
+appliances :  Microwave, Washing Machine, Dishwasher, Fridge
 
-"houses" : {
-    2 : [
-        (datetime.datetime(2013, 5, 26), datetime.datetime(2013, 5, 28)),
-        (datetime.datetime(2013, 6, 2), datetime.datetime(2013, 6, 3)),
-        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 10)),
-        (datetime.datetime(2013, 6, 12), datetime.datetime(2013, 6, 13)),
-        (datetime.datetime(2013, 6, 15), datetime.datetime(2013, 6, 17)),
-        (datetime.datetime(2013, 6, 22), datetime.datetime(2013, 6, 24)),
-        (datetime.datetime(2013, 6, 29), datetime.datetime(2013, 7, 1)),
-        (datetime.datetime(2013, 7, 6), datetime.datetime(2013, 7, 7)),
-        (datetime.datetime(2013, 7, 13), datetime.datetime(2013, 7, 14)),
-        (datetime.datetime(2013, 7, 19), datetime.datetime(2013, 7, 20)),
-        (datetime.datetime(2013, 7, 23), datetime.datetime(2013, 7, 25)),
-        (datetime.datetime(2013, 7, 27), datetime.datetime(2013, 7, 29)),
-        (datetime.datetime(2013, 8, 1), datetime.datetime(2013, 8, 2)),
-        (datetime.datetime(2013, 8, 3), datetime.datetime(2013, 8, 5)),#21
-        (datetime.datetime(2013, 8, 23), datetime.datetime(2013, 8, 24)),
-        (datetime.datetime(2013, 8, 28), datetime.datetime(2013, 8, 29)),
-        (datetime.datetime(2013, 8, 31), datetime.datetime(2013, 9, 1)),
-        (datetime.datetime(2013, 9, 4), datetime.datetime(2013, 9, 5)),
-        (datetime.datetime(2013, 9, 14), datetime.datetime(2013, 9, 15)),
-        (datetime.datetime(2013, 9, 21), datetime.datetime(2013, 9, 23)),
-        (datetime.datetime(2013, 9, 28), datetime.datetime(2013, 9, 30)),
-        (datetime.datetime(2013, 10, 5), datetime.datetime(2013, 10, 7)),
-    ]
-}
+Time Interval : 2013-03-18 | 2017-04-25
 
-### Kettle ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 6, 18)),
-        (datetime.datetime(2013, 6, 20), datetime.datetime(2013, 6, 26)),
-    ],
-    3 : [
-        (datetime.datetime(2013, 3, 1), datetime.datetime(2013, 3, 3)),
-        (datetime.datetime(2013, 3, 6), datetime.datetime(2013, 3, 7)),
-        (datetime.datetime(2013, 3, 8), datetime.datetime(2013, 3, 10)),
-        (datetime.datetime(2013, 3, 11), datetime.datetime(2013, 3, 14)),
-        (datetime.datetime(2013, 3, 16), datetime.datetime(2013, 3, 20)),
-        (datetime.datetime(2013, 3, 22), datetime.datetime(2013, 3, 30)),
-        (datetime.datetime(2013, 4, 2), datetime.datetime(2013, 4, 5)),
-        (datetime.datetime(2013, 4, 6), datetime.datetime(2013, 4, 9)),
-    ]
-    5: [
-        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 18)),
-        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 26)),
-        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 31)),
-        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 9, 8)),
-    ]
-}
+### Casa 2
 
-### Toaster ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2013, 5, 21), datetime.datetime(2013, 5, 23)),
-        (datetime.datetime(2013, 5, 26), datetime.datetime(2013, 5, 28)),
-        (datetime.datetime(2013, 5, 29), datetime.datetime(2013, 5, 30)),
-        (datetime.datetime(2013, 5, 31), datetime.datetime(2013, 6, 4)),
-        (datetime.datetime(2013, 6, 5), datetime.datetime(2013, 6, 7)),
-        (datetime.datetime(2013, 6, 8), datetime.datetime(2013, 6, 11)),
-        (datetime.datetime(2013, 6, 13), datetime.datetime(2013, 6, 14)),
-        (datetime.datetime(2013, 6, 15), datetime.datetime(2013, 6, 16)),
-        (datetime.datetime(2013, 6, 17), datetime.datetime(2013, 6, 18)),
-        (datetime.datetime(2013, 6, 21), datetime.datetime(2013, 6, 23)),
-        (datetime.datetime(2013, 6, 30), datetime.datetime(2013, 7, 1)),
-        (datetime.datetime(2013, 7, 6), datetime.datetime(2013, 7, 9)),#23
-        (datetime.datetime(2013, 7, 12), datetime.datetime(2013, 7, 13)),
-        (datetime.datetime(2013, 7, 15), datetime.datetime(2013, 7, 16)),
-        (datetime.datetime(2013, 7, 22), datetime.datetime(2013, 7, 23)),
-        (datetime.datetime(2013, 7, 24), datetime.datetime(2013, 7, 25)),
-        (datetime.datetime(2013, 7, 27), datetime.datetime(2013, 7, 28)),
-        (datetime.datetime(2013, 7, 30), datetime.datetime(2013, 8, 2)),
-        (datetime.datetime(2013, 8, 4), datetime.datetime(2013, 8, 5)),
+appliances : Microwave, Washing Machine, Dishwasher, Fridge, Kettle
 
-    ]
-    5 : [
-        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 2)),
-        (datetime.datetime(2014, 7, 4), datetime.datetime(2014, 7, 5)),
-        (datetime.datetime(2014, 7, 7), datetime.datetime(2014, 7, 8)),
-        (datetime.datetime(2014, 7, 11), datetime.datetime(2014, 7, 12)),
-        (datetime.datetime(2014, 7, 15), datetime.datetime(2014, 7, 16)),
-        (datetime.datetime(2014, 7, 19), datetime.datetime(2014, 7, 20)),
-        (datetime.datetime(2014, 7, 22), datetime.datetime(2014, 7, 26)),
-        (datetime.datetime(2014, 7, 27), datetime.datetime(2014, 7, 28)),
-        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 3)),
-        (datetime.datetime(2014, 8, 5), datetime.datetime(2014, 8, 6)),
-        (datetime.datetime(2014, 8, 9), datetime.datetime(2014, 8, 12)),
-        (datetime.datetime(2014, 8, 19), datetime.datetime(2014, 8, 22)),
-        (datetime.datetime(2014, 8, 24), datetime.datetime(2014, 8, 26)),#24
-        (datetime.datetime(2014, 8, 28), datetime.datetime(2014, 9, 1)),
-        (datetime.datetime(2014, 9, 4), datetime.datetime(2014, 9, 5)),
-        (datetime.datetime(2014, 9, 6), datetime.datetime(2014, 9, 7)),
-    ]
-}
+Time Interval : 2013-04-17 | 2013-10-09
 
-### Fridge ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2013, 5, 22), datetime.datetime(2013, 6, 22)),
-        (datetime.datetime(2013, 6, 22), datetime.datetime(2013, 7, 22)),
-        (datetime.datetime(2013, 7, 22), datetime.datetime(2013, 8, 5)),
-    ]
-}
+### Casa 3
 
-### Electric Oven ###
-"houses" : {
-    5 : [
-        (datetime.datetime(2014, 6, 30), datetime.datetime(2014, 7, 3)),
-        (datetime.datetime(2014, 7, 6), datetime.datetime(2014, 7, 10)),
-        (datetime.datetime(2014, 7, 12), datetime.datetime(2014, 7, 15)),
-        (datetime.datetime(2014, 7, 18), datetime.datetime(2014, 7, 21)),
-        (datetime.datetime(2014, 7, 23), datetime.datetime(2014, 7, 25)),
-        (datetime.datetime(2014, 7, 26), datetime.datetime(2014, 7, 31)),
-        (datetime.datetime(2014, 8, 1), datetime.datetime(2014, 8, 2)),
-        (datetime.datetime(2014, 8, 3), datetime.datetime(2014, 8, 8)),
-        (datetime.datetime(2014, 8, 9), datetime.datetime(2014, 8, 15)),
-    ]
-}
+appliances : Kettle
+
+Time Interval : 
+
+### Casa 5
+
+appliances : Microwave, Washing Machine, Dishwasher, Fridge (+freezers), Kettle
+
+Time Interval : 2014-06-30 | 2014-11-12
 
 
-######################################## WithUs ########################################
+#####################  REFIT #####################
 
-### Fridge ###
-"houses" : {
-    1 : [
-        (datetime.datetime(2021, 6, 15), datetime.datetime(2021, 7, 15)),
-    ]
-    2 : [
-        (datetime.datetime(2021, 4, 1), datetime.datetime(2021, 5, 1)),
-    ]
-    3 : [
-        (datetime.datetime(2021, 5, 1), datetime.datetime(2021, 6, 1)),
-    ]
-}
+### CASA 1
 
-### Heat Pump ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2021, 3, 23), datetime.datetime(2021, 5, 22)),
-        (datetime.datetime(2021, 5, 1), datetime.datetime(2021, 6, 1)),
-    ]
-}
+appliances :  Washing Machine, Dishwasher, Fridge
 
-######################################## ECO ########################################
+Time Interval : 2013-10-10 | 2015-07-10
 
-### Fridge ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2012, 7, 1), datetime.datetime(2012, 9, 1)),
-        (datetime.datetime(2012, 10, 1), datetime.datetime(2012, 11, 1)),
-        (datetime.datetime(2012, 12, 1), datetime.datetime(2013, 1, 1)),
-    ],
-    1 : [
-        (datetime.datetime(2012, 7, 1), datetime.datetime(2012, 9, 1)),
-        (datetime.datetime(2012, 11, 1), datetime.datetime(2013, 1, 1)),
-    ]
-    5 : [
-        (datetime.datetime(2012, 7, 1), datetime.datetime(2012, 9, 1)),
-        (datetime.datetime(2012, 10, 1), datetime.datetime(2012, 11, 1)),
-        (datetime.datetime(2012, 12, 1), datetime.datetime(2013, 1, 1)),
-    ]
-    6 : [
-        (datetime.datetime(2012, 7, 1), datetime.datetime(2012, 8, 1)),
-    ]
-    4 : [
-        (datetime.datetime(2012, 7, 1), datetime.datetime(2012, 9, 1)),
-        (datetime.datetime(2012, 12, 1), datetime.datetime(2013, 1, 1)),
-    ]
-}
+### CASA 2
 
-### Microwave ###
-"houses" : {
-    4 : [
-        (datetime.datetime(2012, 11, 15), datetime.datetime(2012, 12, 15))
-        (datetime.datetime(2012, 12, 1), datetime.datetime(2013, 1, 1)),
-        (datetime.datetime(2012, 8, 1), datetime.datetime(2012, 9, 1))
-    ]
-}
+appliances :  Washing Machine, Dishwasher, Fridge Freezer(unico), Kettle, Microwave
 
-### Kettle ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2012, 8, 1), datetime.datetime(2012, 9, 1)),
-        (datetime.datetime(2012, 10, 1), datetime.datetime(2012, 11, 1)),
-        (datetime.datetime(2012, 12, 1), datetime.datetime(2013, 1, 1)),
-    ],
-    1 : [
-        (datetime.datetime(2012, 7, 15), datetime.datetime(2012, 8, 15)),
-        (datetime.datetime(2012, 11, 1), datetime.datetime(2013, 1, 1)),
-    ]
-    6: [
-        (datetime.datetime(2012, 9, 15), datetime.datetime(2012, 10, 15)),
-    ]
-}
+Time Interval : 2013-09-18 | 2015-05-28
 
-### Dish Washer ###
-"houses" : {
-    2 : [
-        (datetime.datetime(2012, 7, 15), datetime.datetime(2012, 9, 15)),
-        (datetime.datetime(2012, 10, 1), datetime.datetime(2012, 11, 1)),
-    ]
-}
+### CASA 3
 
-### Washing Machine ###
-"houses" : {
-    1 : [
-        (datetime.datetime(2012, 7, 15), datetime.datetime(2012, 8, 15)),
-        (datetime.datetime(2012, 11, 1), datetime.datetime(2013, 1, 1)),
-    ]
-}
+appliances :  Washing Machine, Dishwasher, Fridge Freezer(+freezer), Kettle, Microwave
+
+Time Interval : 2013-09-26 | 2015-06-02
+
+### CASA 4
+
+appliances :  Washing Machinex2, Fridge (+freezer e fridge freezer), Kettle, Microwave
+
+Time Interval : 2013-10-12 | 2015-07-07
+
+### CASA 5
+
+appliances :  Washing Machine, Fridge Freezer(único), Dishwasher, Kettle, Microwave
+
+Time Interval : 2013-09-27 | 2015-07-06
+
+### CASA 6
+
+appliances :  Washing Machine, Freezer(único), Dishwasher, Kettle, Microwave
+
+Time Interval : 2013-11-28 | 2015-06-28
+
+### CASA 7
+
+appliances :  Washing Machine, Fridge(+freezer), Dishwasher, Kettle
+
+Time Interval : 2013-11-02 | 2015-07-08
+
+### CASA 8
+
+appliances :  Washing Machine(+Washer dryer), Fridge(+freezer), Kettle
+
+Time Interval : 2013-11-02 | 2015-05-11
+
+### CASA 9
+
+appliances :  Washing Machine, Fridge Freezer(único), Dishwasher, Kettle, Microwave
+
+Time Interval : 2013-12-18 | 2015-07-08
+
+### CASA 10
+
+appliances :  Washing Machine, Fridge Freezer(+freezer), Dishwasher, Microwave
+
+Time Interval : 2013-11-21 | 2015-06-30
+
+### CASA 11
+
+appliances :  Washing Machine, Fridge(+fridge freezer), Dishwasher, Kettle, Microwave
+
+Time Interval : 2014-06-04 | 2015-06-30
+
+### CASA 12
+
+appliances :  Fridge Freezer(unico), Kettle, Microwave
+
+Time Interval : 2014-03-07 | 2015-07-08
+
+### CASA 13
+
+appliances :  Washing Machine, freezer(unico), Dishwasher, Kettle, Microwave x2
+
+Time Interval : 2014-01-18 | 2015-05-31
+
+### CASA 14
+
+appliances :  Washing Machine, Fridge freezer(unico), Dishwasher, Microwave
+
+Time Interval : 2013-12-18 | 2015-07-08
+
+### CASA 15
+
+appliances :  Washing Machine, Fridge freezer x2, Dishwasher
+
+Time Interval : 2014-01-11 | 2015-07-08
+
+### CASA 16
+
+appliances :  Washing Machine, Fridge Freezer(+freezer), Kettle, Microwave
+
+Time Interval : 2014-03-07 | 2015-06-19
+
+### CASA 17
+
+appliances :  Washing Machine (+ washer dryer), Fridge(+fridge freezer e freezer), Dishwasher, Microwave
+
+Time Interval : 2014-03-08 | 2015-05-24
+
+### CASA 18
+
+appliances :  Washing Machine, Fridge Freezer(unico), Kettle, Microwave
+
+Time Interval : 2014-06-04 | 2015-06-30
+
+### CASA 19
+
+appliances :  Washing Machine, Fridge(+freezer), Dishwasher, Kettle, Microwave
+
+Time Interval : 2014-03-21 | 2015-06-23
+
+### CASA 20
+
+appliances :  Washing Machine, Fridge Freezer(unico), Dishwasher
+
+Time Interval : 2014-03-07 | 2015-07-10
+
+#####################  ECO #####################
+
+### CASA 1
+
+appliances :  Washing Machine, Fridge(+freezer), Kettle
+
+Time Interval : 2012-06-01 | 2013-02-01
+
+### CASA 2
+
+appliances :  Washing Machine, Fridge(+freezer), Kettle, Dishwasher
+
+Time Interval : 2012-06-01 | 2013-02-01
+
+### CASA 3
+
+appliances :  Fridge(+freezer), Kettle, 
+
+Time Interval : 2012-07-26 | 2013-02-01
+
+### CASA 4
+
+appliances :  Fridge(+freezer), Microwave
+
+Time Interval : 2012-06-27 | 2013-02-01
+
+### CASA 5
+
+appliances :  Fridge, Kettle, Microwave
+
+Time Interval : 2012-06-27 | 2013-02-01
+
+### CASA 6
+
+appliances :  Fridge, Kettle
+
+Time Interval : 2012-06-27 | 2013-02-01
