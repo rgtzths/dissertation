@@ -1,5 +1,6 @@
 from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.layers import Conv1D, Dense, Reshape, Flatten
+from tensorflow.keras.models import load_model
 import pandas as pd
 import numpy as np
 from collections import OrderedDict 
@@ -9,6 +10,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import os
 import json
 import math
+from os.path import join, isfile
+from os import listdir
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -243,24 +246,18 @@ class DAE(Disaggregator):
         test_predictions.append(results)
         return test_predictions
 
-    def load_model(self):
-        print ("Loading the model using the pretrained-weights")        
-        model_folder = self.load_model_path
+    def load_model(self, folder_name):
+        #Get all the models trained in the given folder and load them.
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        for app in app_models:
+            self.model[app.split(".")[0].replace("_", " ")] = load_model(join(folder_name, app))
 
-        for appliance_name in self.appliance_params:
-            self.models[appliance_name] = self.return_network()
-            self.models[appliance_name].load_weights(os.path.join(model_folder,appliance_name+".h5"))
+    def save_model(self, folder_name):
 
-
-    def save_model(self, save_model_path):
-
-        if not os.path.isdir(save_model_path):
-            os.makedirs(save_model_path)    
-
-        for appliance_name in self.models:
-            print ("Saving model for ", appliance_name)
-            self.models[appliance_name].save_weights(os.path.join(save_model_path,appliance_name+".h5"))
-            
+        #For each appliance trained store its model
+        for app in self.model:
+            self.model[app].save(join(folder_name, app.replace(" ", "_")+ ".h5"))
+   
     def return_network(self):
         model = Sequential()
         model.add(Conv1D(8, 4, activation="linear", input_shape=(self.sequence_length, 1), padding="same", strides=1))

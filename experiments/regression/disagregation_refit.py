@@ -36,21 +36,21 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "results_folder" : base_path + "results/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            "on_threshold" : 50,
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        "on_threshold" : 50,
+                    }
+                },
+            }),
             #'WindowGRU':WindowGRU({
             #    "verbose" : 2,
             #    'n_epochs':epochs,
@@ -66,91 +66,91 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
             #        }
             #    },
             #}),
-            #'Seq2Point':Seq2Point({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/Seq2Point/",
-            #    "plots_folder" : base_path + "plots/Seq2Point/",
-            #    "results_folder" : base_path + "results/Seq2Point/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Point/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            "on_threshold" : 50,
-            #        }
-            #    },
-            #}),
-            #'Seq2Seq':Seq2Seq({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "results_folder" : base_path + "results/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            "on_threshold" : 50,
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 64,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 128,
-            #            'on_treshold' : 50,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 50,
-            #            "n_nodes" : 1024
-            #        }
-            #    },
-            #}),
+            'Seq2Point':Seq2Point({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        "on_threshold" : 50,
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        "on_threshold" : 50,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 64,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 128,
+                        'on_treshold' : 50,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 50,
+                        "n_nodes" : 1024
+                    }
+                },
+            }),
             "MLP_Raw" : MLP( {
                 "verbose" : 2,
                 "training_history_folder" : base_path + "history/MLP_Raw/",
@@ -316,21 +316,21 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "results_folder" : base_path + "results/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            "on_threshold" : 2000,
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "kettle" : {
+                        "on_threshold" : 2000,
+                    }
+                },
+            }),
             #'WindowGRU':WindowGRU({
             #    "verbose" : 2,
             #    'n_epochs':epochs,
@@ -346,91 +346,91 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
             #        }
             #    },
             #}),
-            #'Seq2Point':Seq2Point({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/Seq2Point/",
-            #    "plots_folder" : base_path + "plots/Seq2Point/",
-            #    "results_folder" : base_path + "results/Seq2Point/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Point/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            "on_threshold" : 2000,
-            #        }
-            #    },
-            #}),
-            #'Seq2Seq':Seq2Seq({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "results_folder" : base_path + "results/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            "on_threshold" : 2000,
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 64,
-            #            'on_treshold' : 2000,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 128,
-            #            'on_treshold' : 2000,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "kettle" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 2000,
-            #            "n_nodes" : 1024
-            #        }
-            #    },
-            #}),
+            'Seq2Point':Seq2Point({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "appliances" : {
+                    "kettle" : {
+                        "on_threshold" : 2000,
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "kettle" : {
+                        "on_threshold" : 2000,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "kettle" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 64,
+                        'on_treshold' : 2000,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "kettle" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 128,
+                        'on_treshold' : 2000,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "kettle" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 2000,
+                        "n_nodes" : 1024
+                    }
+                },
+            }),
             "MLP_Raw" : MLP( {
                 "verbose" : 2,
                 "training_history_folder" : base_path + "history/MLP_Raw/",
@@ -570,21 +570,21 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "results_folder" : base_path + "results/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            "on_threshold" : 200,
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "microwave" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
             #'WindowGRU':WindowGRU({
             #    "verbose" : 2,
             #    'n_epochs':epochs,
@@ -600,91 +600,91 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
             #        }
             #    },
             #}),
-            #'Seq2Point':Seq2Point({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/Seq2Point/",
-            #    "plots_folder" : base_path + "plots/Seq2Point/",
-            #    "results_folder" : base_path + "results/Seq2Point/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Point/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            "on_threshold" : 200,
-            #        }
-            #    },
-            #}),
-            #'Seq2Seq':Seq2Seq({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "results_folder" : base_path + "results/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            "on_threshold" : 200,
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 64,
-            #            'on_treshold' : 200,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 128,
-            #            'on_treshold' : 200,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "microwave" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 200,
-            #            "n_nodes" : 1024
-            #        }
-            #    },
-            #}),
+            'Seq2Point':Seq2Point({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "appliances" : {
+                    "microwave" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "microwave" : {
+                        "on_threshold" : 200,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "microwave" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 64,
+                        'on_treshold' : 200,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "microwave" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 128,
+                        'on_treshold' : 200,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "microwave" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 200,
+                        "n_nodes" : 1024
+                    }
+                },
+            }),
             "MLP_Raw" : MLP( {
                 "verbose" : 2,
                 "training_history_folder" : base_path + "history/MLP_Raw/",
@@ -828,21 +828,21 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "results_folder" : base_path + "results/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            "on_threshold" : 10,
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "dish washer" : {
+                        "on_threshold" : 10,
+                    }
+                },
+            }),
             #'WindowGRU':WindowGRU({
             #    "verbose" : 2,
             #    'n_epochs':epochs,
@@ -858,91 +858,91 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
             #        }
             #    },
             #}),
-            #'Seq2Point':Seq2Point({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/Seq2Point/",
-            #    "plots_folder" : base_path + "plots/Seq2Point/",
-            #    "results_folder" : base_path + "results/Seq2Point/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Point/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            "on_threshold" : 10,
-            #        }
-            #    },
-            #}),
-            #'Seq2Seq':Seq2Seq({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "results_folder" : base_path + "results/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            "on_threshold" : 10,
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 64,
-            #            'on_treshold' : 10,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 128,
-            #            'on_treshold' : 10,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "dish washer" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 10,
-            #            "n_nodes" : 1024
-            #        }
-            #    },
-            #}),
+            'Seq2Point':Seq2Point({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "appliances" : {
+                    "dish washer" : {
+                        "on_threshold" : 10,
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "dish washer" : {
+                        "on_threshold" : 10,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "dish washer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 64,
+                        'on_treshold' : 10,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "dish washer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 128,
+                        'on_treshold' : 10,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "dish washer" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 10,
+                        "n_nodes" : 1024
+                    }
+                },
+            }),
             "MLP_Raw" : MLP( {
                 "verbose" : 2,
                 "training_history_folder" : base_path + "history/MLP_Raw/",
@@ -1101,21 +1101,21 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
             }
         },
         'methods': {
-            #'DAE':DAE({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/DAE/",
-            #    "plots_folder" : base_path + "plots/DAE/",
-            #    "results_folder" : base_path + "results/DAE/",
-            #    "file_prefix" : base_path + "temp_weights/DAE/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            "on_threshold" : 20,
-            #        }
-            #    },
-            #}),
+            'DAE':DAE({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/DAE/",
+                "plots_folder" : base_path + "plots/DAE/",
+                "results_folder" : base_path + "results/DAE/",
+                "file_prefix" : base_path + "temp_weights/DAE/",
+                "appliances" : {
+                    "washing machine" : {
+                        "on_threshold" : 20,
+                    }
+                },
+            }),
             #'WindowGRU':WindowGRU({
             #    "verbose" : 2,
             #    'n_epochs':epochs,
@@ -1131,91 +1131,91 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
             #        }
             #    },
             #}),
-            #'Seq2Point':Seq2Point({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/Seq2Point/",
-            #    "plots_folder" : base_path + "plots/Seq2Point/",
-            #    "results_folder" : base_path + "results/Seq2Point/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Point/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            "on_threshold" : 20,
-            #        }
-            #    },
-            #}),
-            #'Seq2Seq':Seq2Seq({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'sequence_length': sequence_length,
-            #    'batch_size' : batch_size,
-            #    "training_history_folder" : base_path + "history/Seq2Seq/",
-            #    "results_folder" : base_path + "results/Seq2Seq/",
-            #    "plots_folder" : base_path + "plots/Seq2Seq/",
-            #    "file_prefix" : base_path + "temp_weights/Seq2Seq/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            "on_threshold" : 20,
-            #        }
-            #    },
-            #}),
-            #"ResNet" : ResNet( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/ResNet/",
-            #    "results_folder" : base_path + "results/ResNet/",
-            #    "checkpoint_folder" : base_path + "temp_weights/ResNet/",
-            #    "plots_folder" : base_path + "plots/ResNet/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 64,
-            #            'on_treshold' : 20,
-            #        }
-            #    },
-            #}),
-            #"DeepGRU" : DeepGRU({
-            #    'verbose' : 2,
-            #    "training_history_folder" : base_path + "history/DeepGRU/",
-            #    "results_folder" : base_path + "results/DeepGRU/",
-            #    "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
-            #    "plots_folder" : base_path + "plots/DeepGRU/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'n_nodes' : 128,
-            #            'on_treshold' : 20,
-            #        }
-            #    },
-            #}),
-            #"MLP" : MLP( {
-            #    "verbose" : 2,
-            #    "training_history_folder" : base_path + "history/MLP/",
-            #    "results_folder" : base_path + "results/MLP/",
-            #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-            #    "plots_folder" : base_path + "plots/MLP/",
-            #    "appliances" : {
-            #        "washing machine" : {
-            #            'timewindow' : timestep*sequence_length,
-            #            'timestep' : timestep,
-            #            'overlap' :  timestep*sequence_length - timestep,
-            #            'epochs' : epochs,
-            #            'batch_size' : batch_size,
-            #            'feature_extractor' : "wt",
-            #            'on_treshold' : 20,
-            #            "n_nodes" : 1024
-            #        }
-            #    },
-            #}),
+            'Seq2Point':Seq2Point({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/Seq2Point/",
+                "plots_folder" : base_path + "plots/Seq2Point/",
+                "results_folder" : base_path + "results/Seq2Point/",
+                "file_prefix" : base_path + "temp_weights/Seq2Point/",
+                "appliances" : {
+                    "washing machine" : {
+                        "on_threshold" : 20,
+                    }
+                },
+            }),
+            'Seq2Seq':Seq2Seq({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'sequence_length': sequence_length,
+                'batch_size' : batch_size,
+                "training_history_folder" : base_path + "history/Seq2Seq/",
+                "results_folder" : base_path + "results/Seq2Seq/",
+                "plots_folder" : base_path + "plots/Seq2Seq/",
+                "file_prefix" : base_path + "temp_weights/Seq2Seq/",
+                "appliances" : {
+                    "washing machine" : {
+                        "on_threshold" : 20,
+                    }
+                },
+            }),
+            "ResNet" : ResNet( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/ResNet/",
+                "results_folder" : base_path + "results/ResNet/",
+                "checkpoint_folder" : base_path + "temp_weights/ResNet/",
+                "plots_folder" : base_path + "plots/ResNet/",
+                "appliances" : {
+                    "washing machine" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 64,
+                        'on_treshold' : 20,
+                    }
+                },
+            }),
+            "DeepGRU" : DeepGRU({
+                'verbose' : 2,
+                "training_history_folder" : base_path + "history/DeepGRU/",
+                "results_folder" : base_path + "results/DeepGRU/",
+                "checkpoint_folder" : base_path + "temp_weights/DeepGRU/",
+                "plots_folder" : base_path + "plots/DeepGRU/",
+                "appliances" : {
+                    "washing machine" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'n_nodes' : 128,
+                        'on_treshold' : 20,
+                    }
+                },
+            }),
+            "MLP" : MLP( {
+                "verbose" : 2,
+                "training_history_folder" : base_path + "history/MLP/",
+                "results_folder" : base_path + "results/MLP/",
+                "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                "plots_folder" : base_path + "plots/MLP/",
+                "appliances" : {
+                    "washing machine" : {
+                        'timewindow' : timestep*sequence_length,
+                        'timestep' : timestep,
+                        'overlap' :  timestep*sequence_length - timestep,
+                        'epochs' : epochs,
+                        'batch_size' : batch_size,
+                        'feature_extractor' : "wt",
+                        'on_treshold' : 20,
+                        "n_nodes" : 1024
+                    }
+                },
+            }),
             "MLP_Raw" : MLP( {
                 "verbose" : 2,
                 "training_history_folder" : base_path + "history/MLP_Raw/",
@@ -1362,7 +1362,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
         results.methods[m].save_model(base_path + "models/" + m)
 
 if __name__ == "__main__":
-    base_path= "/home/rteixeira/refit_temp/"
+    base_path= "/home/rteixeira/refit_train/"
     #base_path = "/home/user/article_results/"
     #base_path = "/home/atnoguser/transfer_results/ukdale/"
     
@@ -1371,8 +1371,8 @@ if __name__ == "__main__":
     sequence_length = 299
     timestep = 7
 
-    #run_fridge(base_path, timestep, epochs, batch_size, sequence_length)
-    #run_kettle(base_path, timestep, epochs, batch_size, sequence_length)
-    #run_microwave(base_path, timestep, epochs, batch_size, sequence_length)
-    #run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length)
+    run_fridge(base_path, timestep, epochs, batch_size, sequence_length)
+    run_kettle(base_path, timestep, epochs, batch_size, sequence_length)
+    run_microwave(base_path, timestep, epochs, batch_size, sequence_length)
+    run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length)
     run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length)

@@ -55,9 +55,8 @@ def get_discrete_features(X, n_columns, waveletname, mains_mean=None, mains_std=
     if mains_mean is None:
         mains_mean = np.mean(X, axis=0)
         mains_std = np.std(X, axis=0)
-        if mains_std < 1:
-            mains_std = 100
+        mains_std = np.where(mains_std < 1, 100, mains_std)
     
-    X = (X - mains_mean) / mains_std 
+    X = (X - mains_mean) / mains_std
 
     return X, mains_mean, mains_std

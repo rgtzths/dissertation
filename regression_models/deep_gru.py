@@ -284,13 +284,13 @@ class DeepGRU():
     def save_model(self, folder_name):
         #For each appliance trained store its model
         for app in self.model:
-            self.model[app].save(join(folder_name, app + ".h5"))
+            self.model[app].save(join(folder_name, app.replace(" ", "_") + ".h5"))
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
         app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
         for app in app_models:
-            self.model[app.split(".")[0]] = load_model(join(folder_name, app))
+            self.model[app.split(".")[0].replace("_", " ")] = load_model(join(folder_name, app))
 
     def create_model(self, n_nodes, input_shape):
         model = Sequential()

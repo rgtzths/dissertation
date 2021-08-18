@@ -1,10 +1,11 @@
 from nilmtk.api import API
+from nilmtk import Appliance
 
 import sys
-sys.path.insert(1, "../../../nilmtk-contrib")
-sys.path.insert(1, "../../../regression_models")
-sys.path.insert(1, "../../../utils")
-sys.path.insert(1, "../../../feature_extractors")
+sys.path.insert(1, "../../nilmtk-contrib")
+sys.path.insert(1, "../../regression_models")
+sys.path.insert(1, "../../utils")
+sys.path.insert(1, "../../feature_extractors")
 
 from utils import create_path
 from dae import DAE
@@ -16,7 +17,9 @@ from resnet import ResNet
 from deep_gru import DeepGRU
 from mlp_dwt import MLP
 
-refit_dataset = '../../../../../datasets/refit/refit.h5'
+refit_dataset = '../../../datasets/refit/refit.h5'
+
+Appliance.allow_synonyms = False
 
 def run_fridge(base_path, timestep, epochs, batch_size, sequence_length, model_path):
     fridge = {
@@ -1401,7 +1404,7 @@ if __name__ == "__main__":
     epochs = 1
     batch_size = 256
     sequence_length = 299
-    timestep = 8
+    timestep = 7
 
     base_paths = ["/home/rteixeira/transfer_results/refit/ukdale_trained/", "/home/rteixeira/transfer_results/refit/dataport_trained/"]
     models_path = ["/home/rteixeira/ukdale_train/models/", "/home/rteixeira/dataport_train/models/"]
