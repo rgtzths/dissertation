@@ -18,7 +18,7 @@ from nilmtk.dataset_converters.dataport.download_dataport import feed_mapping, f
 from nilmtk.dataset_converters.dataport.download_dataport import database_assert, _dataport_dataframe_to_hdf    
     
 
-def convert_dataport(input_path, hdf_filename,
+def convert_dataport(input_path, hdf_filename, original_metadata_dir,
                      user_selected_table='eg_realpower_1s',
                      time_column="localminute"):
     """Converts the Pecan Dataport sample dataset to NILMTK HDF5 format.
