@@ -255,7 +255,7 @@ class DAE(Disaggregator):
     def save_model(self, folder_name):
 
         #For each appliance trained store its model
-        for app in self.model:
+        for app in self.models:
             self.models[app].save(join(folder_name, app.replace(" ", "_")+ ".h5"))
    
     def return_network(self):
