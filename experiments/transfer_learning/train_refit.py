@@ -52,22 +52,22 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length, model_p
                     }
                 },
             }),
-            #'WindowGRU':WindowGRU({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/WindowGRU/",
-            #    "results_folder" : base_path + "results/WindowGRU/",
-            #    "plots_folder" : base_path + "plots/WindowGRU/",
-            #    "file_prefix" : base_path + "temp_weights/WindowGRU/",
-            #    "appliances" : {
-            #        "fridge freezer" : {
-            #            "on_threshold" : 50,
-            #            'transfer_path': model_path + "WindowGRU/fridge.h5"
-            #        }
-            #    },
-            #}),
+            'WindowGRU':WindowGRU({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "results_folder" : base_path + "results/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "appliances" : {
+                    "fridge freezer" : {
+                        "on_threshold" : 50,
+                        'transfer_path': model_path + "WindowGRU/fridge.h5"
+                    }
+                },
+            }),
             'Seq2Point':Seq2Point({
                 "verbose" : 2,
                 'n_epochs':epochs,
@@ -185,19 +185,17 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length, model_p
                     'buildings': {
                         16: {
                             'start_time': "2014-03-07",
-                            #'end_time': "2015-06-19"
                             'end_time': "2014-05-07"
                         },
                         17: {
                             'start_time': "2014-05-08",
-                            #'end_time': "2015-05-24"
-                            'end_time': "2014-07-08"
+                            'end_time': "2014-06-08"
+
                         },
                         18: {
-                            #'start_time': "2014-06-04",
-                            #'end_time': "2015-06-30"
                             'start_time': "2014-07-08",
                             'end_time': "2014-08-08"
+
                         },
                     }
                 },
@@ -209,11 +207,9 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length, model_p
                     'path': refit_dataset,
                     'buildings': {
                         20: {
-                            #'start_time': "2014-03-07",
-                            #'end_time': "2015-07-10"
                             'start_time': "2014-08-08",
                             'end_time': "2014-09-08"
-                        }       
+                        }      
                     }
                 },
             }
@@ -225,62 +221,44 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length, model_p
                     'buildings': {
                         2: {
                             'start_time': "2013-09-18",
-                            #'end_time': "2015-05-28",
-                            'end_time': "2013-10-03",
+                            'end_time': "2013-09-21",
                         },   
                         3: {
                             'start_time': "2013-10-03",
-                            #'end_time': "2015-06-02",
-                            'end_time': "2013-10-18",
+                            'end_time': "2013-10-06",
                         },   
                         4: {
-                            #'start_time': "2013-10-12",
-                            #'end_time': "2015-07-07",
-                            'start_time': "2013-10-18",
-                            'end_time': "2013-11-03",
+                            'start_time': "2013-11-10",
+                            'end_time': "2013-11-13",
                         },
                         5: {
-                            #'start_time': "2013-09-27",
-                            #'end_time': "2015-07-06",
-                            'start_time': "2013-11-03",
-                            'end_time': "2013-11-18",
+                            'start_time': "2013-11-17",
+                            'end_time': "2013-11-20",
                         }, 
                         9: {
-                            #'start_time': "2013-12-18",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2013-11-18",
-                            'end_time': "2013-12-03",
+                            'start_time': "2014-03-24",
+                            'end_time': "2014-03-27",
                         }, 
                         10: {
-                            #'start_time': "2013-11-21",
-                            #'end_time': "2015-06-30",
-                            'start_time': "2013-12-03",
-                            'end_time': "2013-12-18",
+                            'start_time': "2014-04-01",
+                            'end_time': "2014-04-04",
                         }, 
                         11: {
-                            #'start_time': "2014-06-04",
-                            #'end_time': "2015-06-30",
-                            'start_time': "2013-12-18",
-                            'end_time': "2014-01-03",
+                            'start_time': "2014-05-10",
+                            'end_time': "2014-05-14",
                         }, 
                         12: {
-                            #'start_time': "2014-03-07",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2014-01-03",
-                            'end_time': "2014-01-18",
-                        }, 
+                            'start_time': "2015-06-03",
+                            'end_time': "2015-06-07",
+                        },
                         14: {
-                            #'start_time': "2013-12-18",
-                            #'end_time': "2015-07-08",
                             'start_time': "2014-01-01",
-                            'end_time': "2014-02-01",
+                            'end_time': "2014-01-07",
                         },
                         15: {
-                            #'start_time': "2014-01-01",
-                            #'end_time': "2015-07-08",
                             'start_time': "2014-03-01",
-                            'end_time': "2014-04-01",
-                        }  
+                            'end_time': "2014-03-07",
+                        }
                     }
                 },
             },
@@ -505,35 +483,35 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length, model_p
                     'buildings': {
                         2: {
                             'start_time': "2013-09-18",
-                            'end_time': "2015-05-28",
+                            'end_time': "2014-02-28",
                         },   
                         3: {
                             'start_time': "2013-09-26",
-                            'end_time': "2015-06-02",
+                            'end_time': "2014-02-28",
                         },   
                         4: {
                             'start_time': "2013-10-12",
-                            'end_time': "2015-07-07",
+                            'end_time': "2014-02-28",
                         },
                         5: {
                             'start_time': "2013-09-27",
-                            'end_time': "2015-07-06",
+                            'end_time': "2014-02-28",
                         },
                         6: {
                             'start_time': "2013-11-28",
-                            'end_time': "2015-06-28",
+                            'end_time': "2014-02-28",
                         },
                         7: {
                             'start_time': "2013-11-02",
-                            'end_time': "2015-07-08",
+                            'end_time': "2014-02-28",
                         },
                         8: {
                             'start_time': "2013-11-02",
-                            'end_time': "2015-05-11",
+                            'end_time': "2014-02-28",
                         },
                         9: {
                             'start_time': "2013-12-18",
-                            'end_time': "2015-07-08",
+                            'end_time': "2014-02-28",
                         },
                         11: {
                             'start_time': "2014-06-04",
@@ -738,6 +716,10 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length, mode
                             'start_time': "2014-03-08",
                             'end_time': "2015-05-24"
                         },
+                        18: {
+                            'start_time': "2014-06-04",
+                            'end_time': "2015-06-30"
+                        },
                     }
                 },
             }
@@ -747,10 +729,6 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length, mode
                 'refit': {
                     'path': refit_dataset,
                     'buildings': {
-                        18: {
-                            'start_time': "2014-06-04",
-                            'end_time': "2015-06-30"
-                        },
                         19: {
                             'start_time': "2014-03-21",
                             'end_time': "2015-06-23"
@@ -766,35 +744,35 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length, mode
                     'buildings': {
                         2: {
                             'start_time': "2013-09-18",
-                            'end_time': "2015-05-28",
+                            'end_time': "2014-03-28",
                         },   
                         3: {
                             'start_time': "2013-09-26",
-                            'end_time': "2015-06-02",
+                            'end_time': "2014-03-28",
                         },   
                         4: {
                             'start_time': "2013-10-12",
-                            'end_time': "2015-07-07",
+                            'end_time': "2014-04-28",
                         },
                         5: {
                             'start_time': "2013-09-27",
-                            'end_time': "2015-07-06",
+                            'end_time': "2014-03-28",
                         },
                         6: {
                             'start_time': "2013-11-28",
-                            'end_time': "2015-06-28",
+                            'end_time': "2014-05-28",
                         },
                         9: {
                             'start_time': "2013-12-18",
-                            'end_time': "2015-07-08",
+                            'end_time': "2014-05-28",
                         }, 
                         10: {
                             'start_time': "2013-11-21",
-                            'end_time': "2015-06-30",
+                            'end_time': "2014-05-28",
                         },
                         11: {
                             'start_time': "2014-06-04",
-                            'end_time': "2015-06-30",
+                            'end_time': "2015-01-28",
                         },
                         12: {
                             'start_time': "2014-03-07",
@@ -807,7 +785,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length, mode
                         14: {
                             'start_time': "2013-12-18",
                             'end_time': "2015-07-08",
-                        },   
+                        }, 
                     }
                 },
             },
@@ -1004,7 +982,10 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length, mo
                             'start_time': "2014-03-08",
                             'end_time': "2015-05-24"
                         },
-                        
+                        19: {
+                            'start_time': "2014-03-21",
+                            'end_time': "2015-06-23"
+                        },
                     }
                 },
             }
@@ -1014,14 +995,10 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length, mo
                 'refit': {
                     'path': refit_dataset,
                     'buildings': {
-                        19: {
-                            'start_time': "2014-03-21",
-                            'end_time': "2015-06-23"
-                        },
                         20: {
                             'start_time': "2014-03-07",
                             'end_time': "2015-07-10"
-                        },      
+                        },    
                     }
                 },
             }
@@ -1031,64 +1008,50 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length, mo
                 'refit': {
                     'path': refit_dataset,
                     'buildings': {
-                        1: {
+                         1: {
                             'start_time': "2013-10-10",
-                            #'end_time': "2015-07-10",
-                            'end_time': "2014-01-10",
+                            'end_time': "2013-11-01",
                         },
                         2: {
-                            'start_time': "2013-09-18",
-                            #'end_time': "2015-05-28",
-                            'end_time': "2014-01-18",
+                            'start_time': "2014-01-01",
+                            'end_time': "2014-02-02",
                         },   
                         3: {
-                            #'start_time': "2013-09-26",
-                            #'end_time': "2015-06-02",
-                            'start_time': "2014-01-26",
-                            'end_time': "2014-04-26",
+                            'start_time': "2014-04-26",
+                            'end_time': "2014-05-20",
                         },   
                         5: {
-                            #'start_time': "2013-09-27",
-                            #'end_time': "2015-07-06",
-                            'start_time': "2014-01-26",
-                            'end_time': "2014-04-26",
+                            'start_time': "2014-06-26",
+                            'end_time': "2014-07-20",
                         },
                         6: {
-                            #'start_time': "2013-11-28",
-                            #'end_time': "2015-06-28",
-                            'start_time': "2014-04-28",
-                            'end_time': "2014-08-28",
+                            'start_time': "2014-08-28",
+                            'end_time': "2014-09-20",
 
                         },
                         7: {
-                            #'start_time': "2013-11-02",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2014-04-28",
-                            'end_time': "2014-08-28",
+                            'start_time': "2014-10-28",
+                            'end_time': "2014-11-20",
                         },
                         9: {
-                            #'start_time': "2013-12-18",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2014-08-28",
-                            'end_time': "2014-12-28",
+                            'start_time': "2014-12-28",
+                            'end_time': "2015-01-20",
                         }, 
                         10: {
-                            #'start_time': "2013-11-21",
-                            #'end_time': "2015-06-30",
-                            'start_time': "2014-08-28",
-                            'end_time': "2014-12-28",
+                            'start_time': "2014-02-28",
+                            'end_time': "2014-03-20",
                         },
                         11: {
                             'start_time': "2014-06-04",
-                            'end_time': "2015-06-30",
+                            'end_time': "2015-02-28",
                         }, 
                         13: {
                             'start_time': "2014-01-18",
-                            'end_time': "2015-05-31",
+                            'end_time': "2014-05-31",
                         },
                         14: {
                             'start_time': "2013-12-18",
-                            'end_time': "2015-07-08",
+                            'end_time': "2014-07-08",
                         },
                     }
                 },
@@ -1278,85 +1241,6 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                 'refit': {
                     'path': refit_dataset,
                     'buildings': {
-                        1: {
-                            'start_time': "2013-10-10",
-                            #'end_time': "2015-07-10",
-                            'end_time': "2014-01-10",
-                        },
-                        2: {
-                            'start_time': "2013-09-18",
-                            #'end_time': "2015-05-28",
-                            'end_time': "2014-12-10",
-                        },   
-                        3: {
-                            #'start_time': "2013-09-26",
-                            #'end_time': "2015-06-02",
-                            'start_time': "2014-01-04",
-                            'end_time': "2014-04-04",
-                        },   
-                        5: {
-                            #'start_time': "2013-09-27",
-                            #'end_time': "2015-07-06",
-                            'start_time': "2014-01-04",
-                            'end_time': "2014-04-04",
-                        },
-                        6: {
-                            #'start_time': "2013-11-28",
-                            #'end_time': "2015-06-28",
-                            'start_time': "2014-04-04",
-                            'end_time': "2014-07-04",
-                        },
-                        7: {
-                            #'start_time': "2013-11-02",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2014-04-04",
-                            'end_time': "2014-07-04",
-                        },
-                        9: {
-                            #'start_time': "2013-12-18",
-                            #'end_time': "2015-07-08",
-                            'start_time': "2014-07-04",
-                            'end_time': "2014-10-04",
-                        }, 
-                        10: {
-                            #'start_time': "2013-11-21",
-                            #'end_time': "2015-06-30",
-                            'start_time': "2014-07-04",
-                            'end_time': "2014-10-04",
-                        },   
-                    }
-                },
-            }
-        },
-        'cross_validation': {    
-            'datasets': {
-                'refit': {
-                    'path': refit_dataset,
-                    'buildings': {
-                        11: {
-                            'start_time': "2014-06-04",
-                            #'end_time': "2015-06-30",
-                            'end_time': "2015-01-04",
-                        },
-                        13: {
-                            'start_time': "2014-01-18",
-                            #'end_time': "2015-05-31",
-                            'end_time': "2014-06-18",
-                        },
-                        14: {
-                            'start_time': "2013-12-18",
-                            #'end_time': "2015-07-08",
-                            'end_time': "2014-12-18",
-                        },        
-                    }
-                },
-            }
-        },
-        'test': {
-            'datasets': {
-                'refit': {
-                    'path': refit_dataset,
-                    'buildings': {
                         15: {
                             'start_time': "2014-01-11",
                             'end_time': "2015-07-08"
@@ -1368,10 +1252,72 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                         19: {
                             'start_time': "2014-03-21",
                             'end_time': "2015-06-23"
-                        },
+                        }
+                    }
+                },
+            }
+        },
+        'cross_validation': {    
+            'datasets': {
+                'refit': {
+                    'path': refit_dataset,
+                    'buildings': {
                         20: {
                             'start_time': "2014-03-07",
                             'end_time': "2015-07-10"
+                        }        
+                    }
+                },
+            }
+        },
+        'test': {
+            'datasets': {
+                'refit': {
+                    'path': refit_dataset,
+                    'buildings': {
+                        1: {
+                            'start_time': "2013-10-10",
+                            'end_time': "2013-11-01",
+                        },
+                        2: {
+                            'start_time': "2013-09-18",
+                            'end_time': "2013-10-01",
+                        },   
+                        3: {
+                            'start_time': "2014-01-04",
+                            'end_time': "2014-02-01",
+                        },   
+                        5: {
+                            'start_time': "2014-02-04",
+                            'end_time': "2014-03-01",
+                        },
+                        6: {
+                            'start_time': "2014-04-04",
+                            'end_time': "2014-05-01",
+                        },
+                        7: {
+                            'start_time': "2014-06-04",
+                            'end_time': "2014-07-01",
+                        },
+                        9: {
+                            'start_time': "2014-08-04",
+                            'end_time': "2014-09-01",
+                        }, 
+                        10: {
+                            'start_time': "2014-10-04",
+                            'end_time': "2014-11-01",
+                        },
+                        11: {
+                            'start_time': "2014-06-04",
+                            'end_time': "2014-07-04",
+                        },
+                        13: {
+                            'start_time': "2014-05-18",
+                            'end_time': "2014-06-18",
+                        },
+                        14: {
+                            'start_time': "2014-11-18",
+                            'end_time': "2014-12-18",
                         },
                     }
                 },
@@ -1409,7 +1355,7 @@ if __name__ == "__main__":
     base_paths = ["/home/rteixeira/transfer_results/refit/ukdale_trained/", "/home/rteixeira/transfer_results/refit/dataport_trained/"]
     models_path = ["/home/rteixeira/ukdale_train/models/", "/home/rteixeira/dataport_train/models/"]
 
-    for i in range(2):
+    for i in range(1):
         run_fridge(base_paths[i], timestep, epochs, batch_size, sequence_length, models_path[i])
         run_microwave(base_paths[i], timestep, epochs, batch_size, sequence_length, models_path[i])
         run_dish_washer(base_paths[i], timestep, epochs, batch_size, sequence_length, models_path[i])

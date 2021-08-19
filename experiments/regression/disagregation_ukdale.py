@@ -48,21 +48,21 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                     }
                 },
             }),
-            #'WindowGRU':WindowGRU({
-            #    "verbose" : 2,
-            #    'n_epochs':epochs,
-            #    'batch_size' : batch_size,
-            #    'sequence_length': sequence_length,
-            #    "training_history_folder" : base_path + "history/WindowGRU/",
-            #    "results_folder" : base_path + "results/WindowGRU/",
-            #    "plots_folder" : base_path + "plots/WindowGRU/",
-            #    "file_prefix" : base_path + "temp_weights/WindowGRU/",
-            #    "appliances" : {
-            #        "fridge" : {
-            #            "on_threshold" : 50,
-            #        }
-            #    },
-            #}),
+            'WindowGRU':WindowGRU({
+                "verbose" : 2,
+                'n_epochs':epochs,
+                'batch_size' : batch_size,
+                'sequence_length': sequence_length,
+                "training_history_folder" : base_path + "history/WindowGRU/",
+                "results_folder" : base_path + "results/WindowGRU/",
+                "plots_folder" : base_path + "plots/WindowGRU/",
+                "file_prefix" : base_path + "temp_weights/WindowGRU/",
+                "appliances" : {
+                    "fridge" : {
+                        "on_threshold" : 50,
+                    }
+                },
+            }),
             'Seq2Point':Seq2Point({
                 "verbose" : 2,
                 'n_epochs':epochs,
@@ -173,8 +173,8 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                     'path': ukdale_dataset,
                     'buildings': {
                         1: {
-                            'start_time': "2013-03-18",
-                            'end_time': "2013-05-18",
+                            'start_time': "2013-05-01",
+                            'end_time': "2013-05-15",
                         }        
                     }
                 },
@@ -186,8 +186,8 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                     'path': ukdale_dataset,
                     'buildings': {
                         2: {
-                            'start_time': "2013-04-17",
-                            'end_time': "2013-06-17",
+                            'start_time': "2013-07-01",
+                            'end_time': "2013-07-08",
                         }           
                     }
                 },
@@ -199,8 +199,8 @@ def run_fridge(base_path, timestep, epochs, batch_size, sequence_length):
                     'path': ukdale_dataset,
                     'buildings': {
                         5: {
-                            'start_time': "2014-06-30",
-                            'end_time': "2014-08-30"
+                            'start_time': "2014-09-30",
+                            'end_time': "2014-10-30"
                         }  
                     }
                 },
@@ -593,7 +593,7 @@ def run_microwave(base_path, timestep, epochs, batch_size, sequence_length):
                     'buildings': {
                         1: {
                             'start_time': "2013-03-18",
-                            'end_time': "2017-04-25",
+                            'end_time': "2015-04-25",
                         }        
                     }
                 },
@@ -802,8 +802,8 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                     'path': ukdale_dataset,
                     'buildings': {
                         1: {
-                            'start_time': "2013-03-18",
-                            'end_time': "2015-01-01",
+                            'start_time': "2013-04-01",
+                            'end_time': "2013-12-01",
                         }        
                     }
                 },
@@ -816,7 +816,7 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
                     'buildings': {
                         2: {
                             'start_time': "2013-04-17",
-                            'end_time': "2013-10-10",
+                            'end_time': "2013-08-17",
                         }           
                     }
                 },
@@ -1013,7 +1013,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
                     'buildings': {
                         1: {
                             'start_time': "2013-03-18",
-                            'end_time': "2014-01-01",
+                            'end_time': "2013-08-18",
                         }        
                     }
                 },
