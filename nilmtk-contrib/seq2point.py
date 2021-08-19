@@ -6,6 +6,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers import Adam
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 import json
@@ -177,8 +178,6 @@ class Seq2Point(Disaggregator):
                     verbose=verbose
                     )
 
-            model.load_weights(filepath)
-
             history = json.dumps(history.history)
             
             if self.training_history_folder is not None:
@@ -198,6 +197,25 @@ class Seq2Point(Disaggregator):
             else:
                 X = train_main
                 y = train_appliance
+
+            model.load_weights(filepath)
+
+            if transfer_path is not None:
+                model.summary()
+                for layer in model.layers:
+                    layer.trainable = True
+
+                model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer=Adam(1e-5))
+                model.summary()
+                model.fit(X, 
+                        y,
+                        epochs=10, 
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        verbose=verbose
+                        )
+
+            self.models[appliance_name] = model
 
             pred = self.models[appliance_name].predict(X) * std + mean
 

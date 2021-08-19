@@ -6,6 +6,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv1D, Dense, Dropout, Flatten
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers import Adam
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 import json
@@ -171,8 +172,6 @@ class Seq2Seq(Disaggregator):
                     verbose=verbose
                     )
 
-            model.load_weights(filepath)
-
             history = json.dumps(history.history)
             
             if self.training_history_folder is not None:
@@ -188,11 +187,31 @@ class Seq2Seq(Disaggregator):
             #Concatenates training and cross_validation
             if cv_data is not None:
                 X = np.concatenate((train_main, cv_main), axis=0)
-                y = np.array([x[1 + len(x)//2] for x in  np.concatenate((train_appliance, cv_appliance), axis=0)])
+                y = np.concatenate((train_appliance, cv_appliance), axis=0)
             else:
                 X = train_main
-                y = np.array([x[1 + len(x)//2] for x in  train_appliance])
+                y = train_appliance
 
+            model.load_weights(filepath)
+
+            if transfer_path is not None:
+                model.summary()
+                for layer in model.layers:
+                    layer.trainable = True
+
+                model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer=Adam(1e-5))
+                model.summary()
+                model.fit(X, 
+                        y,
+                        epochs=10, 
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        verbose=verbose
+                        )
+
+            self.models[appliance_name] = model
+
+            y = np.array([x[1 + len(x)//2] for x in  y])
             pred = self.models[appliance_name].predict(X)
 
             #####################

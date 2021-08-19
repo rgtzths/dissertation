@@ -7,6 +7,7 @@ import math
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, GRU, Dropout, InputLayer
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
@@ -201,11 +202,6 @@ class DeepGRU():
                 utils.create_path(self.plots_folder + "/" + app_name + "/")
                 plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
-            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
-            
-            #Stores the trained model.
-            self.model[app_name] = model
-
             #Gets the trainning data score
             #Concatenates training and cross_validation
             if cv_data is not None:
@@ -214,6 +210,26 @@ class DeepGRU():
             else:
                 X = X_train
                 y = y_train
+
+            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
+
+            if transfer_path is not None:
+                model.summary()
+                for layer in model.layers:
+                    layer.trainable = True
+
+                model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer=Adam(1e-5))
+                model.summary()
+                model.fit(X, 
+                        y,
+                        epochs=10, 
+                        batch_size=batch_size,
+                        shuffle=False,
+                        verbose=verbose
+                        )
+
+            #Stores the trained model.
+            self.model[app_name] = model
 
             pred = self.model[app_name].predict(X) * app_std + app_mean
 

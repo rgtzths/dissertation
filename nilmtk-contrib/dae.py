@@ -1,6 +1,7 @@
 from nilmtk.disaggregate import Disaggregator
 from tensorflow.keras.layers import Conv1D, Dense, Reshape, Flatten
 from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers import Adam
 import pandas as pd
 import numpy as np
 from collections import OrderedDict 
@@ -148,7 +149,6 @@ class DAE(Disaggregator):
 
             checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=verbose, save_best_only=True, mode='min')
 
-
             if cv_data is not None:
                 history = model.fit(train_main, 
                         train_appliance,
@@ -170,9 +170,6 @@ class DAE(Disaggregator):
                     verbose=verbose
                     )
 
-            model.load_weights(filepath)
-
-            self.models[appliance_name] = model
             history = json.dumps(history.history)
 
             if self.training_history_folder is not None:
@@ -189,11 +186,30 @@ class DAE(Disaggregator):
             #Concatenates training and cross_validation
             if cv_data is not None:
                 X = np.concatenate((train_main, cv_main), axis=0)
-                y = np.concatenate((train_appliance, cv_appliance), axis=0).flatten()
+                y = np.concatenate((train_appliance, cv_appliance), axis=0)
             else:
                 X = train_main
-                y = train_appliance.flatten()
+                y = train_appliance
+            
+            model.load_weights(filepath)
 
+            if transfer_path is not None:
+                for layer in model.layers:
+                    layer.trainable = True
+
+                model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer=Adam(1e-5))
+                model.fit(X, 
+                        y,
+                        epochs=10, 
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        verbose=verbose
+                        )
+
+            self.models[appliance_name] = model
+
+            y = y.flatten()
+            
             pred = self.models[appliance_name].predict(X) * std + mean
             pred = pred.flatten()
             
