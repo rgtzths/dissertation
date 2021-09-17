@@ -31,13 +31,9 @@ class ResNet():
         #Percentage of values used as cross validation data from the training data.
         self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
-        self.load_model_path = params.get('pretrained-model-path',None)
+        self.load_model_path = params.get('load_model_path',None)
         #Dictates the ammount of information to be presented during training and regression.
         self.verbose = params.get('verbose', 1)
-        
-        self.mains_mean = params.get("mains_mean", None)
-
-        self.mains_std = params.get("mains_std", None)
 
         self.appliances = params["appliances"]
 
@@ -90,11 +86,15 @@ class ResNet():
             app_std = appliance_model.get("std", None)
             on_treshold =  appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
             transfer_path = appliance_model.get("transfer_path", None)
+            mains_std = appliance_model.get("mains_std", None)
+            mains_mean = appliance_model.get("mains_mean", None)
 
-            if self.mains_mean is None:
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+            if mains_mean is None:
+                X_train, mains_mean, mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                appliance_model["mains_mean"] = mains_mean
+                appliance_model["mains_std"] = mains_std
             else:
-                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]  
+                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
             
             X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))        
 
@@ -114,7 +114,7 @@ class ResNet():
             train_off_examples = (y_train.shape[0] - train_n_activatons) / y_train.shape[0]
             
             if cv_data is not None:
-                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
                 X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
                 y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
             
@@ -139,8 +139,8 @@ class ResNet():
                     print("On Percentage: ", str(cv_on_examples))
                     print("Off Percentage: ", str(cv_off_examples))
                 print("-"*10)
-                print("Mains Mean: ", str(self.mains_mean))
-                print("Mains Std: ", str(self.mains_std))
+                print("Mains Mean: ", str(mains_mean))
+                print("Mains Std: ", str(mains_std))
                 print(app_name + " Mean: ", str(app_mean))
                 print(app_name + " Std: ", str(app_std))
 
@@ -225,7 +225,7 @@ class ResNet():
                 model.summary()
                 model.fit(X, 
                         y,
-                        epochs=10, 
+                        epochs=1, 
                         batch_size=batch_size,
                         shuffle=False,
                         verbose=verbose
@@ -258,8 +258,8 @@ class ResNet():
                     f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
                     f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
                 f.write("-"*10+ "\n")
-                f.write("Mains Mean: " + str(self.mains_mean) + "\n")
-                f.write("Mains Std: " + str(self.mains_std) + "\n")
+                f.write("Mains Mean: " + str(mains_mean) + "\n")
+                f.write("Mains Std: " + str(mains_std) + "\n")
                 f.write(app_name + " Mean: " + str(app_mean) + "\n")
                 f.write(app_name + " Std: " + str(app_std) + "\n")
                 f.write("Train RMSE: "+str(train_rmse)+ "\n")
@@ -279,10 +279,12 @@ class ResNet():
         timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
         timestep = appliance_model["timestep"]
         overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-        app_mean = appliance_model.get("mean", None)
-        app_std = appliance_model.get("std", None)
+        app_mean = appliance_model["mean"]
+        app_std = appliance_model["std"]
+        mains_std = appliance_model["mains_std"]
+        mains_mean = appliance_model["mains_mean"]
         
-        X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0]
+        X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
         X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1, X_test.shape[2]))
 
         if( self.verbose != 0):
@@ -300,15 +302,34 @@ class ResNet():
         return test_predictions_list
 
     def save_model(self, folder_name):
+        
         #For each appliance trained store its model
         for app in self.model:
-            self.model[app].save(join(folder_name, app.replace(" ", "_") + ".h5"))
+            self.model[app].save(join(folder_name, app.replace(" ", "_")+ ".h5"))
+
+            app_params = self.appliances[app]
+            app_params["mean"] = float(app_params["mean"])
+            app_params["std"] = float(app_params["std"])
+            app_params["mains_mean"] = float(app_params["mains_mean"])
+            app_params["mains_std"] = float(app_params["mains_std"])
+            params_to_save = {}
+            params_to_save['appliance_params'] = app_params
+
+            f = open(join(folder_name, app.replace(" ", "_") + ".json"), "w")
+            f.write(json.dumps(params_to_save))
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
-        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f)) and ".h5" in f ]
         for app in app_models:
-            self.model[app.split(".")[0].replace("_", " ")] = load_model(join(folder_name, app))
+            app_name = app.split(".")[0].replace("_", " ")
+            self.model[app_name] = load_model(join(folder_name, app))
+
+            f = open(join(folder_name, app_name.replace(" ", "_") + ".json"), "r")
+
+            model_string = f.read().strip()
+            params_to_load = json.loads(model_string)
+            self.appliances[app_name] = params_to_load['appliance_params']
 
     def create_model(self, n_nodes, input_shape):
 
@@ -334,10 +355,10 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        #drop1 = keras.layers.Dropout(0.5)(output_block_1)
+        drop1 = keras.layers.Dropout(0.2)(output_block_1)
 
         # BLOCK 2
-        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(output_block_1)#(drop1)
+        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
@@ -355,10 +376,10 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        #drop2 = keras.layers.Dropout(0.5)(output_block_2)
+        drop2 = keras.layers.Dropout(0.2)(output_block_2)
         # BLOCK 3
 
-        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(output_block_2)#(drop2)
+        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
         conv_x = keras.layers.BatchNormalization()(conv_x)
         conv_x = keras.layers.Activation('relu')(conv_x)
 
@@ -374,9 +395,10 @@ class ResNet():
         output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
         
+        drop3 = keras.layers.Dropout(0.2)(output_block_3)
         # FINAL
 
-        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
+        full = keras.layers.GlobalAveragePooling2D()(drop3)
         ##Add dense layer with 32/64 nodes
 
         output_layer = keras.layers.Dense(1)(full)

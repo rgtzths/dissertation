@@ -36,10 +36,7 @@ class DAE(Disaggregator):
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10)
         self.batch_size = params.get('batch_size',512)
-        self.mains_mean = params.get('mains_mean',None)
-        self.mains_std = params.get('mains_std',None)
-        self.appliance_params = params.get('appliance_params',{})
-        self.load_model_path = params.get('pretrained-model-path',None)
+        self.load_model_path = params.get('load_model_path',None)
         self.appliances = params.get('appliances', {})
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -56,7 +53,7 @@ class DAE(Disaggregator):
             utils.create_path(self.results_folder)
 
         if self.load_model_path:
-            self.load_model()
+            self.load_model(self.load_model_path)
 
     def partial_fit(self, train_data, cv_data=None):
         """
@@ -66,15 +63,28 @@ class DAE(Disaggregator):
             print("...............DAE partial_fit running...............")
         
         # If no appliance wise parameters are specified, then they are computed from the data
-        if len(self.appliance_params) == 0:
-            self.set_appliance_params(train_data)
-
-        if self.mains_mean is None:
-            self.set_mains_params(list(train_data.values())[0]["mains"])
 
         for appliance_name, data in train_data.items():
             if( self.verbose != 0):
                 print("Preparing Dataset for %s" % appliance_name)
+
+            appliance_model = self.appliances.get(appliance_name, {})
+
+            if appliance_model.get("mean", None) is None:
+                self.set_appliance_params(train_data)
+
+            if appliance_model.get("mains_mean", None) is None:
+                self.set_mains_params(train_data)
+                
+            appliance_model = self.appliances.get(appliance_name, {})
+
+            transfer_path = appliance_model.get("transfer_path", None)
+            on_treshold = appliance_model.get("on_treshold", 50)
+            mean = appliance_model["mean"]
+            std = appliance_model["std"]
+            mains_mean = appliance_model["mains_mean"]
+            mains_std = appliance_model["mains_std"]
+
             train_main, train_appliance = self.call_preprocessing(data["mains"], data["appliance"], appliance_name, 'train')
 
             train_main = pd.concat(train_main, axis=0).values.reshape((-1, self.sequence_length, 1))
@@ -85,13 +95,6 @@ class DAE(Disaggregator):
 
                 cv_main = pd.concat(cv_main, axis=0).values.reshape((-1, self.sequence_length, 1))                
                 cv_appliance = pd.concat(cv_appliance, axis=0).values.reshape((-1, self.sequence_length, 1))
-
-            
-            appliance_model = self.appliances.get(appliance_name, {})
-            transfer_path = appliance_model.get("transfer_path", None)
-            on_treshold = appliance_model.get("on_treshold", 50)
-            mean = self.appliance_params[appliance_name]["mean"]
-            std = self.appliance_params[appliance_name]["std"]
 
             binary_y = np.array([ 1 if x[0] > on_treshold else 0 for x in train_appliance*std + mean])
             
@@ -123,8 +126,8 @@ class DAE(Disaggregator):
                     print("On Percentage: ", str(cv_on_examples))
                     print("Off Percentage: ", str(cv_off_examples))
                 print("-"*10)
-                print("Mains Mean: ", str(self.mains_mean))
-                print("Mains Std: ", str(self.mains_std))
+                print("Mains Mean: ", str(mains_mean))
+                print("Mains Std: ", str(mains_std))
                 print(appliance_name + " Mean: ", str(mean))
                 print(appliance_name + " Std: ", str(std))
 
@@ -235,8 +238,8 @@ class DAE(Disaggregator):
                     f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
                     f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
                 f.write("-"*10+ "\n")
-                f.write("Mains Mean: " + str(self.mains_mean) + "\n")
-                f.write("Mains Std: " + str(self.mains_std) + "\n")
+                f.write("Mains Mean: " + str(mains_mean) + "\n")
+                f.write("Mains Std: " + str(mains_std) + "\n")
                 f.write(appliance_name + " Mean: " + str(mean) + "\n")
                 f.write(appliance_name + " Std: " + str(std) + "\n")
                 f.write("Train RMSE: "+str(train_rmse)+ "\n")
@@ -247,11 +250,11 @@ class DAE(Disaggregator):
         test_predictions = []
         disggregation_dict = {}
         
-        test_main_list = self.call_preprocessing(test_mains, app_df_list=None, appliance_name=None, method='test')
+        test_main_list = self.call_preprocessing(test_mains, app_df_list=None, appliance_name=app_name, method='test')
         test_main = pd.concat(test_main_list, axis=0).values.reshape((-1,self.sequence_length,1))
 
-        app_mean = self.appliance_params[app_name]['mean']
-        app_std = self.appliance_params[app_name]['std']
+        app_mean = self.appliances[app_name]['mean']
+        app_std = self.appliances[app_name]['std']
         
         prediction = self.models[app_name].predict(test_main,batch_size=self.batch_size).flatten()* app_std + app_mean 
         prediction = np.where(prediction>0, prediction,0)
@@ -262,17 +265,36 @@ class DAE(Disaggregator):
         test_predictions.append(results)
         return test_predictions
 
-    def load_model(self, folder_name):
-        #Get all the models trained in the given folder and load them.
-        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
-        for app in app_models:
-            self.models[app.split(".")[0].replace("_", " ")] = load_model(join(folder_name, app))
-
     def save_model(self, folder_name):
-
+        
         #For each appliance trained store its model
         for app in self.models:
             self.models[app].save(join(folder_name, app.replace(" ", "_")+ ".h5"))
+
+            app_params = self.appliances[app]
+            app_params["mean"] = float(app_params["mean"])
+            app_params["std"] = float(app_params["std"])
+            app_params['mains_mean'] = float(app_params['mains_mean'])
+            app_params['mains_std'] = float(app_params['mains_std'])
+            params_to_save = {}
+            params_to_save['appliance_params'] = app_params
+            
+
+            f = open(join(folder_name, app.replace(" ", "_") + ".json"), "w")
+            f.write(json.dumps(params_to_save))
+
+    def load_model(self, folder_name):
+        #Get all the models trained in the given folder and load them.
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f)) and ".h5" in f ]
+        for app in app_models:
+            app_name = app.split(".")[0].replace("_", " ")
+            self.models[app_name] = load_model(join(folder_name, app))
+
+            f = open(join(folder_name, app_name.replace(" ", "_") + ".json"), "r")
+
+            model_string = f.read().strip()
+            params_to_load = json.loads(model_string)
+            self.appliances[app_name] = params_to_load['appliance_params']
    
     def return_network(self):
         model = Sequential()
@@ -309,26 +331,28 @@ class DAE(Disaggregator):
 
     def call_preprocessing(self, mains_lst, app_df_list, appliance_name, method):
         sequence_length  = self.sequence_length
+        mains_mean = self.appliances[appliance_name]['mains_mean']
+        mains_std = self.appliances[appliance_name]['mains_std']
+        app_mean = self.appliances[appliance_name]['mean']
+        app_std = self.appliances[appliance_name]['std']
         if method=='train':
             processed_mains = []
             for mains in mains_lst:                
-                mains = self.normalize_input(mains.values, sequence_length, self.mains_mean, self.mains_std,True)
+                mains = self.normalize_input(mains.values, sequence_length, mains_mean, mains_std, True)
                 processed_mains.append(pd.DataFrame(mains))
 
             processed_app_dfs = []
-            app_mean = self.appliance_params[appliance_name]['mean']
-            app_std = self.appliance_params[appliance_name]['std']
             
             for app_df in app_df_list:
-                data = self.normalize_output(app_df.values, sequence_length,app_mean,app_std,True)
+                data = self.normalize_output(app_df.values, sequence_length, app_mean, app_std, True)
                 processed_app_dfs.append(pd.DataFrame(data))      
 
             return processed_mains, processed_app_dfs
 
         if method=='test':
             processed_mains = []
-            for mains in mains_lst:                
-                mains = self.normalize_input(mains.values,sequence_length,self.mains_mean,self.mains_std,False)
+            for mains in mains_lst:            
+                mains = self.normalize_input(mains.values,sequence_length, mains_mean, mains_std, False)
                 processed_mains.append(pd.DataFrame(mains))
             return processed_mains
        
@@ -361,15 +385,29 @@ class DAE(Disaggregator):
 
     def set_appliance_params(self,train_data):
         for app_name, data in train_data.items():
+            app = self.appliances.get(app_name, None)
+            if app is None:
+                self.appliances[app_name] = {}
+
             l = np.array(pd.concat(data["appliance"],axis=0))
             app_mean = np.mean(l)
             app_std = np.std(l)
             if app_std<1:
                 app_std = 100
-            self.appliance_params.update({app_name:{'mean':app_mean,'std':app_std}})
+            self.appliances[app_name]['mean'] = app_mean
+            self.appliances[app_name]['std'] = app_std
 
-    def set_mains_params(self, train_mains):
-        l = np.array(pd.concat(train_mains, axis=0))
-        self.mains_mean = np.mean(l, axis=0)
-        self.mains_std = np.std(l, axis=0)
+    def set_mains_params(self, train_data):
+        for app_name, data in train_data.items():
+            app = self.appliances.get(app_name, None)
+            if app is None:
+                self.appliances[app_name] = {}
+
+            l = np.array(pd.concat(data["mains"],axis=0))
+            mains_mean = np.mean(l)
+            mains_std = np.std(l)
+            if mains_std<1:
+                mains_std = 100
+            self.appliances[app_name]['mains_mean'] = mains_mean
+            self.appliances[app_name]['mains_std'] = mains_std
 
