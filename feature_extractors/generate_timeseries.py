@@ -56,7 +56,7 @@ def generate_main_timeseries(dfs, timewindow, timestep, overlap, mains_mean=None
 
     return (data.values.reshape((-1, int(window_size/n_columns), n_columns)) , mains_mean, mains_std)
 
-def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, overlap, app_mean=None, app_std=None):
+def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, overlap, on_treshold=None, app_mean=None, app_std=None):
     """
     Converts an array of dataframes with the format timestamp : value into an
     array of values.
@@ -102,8 +102,10 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
         app = np.pad(app, (pad, 0),'constant', constant_values=(0,-1))
 
         if is_classification:
-            [data.append([0, 1]) if app[i+window_size-1] > 80 else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
+            [data.append([0, 1]) if app[i+window_size-1] > on_treshold else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
         else:
             [data.append(app[i+window_size -1]) for i in range(0, len(app) - window_size +1, step)]
-
-    return (np.array(data) - app_mean)/app_std , app_mean, app_std
+    if is_classification:
+        return np.array(data)
+    else:
+        return (np.array(data) - app_mean)/app_std , app_mean, app_std

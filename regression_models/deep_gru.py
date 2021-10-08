@@ -5,14 +5,16 @@ import json
 import math
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, GRU, Dropout, InputLayer
+from tensorflow.keras.layers import Dense, GRU, Dropout, InputLayer, Flatten
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
+from kerastuner.tuners import RandomSearch
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 import pandas as pd
 import numpy as np
+from tensorflow.python.keras.utils.generic_utils import default
 
 #import sys
 #sys.path.insert(1, "../utils")
@@ -22,6 +24,43 @@ from generate_timeseries import generate_main_timeseries, generate_appliance_tim
 
 import utils
 import plots
+
+def model_builder(hp):
+    model = Sequential()
+    model.add(InputLayer((299,1)))
+    hp_units = hp.Int('gru_1', min_value = 32, max_value = 256, step = 32, default=128)
+    model.add(GRU(hp_units, return_sequences=True))
+
+    hp_units = hp.Int('dense_1', min_value = 32, max_value = 256, step = 32, default=128)
+    model.add(Dense(hp_units, activation='relu'))
+
+    hp_units = hp.Float('drop_1', min_value = 0, max_value = 0.5, step = 0.05, default=0.2)
+    model.add(Dropout(hp_units))
+
+    hp_units = hp.Int('gru_2', min_value = 32, max_value = 256, step = 32, default=64)
+    model.add(GRU(hp_units, return_sequences=True))
+
+    hp_units = hp.Int('dense_2', min_value = 32, max_value = 256, step = 32, default=64)
+    model.add(Dense(hp_units, activation='relu'))
+
+    hp_units = hp.Float('drop_2', min_value = 0, max_value = 0.5, step = 0.05, default=0.2)
+    model.add(Dropout(hp_units))
+
+    hp_units = hp.Int('gru_3', min_value = 32, max_value = 256, step = 32, default=32)
+    model.add(GRU(hp_units))
+
+    hp_units = hp.Int('dense_3', min_value = 32, max_value = 256, step = 32, default=32)
+    model.add(Dense(hp_units, activation='relu'))
+
+    hp_units = hp.Float('drop_3', min_value = 0, max_value = 0.5, step = 0.05, default=0.2)
+    model.add(Dropout(hp_units))
+
+    model.add(Dense(1))
+
+    model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
+
+    return model
+
 
 class DeepGRU():
     def __init__(self, params):
@@ -37,6 +76,8 @@ class DeepGRU():
         self.verbose = params.get('verbose', 1)
 
         self.appliances = params["appliances"]
+
+        self.random_search = params.get("random_search", False)
 
         self.default_appliance = {
             "timewindow": 180,
@@ -141,65 +182,96 @@ class DeepGRU():
                 print(app_name + " Mean: ", str(app_mean))
                 print(app_name + " Std: ", str(app_std))
             
-            if app_name in self.model:
-                if self.verbose > 0:
-                    print("Starting from previous step")
-                model = self.model[app_name]
-            else:
-                if transfer_path is None:
-                    if self.verbose > 0:
-                        print("Creating new model")
-                    model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))       
+            if self.random_search:
+                tuner = RandomSearch(
+                    model_builder,
+                    max_trials=30,
+                    objective='val_loss',
+                    seed=10,
+                    executions_per_trial=1,
+                    overwrite=True,
+                    directory='random_search_deep_gru',
+                    project_name='nilm'
+                )
+
+                tuner.search(X_train, y_train, epochs=150, validation_data=(X_cv, y_cv))
+                
+                # Show a summary of the search
+                tuner.results_summary()
+
+                if cv_data is not None:
+                    X = np.concatenate((X_train, X_cv), axis=0)
+                    y = np.concatenate((y_train, y_cv), axis=0)
                 else:
-                    if self.verbose > 0:
-                        print("Starting from pre-trained model")
-                    model = self.create_transfer_model(transfer_path, (X_train.shape[1], X_train.shape[2]), n_nodes)
+                    X = X_train
+                    y = y_train
 
-            if self.verbose != 0:
-                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                # Retrieve the best model.
+                model = tuner.get_best_models(num_models=1)[0]
             
-            verbose = 1 if self.verbose >= 1 else 0
+            else:
+                if app_name in self.model:
+                    if self.verbose > 0:
+                        print("Starting from previous step")
+                    model = self.model[app_name]
+                else:
+                    if transfer_path is None:
+                        if self.verbose > 0:
+                            print("Creating new model")
+                        model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))       
+                    else:
+                        if self.verbose > 0:
+                            print("Starting from pre-trained model")
+                        model = self.create_transfer_model(transfer_path, (X_train.shape[1], X_train.shape[2]), n_nodes)
 
-            checkpoint = ModelCheckpoint(
-                            self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
-                            monitor='val_loss', 
-                            verbose=verbose, 
-                            save_best_only=True, 
-                            mode='min'
-                            )
+                if self.verbose != 0:
+                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                
+                verbose = 1 if self.verbose >= 1 else 0
 
-            #Fits the model to the training data.
-            if cv_data is not None:
-                history = model.fit(X_train, 
+                checkpoint = ModelCheckpoint(
+                                self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
+                                monitor='val_loss', 
+                                verbose=verbose, 
+                                save_best_only=True, 
+                                mode='min'
+                                )
+
+                #Fits the model to the training data.
+                if cv_data is not None:
+                    history = model.fit(X_train, 
+                            y_train,
+                            epochs=epochs, 
+                            batch_size=batch_size,
+                            shuffle=False,
+                            callbacks=[checkpoint],
+                            validation_data=(X_cv, y_cv),
+                            verbose=verbose
+                            )        
+                else:
+                    history = model.fit(X_train, 
                         y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
                         shuffle=False,
                         callbacks=[checkpoint],
-                        validation_data=(X_cv, y_cv),
+                        validation_split=self.cv_split,
                         verbose=verbose
-                        )        
-            else:
-                history = model.fit(X_train, 
-                    y_train,
-                    epochs=epochs, 
-                    batch_size=batch_size,
-                    shuffle=False,
-                    callbacks=[checkpoint],
-                    validation_split=self.cv_split,
-                    verbose=verbose
-                    )   
+                        )   
 
-            history = json.dumps(history.history)
+                history = json.dumps(history.history)
 
-            if self.training_history_folder is not None:
-                f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                f.write(history)
-                f.close()
+                if self.training_history_folder is not None:
+                    f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
+                    f.write(history)
+                    f.close()
 
-            if self.plots_folder is not None:
-                utils.create_path(self.plots_folder + "/" + app_name + "/")
-                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
+                if self.plots_folder is not None:
+                    utils.create_path(self.plots_folder + "/" + app_name + "/")
+                    plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
+
+                model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
+                
 
             #Gets the trainning data score
             #Concatenates training and cross_validation
@@ -210,7 +282,6 @@ class DeepGRU():
                 X = X_train
                 y = y_train
 
-            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
 
             if transfer_path is not None:
                 model.summary()
@@ -254,12 +325,19 @@ class DeepGRU():
                     f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
                     f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
                 f.write("-"*10+ "\n")
+                if self.random_search:
+                    best_hp = tuner.get_best_hyperparameters()[0]
+                    f.write("-"*5 + "Best Hyperparameters" + "-"*5+ "\n")
+                    print(best_hp.values)
+                    f.write(str(best_hp.values)+"\n")
+                    f.write("-"*10+ "\n")
                 f.write("Mains Mean: " + str(mains_mean) + "\n")
                 f.write("Mains Std: " + str(mains_std) + "\n")
                 f.write(app_name + " Mean: " + str(app_mean) + "\n")
                 f.write(app_name + " Std: " + str(app_std) + "\n")
                 f.write("Train RMSE: "+str(train_rmse)+ "\n")
                 f.write("Train MAE: "+str(train_mae)+ "\n")
+
                 f.close()
 
             
@@ -331,14 +409,15 @@ class DeepGRU():
     def create_model(self, n_nodes, input_shape):
         model = Sequential()
         model.add(InputLayer(input_shape))
-        model.add(GRU(n_nodes, return_sequences=True))
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(Dropout(0.6))
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(GRU(n_nodes*2))
-        model.add(Dropout(0.6))
-        model.add(Dense(n_nodes*2, activation='relu'))
-        model.add(Dropout(0.6))
+        model.add(GRU(160, return_sequences=True))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(GRU(64, return_sequences=True))
+        model.add(Dense(96, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(GRU(96))
+        model.add(Dense(224, activation='relu'))
+        model.add(Dropout(0.2))
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
@@ -365,3 +444,5 @@ class DeepGRU():
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model
+
+   

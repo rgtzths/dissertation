@@ -4,6 +4,7 @@ import pandas as pd
 
 from nilmtk.measurement import LEVEL_NAMES
 from nilmtk import DataSet
+import numpy as np
 
 
 def create_path(path):
@@ -91,7 +92,7 @@ def load_data(dataset_folder, appliance, houses, timestep, mains_columns, applia
 
     return (aggregated_readings, app_readings)
 
-def load_data_h5(dataset_file, appliance, houses, timestep, mains_columns, appliance_columns):
+def load_data_h5(dataset_file, appliance, houses, timestep, mains_columns, appliance_columns, use_activations=False, appliance_params=None):
     #Array that contains the aggragate readings in dataframes
     aggregated_readings = []
 
@@ -105,21 +106,100 @@ def load_data_h5(dataset_file, appliance, houses, timestep, mains_columns, appli
 
         for timeperiod in houses[house]:
             
-            dataset.set_window(start=timeperiod[0],end=timeperiod[1])
+            if not use_activations:
 
-            mains = next(dataset.buildings[house].elec.mains().load(sample_period=timestep))
+                dataset.set_window(start=timeperiod[0],end=timeperiod[1])
 
-            for c in mains.columns:
-                if c not in mains_columns:
-                    del mains[c]
+                mains = next(dataset.buildings[house].elec.mains().load(sample_period=timestep))
 
-            app_df = next(dataset.buildings[house].elec[appliance].load(sample_period=timestep))
+                for c in mains.columns:
+                    if c not in mains_columns:
+                        del mains[c]
 
-            for c in app_df.columns:
-                if c not in appliance_columns:
-                    del app_df[c]
-            
-            aggregated_readings.append(mains)
-            app_readings.append(app_df)
-    
+                app_df = next(dataset.buildings[house].elec[appliance].load(sample_period=timestep))
+
+                for c in app_df.columns:
+                    if c not in appliance_columns:
+                        del app_df[c]
+                
+                aggregated_readings.append(mains)
+                app_readings.append(app_df)
+            else:
+                dataset.set_window(start=timeperiod[0],end=timeperiod[1])
+
+                activations = dataset.buildings[house].elec[appliance].activation_series(
+                    appliance_params["min_off_time"], 
+                    appliance_params["min_on_time"], 
+                    appliance_params["number_of_activation_padding"], 
+                    appliance_params["min_on_power"])
+                
+                for period in activations:
+                    timestamp = period.index[0]
+                    tz_offset = (timestamp.replace(tzinfo=None) - 
+                                timestamp.tz_convert('UTC').replace(tzinfo=None))
+                    tz_offset_bg = np.timedelta64(tz_offset)
+
+                    timestamp = period.index[-1]
+                    tz_offset = (timestamp.replace(tzinfo=None) - 
+                                timestamp.tz_convert('UTC').replace(tzinfo=None))
+
+                    tz_offset_end = np.timedelta64(tz_offset)
+
+                    if tz_offset_bg > tz_offset_end:
+                        beg = period.index[0].tz_localize(None) - tz_offset_bg
+                        end = period.index[-1].tz_localize(None)
+                    elif tz_offset_bg < tz_offset_end: 
+                        beg = period.index[0].tz_localize(None)
+                        end = period.index[-1].tz_localize(None) - tz_offset_end 
+                    else:
+                        beg = period.index[0].tz_localize(None)
+                        end = period.index[-1].tz_localize(None)
+
+                    dataset.set_window(
+                            start=beg,
+                            end=end
+                            )
+
+                    mains_df = next(dataset.buildings[house].elec.mains().load(sample_period=timestep))
+
+                    for c in mains_df.columns:
+                            if c not in mains_columns:
+                                del mains_df[c]
+                    
+                    if not mains_df.empty:
+                        mains_df = mains_df[[list(mains_df.columns)[0]]]
+
+                        appliance_df = next(dataset.buildings[house].elec[appliance].load(sample_period=timestep))
+                        
+                        for c in appliance_df.columns:
+                            if c not in appliance_columns:
+                                del appliance_df[c]
+                        
+                        appliance_df = appliance_df[[list(appliance_df.columns)[0]]]
+
+                        mains_df, appliance_dfs = dropna(mains_df, [appliance_df])
+
+                        aggregated_readings.append(mains_df)
+                        app_readings.append(appliance_dfs[0])      
+
     return (aggregated_readings, app_readings)
+
+
+def dropna(mains_df, appliance_dfs):
+    """
+    Drops the missing values in the Mains reading and appliance readings and returns consistent data by copmuting the intersection
+    """
+    # The below steps are for making sure that data is consistent by doing intersection across appliances
+    mains_df = mains_df.dropna()
+    ix = mains_df.index
+    mains_df = mains_df.loc[ix]
+    for i in range(len(appliance_dfs)):
+        appliance_dfs[i] = appliance_dfs[i].dropna()
+
+    for app_df in appliance_dfs:
+        ix = ix.intersection(app_df.index)
+    mains_df = mains_df.loc[ix]
+    new_appliances_list = []
+    for app_df in appliance_dfs:
+        new_appliances_list.append(app_df.loc[ix])
+    return mains_df,new_appliances_list

@@ -39,19 +39,6 @@ def run_heat_pump(base_path, timestep, epochs, batch_size, sequence_length):
                     }
                 },
             }),
-            'WindowGRU':WindowGRU({
-                'n_epochs':epochs,
-                'batch_size' : batch_size,
-                'sequence_length': sequence_length,
-                "training_history_folder" : base_path + "history/WindowGRU/",
-                "plots_folder" : base_path + "plots/WindowGRU/",
-                "file_prefix" : base_path + "temp_weights/WindowGRU/",
-                "on_threshold" : 50,
-                "appliances" : {
-                    "heat pump" : {
-                    }
-                },
-            }),
             'Seq2Point':Seq2Point({
                 'n_epochs':epochs,
                 'batch_size' : batch_size,
@@ -220,19 +207,6 @@ def run_charger(base_path, timestep, epochs, batch_size, sequence_length):
                 "training_history_folder" : base_path + "history/DAE/",
                 "plots_folder" : base_path + "plots/DAE/",
                 "file_prefix" : base_path + "temp_weights/DAE/",
-                "on_threshold" : 50,
-                "appliances" : {
-                    "charger" : {
-                    }
-                },
-            }),
-            'WindowGRU':WindowGRU({
-                'n_epochs':epochs,
-                'batch_size' : batch_size,
-                'sequence_length': sequence_length,
-                "training_history_folder" : base_path + "history/WindowGRU/",
-                "plots_folder" : base_path + "plots/WindowGRU/",
-                "file_prefix" : base_path + "temp_weights/WindowGRU/",
                 "on_threshold" : 50,
                 "appliances" : {
                     "charger" : {

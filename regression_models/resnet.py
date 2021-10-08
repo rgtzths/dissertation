@@ -355,7 +355,7 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        drop1 = keras.layers.Dropout(0.2)(output_block_1)
+        drop1 = keras.layers.Dropout(0.5)(output_block_1)
 
         # BLOCK 2
         conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
@@ -376,7 +376,7 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        drop2 = keras.layers.Dropout(0.2)(output_block_2)
+        drop2 = keras.layers.Dropout(0.5)(output_block_2)
         # BLOCK 3
 
         conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
@@ -395,7 +395,7 @@ class ResNet():
         output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
         
-        drop3 = keras.layers.Dropout(0.2)(output_block_3)
+        drop3 = keras.layers.Dropout(0.5)(output_block_3)
         # FINAL
 
         full = keras.layers.GlobalAveragePooling2D()(drop3)
@@ -433,7 +433,7 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        drop1 = keras.layers.Dropout(0.5)(output_block_1)
+        drop1 = keras.layers.Dropout(0.6)(output_block_1)
 
         # BLOCK 2
         conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
@@ -454,7 +454,7 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        drop2 = keras.layers.Dropout(0.5)(output_block_2)
+        drop2 = keras.layers.Dropout(0.6)(output_block_2)
         # BLOCK 3
 
         conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)

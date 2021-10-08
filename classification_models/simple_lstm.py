@@ -5,10 +5,10 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 from os.path import join, isfile
 from os import listdir
 
-from tensorflow.keras.models import load_model
-import tensorflow.keras as keras
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Dense, LSTM, InputLayer
 from tensorflow.keras.callbacks import ModelCheckpoint
-
+from tensorflow.keras.optimizers import Adam
 
 from sklearn.metrics import matthews_corrcoef, confusion_matrix
 
@@ -25,12 +25,12 @@ from metrics import matthews_correlation
 import utils
 import plots
 
-class ResNet():
+class SimpleLSTM():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'ResNet')
+        self.MODEL_NAME = params.get('model_name', 'SimpleLSTM')
         #Percentage of values used as cross validation data from the training data.
         self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
@@ -96,16 +96,14 @@ class ResNet():
                 appliance_model["mains_std"] = mains_std
             else:
                 X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
-            
-            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))
 
             y_train = generate_appliance_timeseries(data["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
 
             if cv_data is not None:
                 X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
-                X_cv= X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
                 y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
                 n_activations_cv = sum([ np.where(p == max(p))[0][0]  for p in y_cv ])
+
 
             n_activations_train = sum([ np.where(p == max(p))[0][0]  for p in y_train ])
             if( self.verbose == 2):
@@ -129,7 +127,7 @@ class ResNet():
                     print("Starting from previous step")
                 model = self.model[app_name]
             else:
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
             if self.verbose != 0:
                 print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -250,7 +248,6 @@ class ResNet():
             mains_mean = appliance_model.get("mains_mean", None)
 
             X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
-            X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1, X_test.shape[2]))
 
             if( self.verbose == 2):
                 print("Nº of test examples", X_test.shape[0])
@@ -334,75 +331,11 @@ class ResNet():
             self.appliances[app_name] = params_to_load['appliance_params']
 
     def create_model(self, n_nodes, input_shape):
-        input_layer = keras.layers.Input(input_shape)
+        model = Sequential()
+        model.add(InputLayer(input_shape))
+        model.add(LSTM(n_nodes))
+        model.add(Dense(2, activation='softmax'))
 
-        # BLOCK 1
-        conv_x = keras.layers.Conv2D(filters=n_nodes, kernel_size=8, padding='same')(input_layer)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation('relu')(conv_x)
-
-        conv_y = keras.layers.Conv2D(filters=n_nodes, kernel_size=5, padding='same')(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation('relu')(conv_y)
-
-        conv_z = keras.layers.Conv2D(filters=n_nodes, kernel_size=3, padding='same')(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
-
-        # expand channels for the sum
-        shortcut_y = keras.layers.Conv2D(filters=n_nodes, kernel_size=1, padding='same')(input_layer)
-        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
-
-        output_block_1 = keras.layers.add([shortcut_y, conv_z])
-        output_block_1 = keras.layers.Activation('relu')(output_block_1)
-
-        # BLOCK 2
-
-        conv_x = keras.layers.Conv2D(filters=n_nodes *2, kernel_size=8, padding='same')(output_block_1)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation('relu')(conv_x)
-
-        conv_y = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=5, padding='same')(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation('relu')(conv_y)
-
-        conv_z = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=3, padding='same')(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
-
-        # expand channels for the sum
-        shortcut_y = keras.layers.Conv2D(filters= n_nodes * 2, kernel_size=1, padding='same')(output_block_1)
-        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
-
-        output_block_2 = keras.layers.add([shortcut_y, conv_z])
-        output_block_2 = keras.layers.Activation('relu')(output_block_2)
-
-        # BLOCK 3
-
-        conv_x = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=8, padding='same')(output_block_2)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation('relu')(conv_x)
-
-        conv_y = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=5, padding='same')(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation('relu')(conv_y)
-
-        conv_z = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=3, padding='same')(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
-
-        #shortcut_y = keras.layers.Conv2D(filters=n_nodes * 2, kernel_size=1, padding='same', kernel_regularizer='l2')(output_block_2)
-        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
-
-        output_block_3 = keras.layers.add([shortcut_y, conv_z])
-        output_block_3 = keras.layers.Activation('relu')(output_block_3)
-
-        # FINAL
-
-        gap_layer = keras.layers.GlobalAveragePooling2D()(output_block_3)
-
-        output_layer = keras.layers.Dense(2, activation='softmax')(gap_layer)
-
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(),
-                      metrics=["accuracy", matthews_correlation])
+        model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
 
         return model

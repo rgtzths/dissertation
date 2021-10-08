@@ -4,33 +4,26 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
-import json
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 
 from sklearn.metrics import matthews_corrcoef, confusion_matrix
 
 import numpy as np
+import json
 
 #import sys
 #sys.path.insert(1, "../utils")
 #sys.path.insert(1, "../feature_extractors")
 
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
-from matthews_correlation import matthews_correlation
+from metrics import matthews_correlation
 
 import utils
 import plots
-
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
 
 class DeepGRU():
     def __init__(self, params):
@@ -39,21 +32,24 @@ class DeepGRU():
         #Name used to identify the Model Name.
         self.MODEL_NAME = params.get('model_name', 'DeepGRU')
         #Percentage of values used as cross validation data from the training data.
-        self.cv = params.get('cv', 0.16)
+        self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
-        self.load_model_path = params.get('load_model_folder',None)
+        self.load_model_path = params.get('load_model_path',None)
         #Dictates the ammount of information to be presented during training and regression.
-        self.verbose = params.get('verbose', 0)
+        self.verbose = params.get('verbose', 1)
 
-        self.appliances = params.get('appliances', {})
+        self.appliances = params["appliances"]
+
+        self.random_search = params.get("random_search", False)
 
         self.default_appliance = {
             "timewindow": 180,
-            "overlap": 178,
             "timestep": 2,
-            'epochs' : 1,
-            'batch_size' : 1024,
-            'n_nodes' : 90
+            "overlap": 178,
+            'epochs' : 300,
+            'batch_size' : 512,
+            "on_treshold" : 50,
+            'n_nodes' : 120
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -75,105 +71,163 @@ class DeepGRU():
 
         if self.load_model_path:
             self.load_model(self.load_model_path)
-            self.mains_mean = params.get("mean", None)
-            self.mains_std = params.get("std", None)
 
-    def partial_fit(self, train_mains, train_appliances):
+    def partial_fit(self, train_data, cv_data=None):
+        
+        for app_name, data in train_data.items():
+            if( self.verbose != 0):
+                print("Preparing Dataset for %s" % app_name)
 
-        #For each appliance to be classified
-        for app_name, appliance_power in train_appliances:
-            if app_name not in self.model:
-                if( self.verbose != 0):
-                    print("Preparing Dataset for %s" % app_name)
+            appliance_model = self.appliances[app_name]
 
-                appliance_model = self.appliances.get(app_name, {})
+            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+            timestep = appliance_model["timestep"]
+            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+            on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
+            n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+            epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+            batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+            mains_std = appliance_model.get("mains_std", None)
+            mains_mean = appliance_model.get("mains_mean", None)
 
-                timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-                timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
-                overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-                batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
-                epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
-                n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+            if mains_mean is None:
+                X_train, mains_mean, mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                appliance_model["mains_mean"] = mains_mean
+                appliance_model["mains_std"] = mains_std
+            else:
+                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
 
-                X_train, self.mains_mean, self.mains_std = generate_main_timeseries(train_mains, timewindow, timestep, overlap)  
+            y_train = generate_appliance_timeseries(data["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
 
-                y_train = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
+            if cv_data is not None:
+                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
+                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
+                n_activations_cv = sum([ np.where(p == max(p))[0][0]  for p in y_cv ])
 
-                if( self.verbose != 0):
-                    print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_train]))
-                    print("Nº of negative examples ", y_train.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_train ]))
+            n_activations_train = sum([ np.where(p == max(p))[0][0]  for p in y_train ])
+            if( self.verbose == 2):
+                print("-"*5 + "Train Info" + "-"*5)
+                print("Nº of examples: ", str(X_train.shape[0]))
+                print("Nº of activations: ", str(n_activations_train))
+                print("On Percentage: ", str(n_activations_train/len(y_train) ))
+                print("Off Percentage: ", str( (len(y_train) - n_activations_train)/len(y_train) ))
+                if cv_data is not None:
+                    print("-"*5 + "Cross Validation Info" + "-"*5)
+                    print("Nº of examples: ", str(X_cv.shape[0]))
+                    print("Nº of activations: ", str(n_activations_cv))
+                    print("On Percentage: ", str(n_activations_cv/len(y_cv) ))
+                    print("Off Percentage: ",  str( (len(y_cv) - n_activations_cv)/len(y_cv) ))
 
-                if self.verbose != 0:
-                    print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-                
+                print("Mains Mean: ", str(mains_mean))
+                print("Mains Std: ", str(mains_std))
+            
+            if app_name in self.model:
+                if self.verbose > 0:
+                    print("Starting from previous step")
+                model = self.model[app_name]
+            else:
                 model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
 
-                checkpoint = ModelCheckpoint(
-                                self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
-                                monitor='val_loss', 
-                                verbose=self.verbose, 
-                                save_best_only=True, 
-                                mode='min'
-                                )
+            if self.verbose != 0:
+                print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
+                
+            verbose = 1 if self.verbose >= 1 else 0
 
-                #Fits the model to the training data.
-                history = model.fit( X_train, 
-                        y_train, 
+            checkpoint = ModelCheckpoint(
+                            self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
+                            monitor='val_loss', 
+                            verbose=verbose, 
+                            save_best_only=True, 
+                            mode='min'
+                            )
+
+            #Fits the model to the training data.
+            if cv_data is not None:
+                history = model.fit(X_train, 
+                        y_train,
                         epochs=epochs, 
-                        batch_size=batch_size, 
-                        verbose=self.verbose, 
-                        shuffle=True,
+                        batch_size=batch_size,
+                        shuffle=False,
                         callbacks=[checkpoint],
-                        validation_split=self.cv,
-                        )
-
-                history = json.dumps(history.history)
-
-                if self.training_history_folder is not None:
-                    f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
-                    f.write(history)
-                    f.close()
-
-                if self.plots_folder is not None:
-                    utils.create_path(self.plots_folder + "/" + app_name + "/")
-                    plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
-
-                model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
-                
-                #Stores the trained model.
-                self.model[app_name] = model
-
-                #Gets the trainning data score
-                pred = self.model[app_name].predict(X_train)
-                pred = [ np.where(p == max(p))[0][0]  for p in pred ]
-                
-                y_train = [ np.where(p == max(p))[0][0]  for p in y_train ]
-                
-                tn, fp, fn, tp = confusion_matrix(y_train, pred).ravel()
-                mcc = matthews_corrcoef(y_train, pred)
-
-                if self.verbose == 2:
-                    print("Training data scores")
-                    print("True Positives: ", tp)
-                    print("True Negatives: ", tn)  
-                    print("False Negatives: ", fn)  
-                    print("False Positives: ", fp)        
-                    print("MCC: ", mcc )
-                
-                if self.results_folder is not None:
-                    f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
-                    f.write("Nº of positive examples for training: " + str(sum(y_train)) + "\n")
-                    f.write("Nº of negative examples for training: " + str(len(y_train)- sum(y_train)) + "\n")
-                    f.write("Data Mean: " + str(self.mains_mean) + "\n")
-                    f.write("Data Std: " + str(self.mains_std) + "\n")
-                    f.write("Train MCC: "+str(mcc)+ "\n")
-                    f.write("True Positives: "+str(tp)+ "\n")
-                    f.write("True Negatives: "+str(tn)+ "\n")
-                    f.write("False Positives: "+str(fp)+ "\n")
-                    f.write("False Negatives: "+str(fn)+ "\n")
-                    f.close()
+                        validation_data=(X_cv, y_cv),
+                        verbose=verbose
+                        )        
             else:
-                print("Using Loaded Model")
+                history = model.fit(X_train, 
+                    y_train,
+                    epochs=epochs, 
+                    batch_size=batch_size,
+                    shuffle=False,
+                    callbacks=[checkpoint],
+                    validation_split=self.cv_split,
+                    verbose=verbose
+                    )   
+
+            history = json.dumps(history.history)
+
+            if self.training_history_folder is not None:
+                f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
+                f.write(history)
+                f.close()
+
+            if self.plots_folder is not None:
+                utils.create_path(self.plots_folder + "/" + app_name + "/")
+                plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
+
+            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
+            
+            self.model[app_name] = model
+
+            if cv_data is not None:
+                X = np.concatenate((X_train, X_cv), axis=0)
+                y = np.concatenate((y_train, y_cv), axis=0)
+            else:
+                X = X_train
+                y = y_train
+
+            pred = self.model[app_name].predict(X)
+            pred = [ np.where(p == max(p))[0][0]  for p in pred]         
+            y = [ np.where(p == max(p))[0][0]  for p in y]
+
+            tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
+            mcc = matthews_corrcoef(y, pred)
+
+            if self.verbose == 2:
+                print("Training scores")    
+                print("MCC: ", mcc )
+                print("True Positives: ", tp)
+                print("True Negatives: ", tn)  
+                print("False Negatives: ", fn)  
+                print("False Positives: ", fp)  
+            
+            if self.results_folder is not None:
+                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
+                f.write("-"*5 + "Train Info" + "-"*5+ "\n")
+                f.write("Nº of examples: "+ str(X.shape[0])+ "\n")
+                f.write("Nº of activations: "+ str(n_activations_train)+ "\n")
+                f.write("On Percentage: "+ str(n_activations_train/len(y_train))+ "\n")
+                f.write("Off Percentage: "+ str((len(y_train) - n_activations_train)/len(y_train))+ "\n")
+                f.write("-"*10+ "\n")
+                if cv_data is not None:
+                    f.write("-"*5 + "Cross Validation Info" + "-"*5+ "\n")
+                    f.write("Nº of examples: "+ str(X_cv.shape[0])+ "\n")
+                    f.write("Nº of activations: "+ str(n_activations_cv)+ "\n")
+                    f.write("On Percentage: "+ str(n_activations_cv/len(y_cv))+ "\n")
+                    f.write("Off Percentage: "+ str((len(y_cv) - n_activations_cv)/len(y_cv))+ "\n")
+                f.write("-"*10+ "\n")
+                if self.random_search:
+                    #best_hp = tuner.get_best_hyperparameters()[0]
+                    f.write("-"*5 + "Best Hyperparameters" + "-"*5+ "\n")
+                    #f.write(str(best_hp.values)+"\n")
+                    f.write("-"*10+ "\n")
+                f.write("Mains Mean: " + str(mains_mean) + "\n")
+                f.write("Mains Std: " + str(mains_std) + "\n")
+                f.write("Train MCC: "+str(mcc)+ "\n")
+                f.write("True Positives: "+str(tp)+ "\n")
+                f.write("True Negatives: "+str(tn)+ "\n")
+                f.write("False Positives: "+str(fp)+ "\n")
+                f.write("False Negatives: "+str(fn)+ "\n")
+                f.close()
             
     def disaggregate_chunk(self, test_mains, test_appliances):
         
@@ -184,40 +238,56 @@ class DeepGRU():
                 print("Preparing the Test Data for %s" % app_name)
             
             appliance_model = self.appliances.get(app_name, {})
-            
+        
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            timestep = appliance_model.get("timestep", self.default_appliance['timestep'])
+            timestep = appliance_model["timestep"]
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+            on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
+            mains_std = appliance_model.get("mains_std", None)
+            mains_mean = appliance_model.get("mains_mean", None)
 
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, self.mains_mean, self.mains_std)[0] 
+            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
 
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap)
-            
+            if( self.verbose == 2):
+                print("Nº of test examples", X_test.shape[0])
+
+            if self.verbose != 0:
+                print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
+
+            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap, on_treshold=on_treshold)
+
+            n_activations = sum([ np.where(p == max(p))[0][0]  for p in y_test ])
+
             if( self.verbose != 0):
-                print("Nº of positive examples ", sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
-                print("Nº of negative examples ", y_test.shape[0]-sum([ np.where(p == max(p))[0][0]  for p in y_test ]))
+                print("Nº of examples: ", str(X_test.shape[0]))
+                print("Nº of activations: ", str(n_activations))
+                print("On Percentage: ", str(n_activations/len(y_test) ))
+                print("Off Percentage: ", str( (len(y_test) - n_activations)/len(y_test) ))
 
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
             
             pred = self.model[app_name].predict(X_test)
-            pred = [ np.where(p == max(p))[0][0]  for p in pred ]
-        
-            y_test = [ np.where(p == max(p))[0][0]  for p in y_test ]
-            
-            tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
+            pred = [ np.where(p == max(p))[0][0]  for p in pred]         
+            y_test = [ np.where(p == max(p))[0][0]  for p in y_test]
 
+            tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
+            mcc = matthews_corrcoef(y_test, pred)
             if self.verbose == 2:
                 print("True Positives: ", tp)
                 print("True Negatives: ", tn)  
                 print("False Negatives: ", fn)  
                 print("False Positives: ", fp)        
-                print( "MCC: ", matthews_corrcoef(y_test, pred))
+                print( "MCC: ", mcc)
 
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
-                f.write("Nº of positive examples for test: " + str(sum(y_test)) + "\n")
-                f.write("Nº of negative examples for test: " + str(len(y_test)- sum(y_test)) + "\n")
+                f.write("-"*5 + "Test Info" + "-"*5+ "\n")
+                f.write("Nº of examples: "+ str(X_test.shape[0])+ "\n")
+                f.write("Nº of activations: "+ str(n_activations)+ "\n")
+                f.write("On Percentage: "+ str(n_activations/len(y_test))+ "\n")
+                f.write("Off Percentage: "+ str((len(y_test) - n_activations)/len(y_test))+ "\n")
+                f.write("-"*10+ "\n")
                 f.write("MCC: "+str(matthews_corrcoef(y_test, pred)) + "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
@@ -225,20 +295,39 @@ class DeepGRU():
                 f.write("False Negatives: "+str(fn)+ "\n")
                 f.close()
 
-            appliance_powers_dict[app_name] = matthews_corrcoef(y_test, pred)
+            appliance_powers_dict[app_name] = mcc
 
         return appliance_powers_dict
 
     def save_model(self, folder_name):
+        
         #For each appliance trained store its model
         for app in self.model:
-            self.model[app].save(join(folder_name, app + "_" + self.MODEL_NAME + ".h5"))
+            self.model[app].save(join(folder_name, app.replace(" ", "_")+ ".h5"))
+
+            app_params = self.appliances[app]
+            app_params["mean"] = float(app_params["mean"])
+            app_params["std"] = float(app_params["std"])
+            app_params["mains_mean"] = float(app_params["mains_mean"])
+            app_params["mains_std"] = float(app_params["mains_std"])
+            params_to_save = {}
+            params_to_save['appliance_params'] = app_params
+
+            f = open(join(folder_name, app.replace(" ", "_") + ".json"), "w")
+            f.write(json.dumps(params_to_save))
 
     def load_model(self, folder_name):
         #Get all the models trained in the given folder and load them.
-        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+        app_models = [f for f in listdir(folder_name) if isfile(join(folder_name, f)) and ".h5" in f ]
         for app in app_models:
-            self.model[app.split(".")[0].split("_")[2]] = load_model(join(folder_name, app), custom_objects={"matthews_correlation":matthews_correlation})
+            app_name = app.split(".")[0].replace("_", " ")
+            self.model[app_name] = load_model(join(folder_name, app))
+
+            f = open(join(folder_name, app_name.replace(" ", "_") + ".json"), "r")
+
+            model_string = f.read().strip()
+            params_to_load = json.loads(model_string)
+            self.appliances[app_name] = params_to_load['appliance_params']
 
     def create_model(self, n_nodes, input_shape):
         #Creates a specific model.
@@ -252,11 +341,11 @@ class DeepGRU():
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.2))
         #Block 3
-        model.add(GRU(int(n_nodes/2)))
+        model.add(GRU(n_nodes//2))
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.2))
         #Dense Layer
-        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(n_nodes//4, activation='relu'))
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.2))
         #Classification Layer
