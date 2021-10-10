@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Dense, GRU, LeakyReLU, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 
-from sklearn.metrics import matthews_corrcoef, confusion_matrix
+from sklearn.metrics import matthews_corrcoef, confusion_matrix, f1_score
 
 import numpy as np
 import json
@@ -191,10 +191,12 @@ class DeepGRU():
 
             tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
             mcc = matthews_corrcoef(y, pred)
+            f1 = f1_score(y, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
                 print("MCC: ", mcc )
+                print("F1-Score: ", f1 )
                 print("True Positives: ", tp)
                 print("True Negatives: ", tn)  
                 print("False Negatives: ", fn)  
@@ -223,6 +225,7 @@ class DeepGRU():
                 f.write("Mains Mean: " + str(mains_mean) + "\n")
                 f.write("Mains Std: " + str(mains_std) + "\n")
                 f.write("Train MCC: "+str(mcc)+ "\n")
+                f.write("Train F1-Score: "+str(f1)+ "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
                 f.write("False Positives: "+str(fp)+ "\n")
@@ -273,12 +276,15 @@ class DeepGRU():
 
             tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
             mcc = matthews_corrcoef(y_test, pred)
+            f1 = f1_score(y_test, pred)
+
             if self.verbose == 2:
                 print("True Positives: ", tp)
                 print("True Negatives: ", tn)  
                 print("False Negatives: ", fn)  
                 print("False Positives: ", fp)        
                 print( "MCC: ", mcc)
+                print( "F1-Score: ", f1)
 
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
@@ -288,7 +294,8 @@ class DeepGRU():
                 f.write("On Percentage: "+ str(n_activations/len(y_test))+ "\n")
                 f.write("Off Percentage: "+ str((len(y_test) - n_activations)/len(y_test))+ "\n")
                 f.write("-"*10+ "\n")
-                f.write("MCC: "+str(matthews_corrcoef(y_test, pred)) + "\n")
+                f.write("MCC: "+str(mcc) + "\n")
+                f.write("F1-Score: "+str(f1) + "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
                 f.write("False Positives: "+str(fp)+ "\n")

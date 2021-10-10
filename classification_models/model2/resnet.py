@@ -340,7 +340,8 @@ class ResNet():
             params_to_load = json.loads(model_string)
             self.appliances[app_name] = params_to_load['appliance_params']
 
-    def create_model(self, n_feature_maps, input_shape):
+    def create_model(self, n_nodes, input_shape):
+        n_feature_maps = 64
 
         input_layer = keras.layers.Input(input_shape)
 
@@ -364,8 +365,6 @@ class ResNet():
         output_block_1 = keras.layers.add([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        output_block_1 = keras.layers.Dropout(0.5)(output_block_1)
-
         # BLOCK 2
 
         conv_x = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=8, padding='same')(output_block_1)
@@ -386,8 +385,6 @@ class ResNet():
         output_block_2 = keras.layers.add([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
 
-        output_block_2 = keras.layers.Dropout(0.5)(output_block_2)
-
         # BLOCK 3
 
         conv_x = keras.layers.Conv1D(filters=n_feature_maps * 2, kernel_size=8, padding='same')(output_block_2)
@@ -407,21 +404,17 @@ class ResNet():
         output_block_3 = keras.layers.add([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
 
-        output_block_3 = keras.layers.Dropout(0.5)(output_block_3)
-
         # FINAL
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
 
-        dense_layer = keras.layers.Dense(n_feature_maps, activation='relu')(gap_layer)
-
-        dropout_layer = keras.layers.Dropout(0.5)(dense_layer)
+        dropout_layer = keras.layers.Dropout(0.5)(gap_layer)
 
         output_layer = keras.layers.Dense(2, activation='softmax')(dropout_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(),
-                        metrics=["accuracy", matthews_correlation])
+                metrics=["accuracy", matthews_correlation])
 
         return model

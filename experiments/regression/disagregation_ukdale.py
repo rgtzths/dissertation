@@ -854,7 +854,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
 if __name__ == "__main__":
     base_path= "/home/rteixeira/ukdale_train/"
 
-    epochs = 300
+    epochs = 1
     batch_size = 512
     sequence_length = 299
     timestep = 6

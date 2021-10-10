@@ -175,7 +175,7 @@ class MLP():
                 if transfer_path is None:
                     if self.verbose > 0:
                         print("Creating new model")
-                    model = self.create_model(n_nodes, (X_train.shape[1],))       
+                    model = self.create_model(2048, (X_train.shape[1],))       
                 else:
                     if self.verbose > 0:
                         print("Starting from pre-trained model")
@@ -370,9 +370,9 @@ class MLP():
         model = Sequential()
         model.add(InputLayer(input_shape))
         model.add(Dense(n_nodes, activation='relu'))
-        model.add(Dense(int(n_nodes/8), activation='relu'))
+        model.add(Dense(n_nodes//4, activation='relu'))
         model.add(Dense(n_nodes, activation='relu'))
-        model.add(Dense(int(n_nodes/8), activation='relu'))
+        model.add(Dense(n_nodes//2, activation='relu'))
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')

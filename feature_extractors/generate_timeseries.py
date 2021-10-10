@@ -105,6 +105,8 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
             [data.append([0, 1]) if app[i+window_size-1] > on_treshold else data.append([1, 0]) for i in range(0, len(app) - window_size +1, step) ]    
         else:
             [data.append(app[i+window_size -1]) for i in range(0, len(app) - window_size +1, step)]
+
+    print(app_std)
     if is_classification:
         return np.array(data)
     else:

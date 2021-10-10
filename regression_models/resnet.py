@@ -103,7 +103,7 @@ class ResNet():
                 appliance_model["mean"] = app_mean
                 appliance_model["std"] = app_std
             else:
-                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
 
             binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
             
@@ -116,7 +116,7 @@ class ResNet():
             if cv_data is not None:
                 X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
                 X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
-                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
             
                 binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
                 
@@ -355,7 +355,7 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        drop1 = keras.layers.Dropout(0.5)(output_block_1)
+        drop1 = keras.layers.Dropout(0.2)(output_block_1)
 
         # BLOCK 2
         conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
@@ -376,7 +376,7 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        drop2 = keras.layers.Dropout(0.5)(output_block_2)
+        drop2 = keras.layers.Dropout(0.2)(output_block_2)
         # BLOCK 3
 
         conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
@@ -395,11 +395,10 @@ class ResNet():
         output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
         
-        drop3 = keras.layers.Dropout(0.5)(output_block_3)
+        drop3 = keras.layers.Dropout(0.2)(output_block_3)
         # FINAL
 
         full = keras.layers.GlobalAveragePooling2D()(drop3)
-        ##Add dense layer with 32/64 nodes
 
         output_layer = keras.layers.Dense(1)(full)
 
@@ -433,7 +432,7 @@ class ResNet():
         output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_1 = keras.layers.Activation('relu')(output_block_1)
 
-        drop1 = keras.layers.Dropout(0.6)(output_block_1)
+        drop1 = keras.layers.Dropout(0.2)(output_block_1)
 
         # BLOCK 2
         conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
@@ -454,7 +453,7 @@ class ResNet():
         output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_2 = keras.layers.Activation('relu')(output_block_2)
         
-        drop2 = keras.layers.Dropout(0.6)(output_block_2)
+        drop2 = keras.layers.Dropout(0.2)(output_block_2)
         # BLOCK 3
 
         conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
@@ -472,10 +471,11 @@ class ResNet():
 
         output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
         output_block_3 = keras.layers.Activation('relu')(output_block_3)
-        
+
+        drop3 = keras.layers.Dropout(0.2)(output_block_3)
         # FINAL
 
-        full = keras.layers.GlobalAveragePooling2D()(output_block_3)
+        full = keras.layers.GlobalAveragePooling2D()(drop3)
 
         new_output_layer = keras.layers.Dense(1, name="new_output")(full)
 

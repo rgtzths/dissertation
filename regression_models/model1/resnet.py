@@ -1,26 +1,23 @@
-import warnings
-warnings.filterwarnings('ignore',category=FutureWarning)
-warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 from os.path import join, isfile
 from os import listdir
+import json
+import math
 
 from tensorflow.keras.models import load_model
 import tensorflow.keras as keras
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from sklearn.metrics import matthews_corrcoef, confusion_matrix, f1_score
-
+import pandas as pd
 import numpy as np
-import json
 
 #import sys
 #sys.path.insert(1, "../utils")
 #sys.path.insert(1, "../feature_extractors")
 
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
-from metrics import matthews_correlation
 
 import utils
 import plots
@@ -40,16 +37,13 @@ class ResNet():
 
         self.appliances = params["appliances"]
 
-        self.random_search = params.get("random_search", False)
-
         self.default_appliance = {
             "timewindow": 180,
-            "timestep": 2,
             "overlap": 178,
-            'epochs' : 300,
-            'batch_size' : 512,
-            "on_treshold" : 50,
-            'n_nodes' : 120
+            'epochs' : 1,
+            'batch_size' : 1024,
+            'n_nodes' : 90,
+            "on_treshold" : 50
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -69,24 +63,29 @@ class ResNet():
         if self.plots_folder is not None:
             utils.create_path(self.plots_folder)
 
+        #In case of existing a model path, load every model in that path.
         if self.load_model_path:
             self.load_model(self.load_model_path)
 
     def partial_fit(self, train_data, cv_data=None):
-        
+            
+        #For each appliance to be classified
         for app_name, data in train_data.items():
             if( self.verbose != 0):
                 print("Preparing Dataset for %s" % app_name)
 
-            appliance_model = self.appliances[app_name]
+            appliance_model = self.appliances.get(app_name, {})
 
             timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
             timestep = appliance_model["timestep"]
             overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-            on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
-            n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
-            epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
             batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
+            epochs = appliance_model.get("epochs", self.default_appliance['epochs'])
+            n_nodes = appliance_model.get("n_nodes", self.default_appliance['n_nodes'])
+            app_mean = appliance_model.get("mean", None)
+            app_std = appliance_model.get("std", None)
+            on_treshold =  appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
+            transfer_path = appliance_model.get("transfer_path", None)
             mains_std = appliance_model.get("mains_std", None)
             mains_mean = appliance_model.get("mains_mean", None)
 
@@ -97,46 +96,77 @@ class ResNet():
             else:
                 X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
             
-            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))
+            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1, X_train.shape[2]))        
 
-            y_train = generate_appliance_timeseries(data["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
+            if app_mean is None:
+                y_train, app_mean, app_std = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap)
+                appliance_model["mean"] = app_mean
+                appliance_model["std"] = app_std
+            else:
+                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
 
+            binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
+            
+            train_positives = np.where(binary_y == 1)[0]
+
+            train_n_activatons = train_positives.shape[0]
+            train_on_examples = train_n_activatons / y_train.shape[0]
+            train_off_examples = (y_train.shape[0] - train_n_activatons) / y_train.shape[0]
+            
             if cv_data is not None:
                 X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
-                X_cv= X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
-                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
-                n_activations_cv = sum([ np.where(p == max(p))[0][0]  for p in y_cv ])
+                X_cv = X_cv.reshape((X_cv.shape[0], X_cv.shape[1], 1, X_cv.shape[2]))
+                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
+            
+                binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
+                
+                cv_positives = np.where(binary_y == 1)[0]
 
-            n_activations_train = sum([ np.where(p == max(p))[0][0]  for p in y_train ])
+                cv_n_activatons = cv_positives.shape[0]
+                cv_on_examples = cv_n_activatons / y_cv.shape[0]
+                cv_off_examples = (y_cv.shape[0] - cv_n_activatons) / y_cv.shape[0]
+
             if( self.verbose == 2):
                 print("-"*5 + "Train Info" + "-"*5)
                 print("Nº of examples: ", str(X_train.shape[0]))
-                print("Nº of activations: ", str(n_activations_train))
-                print("On Percentage: ", str(n_activations_train/len(y_train) ))
-                print("Off Percentage: ", str( (len(y_train) - n_activations_train)/len(y_train) ))
+                print("Nº of activations: ", str(train_n_activatons))
+                print("On Percentage: ", str(train_on_examples))
+                print("Off Percentage: ", str(train_off_examples))
                 if cv_data is not None:
                     print("-"*5 + "Cross Validation Info" + "-"*5)
                     print("Nº of examples: ", str(X_cv.shape[0]))
-                    print("Nº of activations: ", str(n_activations_cv))
-                    print("On Percentage: ", str(n_activations_cv/len(y_cv) ))
-                    print("Off Percentage: ",  str( (len(y_cv) - n_activations_cv)/len(y_cv) ))
-
+                    print("Nº of activations: ", str(cv_n_activatons))
+                    print("On Percentage: ", str(cv_on_examples))
+                    print("Off Percentage: ", str(cv_off_examples))
+                print("-"*10)
                 print("Mains Mean: ", str(mains_mean))
                 print("Mains Std: ", str(mains_std))
-            
+                print(app_name + " Mean: ", str(app_mean))
+                print(app_name + " Std: ", str(app_std))
+
+            #Checks if the model already exists and if it doesn't creates a new one.          
             if app_name in self.model:
-                if self.verbose > 0:
+                if( self.verbose > 0):
                     print("Starting from previous step")
                 model = self.model[app_name]
             else:
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2], X_train.shape[3]))
+                if transfer_path is None:
+                    if( self.verbose > 0):
+                        print("Creating new model")
+                    model = self.create_model(n_nodes, X_train.shape[1:])
+                else:
+                    if( self.verbose > 0):
+                        print("Starting from pre-trained model")
+                    model = self.create_transfer_model(transfer_path, X_train.shape[1:], n_nodes)
 
             if self.verbose != 0:
                 print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
-                
+
+            reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50, min_lr=0.0001)
+            
             verbose = 1 if self.verbose >= 1 else 0
 
-            checkpoint = ModelCheckpoint(
+            checkpoint = keras.callbacks.ModelCheckpoint(
                             self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5", 
                             monitor='val_loss', 
                             verbose=verbose, 
@@ -144,14 +174,13 @@ class ResNet():
                             mode='min'
                             )
 
-            #Fits the model to the training data.
             if cv_data is not None:
                 history = model.fit(X_train, 
                         y_train,
                         epochs=epochs, 
                         batch_size=batch_size,
                         shuffle=False,
-                        callbacks=[checkpoint],
+                        callbacks=[reduce_lr, checkpoint],
                         validation_data=(X_cv, y_cv),
                         verbose=verbose
                         )        
@@ -161,26 +190,23 @@ class ResNet():
                     epochs=epochs, 
                     batch_size=batch_size,
                     shuffle=False,
-                    callbacks=[checkpoint],
+                    callbacks=[reduce_lr, checkpoint],
                     validation_split=self.cv_split,
                     verbose=verbose
                     )   
 
-            history = json.dumps(history.history)
+            history = str(history.history).replace("'", "\"")
 
             if self.training_history_folder is not None:
                 f = open(self.training_history_folder + "history_"+app_name.replace(" ", "_")+".json", "w")
                 f.write(history)
                 f.close()
-
+                
             if self.plots_folder is not None:
                 utils.create_path(self.plots_folder + "/" + app_name + "/")
-                plots.plot_model_history_classification(json.loads(history), self.plots_folder + "/" + app_name + "/")
+                plots.plot_model_history_regression(json.loads(history), self.plots_folder + "/" + app_name + "/")
 
-            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
-            
-            self.model[app_name] = model
-
+            #Gets the trainning data score
             if cv_data is not None:
                 X = np.concatenate((X_train, X_cv), axis=0)
                 y = np.concatenate((y_train, y_cv), axis=0)
@@ -188,127 +214,92 @@ class ResNet():
                 X = X_train
                 y = y_train
 
-            pred = self.model[app_name].predict(X)
-            pred = [ np.where(p == max(p))[0][0]  for p in pred]         
-            y = [ np.where(p == max(p))[0][0]  for p in y]
+            model.load_weights(self.checkpoint_folder + "model_checkpoint_" + app_name.replace(" ", "_") + ".h5")
 
-            tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
-            mcc = matthews_corrcoef(y, pred)
-            f1 = f1_score(y, pred)
+            if transfer_path is not None:
+                model.summary()
+                for layer in model.layers:
+                    layer.trainable = True
+
+                model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer=Adam(1e-5))
+                model.summary()
+                model.fit(X, 
+                        y,
+                        epochs=1, 
+                        batch_size=batch_size,
+                        shuffle=False,
+                        verbose=verbose
+                        )
+
+            #Stores the trained model.
+            self.model[app_name] = model
+
+            pred = self.model[app_name].predict(X) * app_std + app_mean
+
+            train_rmse = math.sqrt(mean_squared_error(y * app_std + app_mean, pred))
+            train_mae = mean_absolute_error(y * app_std + app_mean, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
-                print("MCC: ", mcc )
-                print("F1-Score: ", f1 )
-                print("True Positives: ", tp)
-                print("True Negatives: ", tn)  
-                print("False Negatives: ", fn)  
-                print("False Positives: ", fp)  
+                print("RMSE: ", train_rmse )
+                print("MAE: ", train_mae )
             
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "w")
                 f.write("-"*5 + "Train Info" + "-"*5+ "\n")
-                f.write("Nº of examples: "+ str(X.shape[0])+ "\n")
-                f.write("Nº of activations: "+ str(n_activations_train)+ "\n")
-                f.write("On Percentage: "+ str(n_activations_train/len(y_train))+ "\n")
-                f.write("Off Percentage: "+ str((len(y_train) - n_activations_train)/len(y_train))+ "\n")
-                f.write("-"*10+ "\n")
+                f.write("Nº of examples: "+ str(X_train.shape[0])+ "\n")
+                f.write("Nº of activations: "+ str(train_n_activatons)+ "\n")
+                f.write("On Percentage: "+ str(train_on_examples)+ "\n")
+                f.write("Off Percentage: "+ str(train_off_examples)+ "\n")
                 if cv_data is not None:
                     f.write("-"*5 + "Cross Validation Info" + "-"*5+ "\n")
                     f.write("Nº of examples: "+ str(X_cv.shape[0])+ "\n")
-                    f.write("Nº of activations: "+ str(n_activations_cv)+ "\n")
-                    f.write("On Percentage: "+ str(n_activations_cv/len(y_cv))+ "\n")
-                    f.write("Off Percentage: "+ str((len(y_cv) - n_activations_cv)/len(y_cv))+ "\n")
+                    f.write("Nº of activations: "+ str(cv_n_activatons)+ "\n")
+                    f.write("On Percentage: "+ str(cv_on_examples)+ "\n")
+                    f.write("Off Percentage: "+ str(cv_off_examples)+ "\n")
                 f.write("-"*10+ "\n")
-                if self.random_search:
-                    #best_hp = tuner.get_best_hyperparameters()[0]
-                    f.write("-"*5 + "Best Hyperparameters" + "-"*5+ "\n")
-                    #f.write(str(best_hp.values)+"\n")
-                    f.write("-"*10+ "\n")
                 f.write("Mains Mean: " + str(mains_mean) + "\n")
                 f.write("Mains Std: " + str(mains_std) + "\n")
-                f.write("Train MCC: "+str(mcc)+ "\n")
-                f.write("Train F1-Score: "+str(f1)+ "\n")
-                f.write("True Positives: "+str(tp)+ "\n")
-                f.write("True Negatives: "+str(tn)+ "\n")
-                f.write("False Positives: "+str(fp)+ "\n")
-                f.write("False Negatives: "+str(fn)+ "\n")
+                f.write(app_name + " Mean: " + str(app_mean) + "\n")
+                f.write(app_name + " Std: " + str(app_std) + "\n")
+                f.write("Train RMSE: "+str(train_rmse)+ "\n")
+                f.write("Train MAE: "+str(train_mae)+ "\n")
                 f.close()
-            
-    def disaggregate_chunk(self, test_mains, test_appliances):
-        
+
+    def disaggregate_chunk(self, test_mains, app_name):
+
+        test_predictions_list = []
         appliance_powers_dict = {}
+
+        if self.verbose != 0:
+            print("Preparing the Test Data for %s" % app_name)
+
+        appliance_model = self.appliances.get(app_name, {})
+
+        timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
+        timestep = appliance_model["timestep"]
+        overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
+        app_mean = appliance_model["mean"]
+        app_std = appliance_model["std"]
+        mains_std = appliance_model["mains_std"]
+        mains_mean = appliance_model["mains_mean"]
         
-        for app_name, appliance_power in test_appliances:
-            if self.verbose != 0:
-                print("Preparing the Test Data for %s" % app_name)
-            
-            appliance_model = self.appliances.get(app_name, {})
-        
-            timewindow = appliance_model.get("timewindow", self.default_appliance['timewindow'])
-            timestep = appliance_model["timestep"]
-            overlap = appliance_model.get("overlap", self.default_appliance['overlap'])
-            on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
-            mains_std = appliance_model.get("mains_std", None)
-            mains_mean = appliance_model.get("mains_mean", None)
+        X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1, X_test.shape[2]))
 
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
-            X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1, X_test.shape[2]))
+        if( self.verbose != 0):
+            print("Nº of examples", X_test.shape[0])
 
-            if( self.verbose == 2):
-                print("Nº of test examples", X_test.shape[0])
+        if self.verbose != 0:
+            print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
-            if self.verbose != 0:
-                print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
+        pred = self.model[app_name].predict(X_test).flatten()* app_std + app_mean
+        pred = np.where(pred > 0, pred, 0)
 
-            y_test = generate_appliance_timeseries(appliance_power, True, timewindow, timestep, overlap, on_treshold=on_treshold)
+        appliance_powers_dict[app_name] = pd.Series(pred)
+        test_predictions_list.append(pd.DataFrame(appliance_powers_dict, dtype='float32'))
 
-            n_activations = sum([ np.where(p == max(p))[0][0]  for p in y_test ])
-
-            if( self.verbose != 0):
-                print("Nº of examples: ", str(X_test.shape[0]))
-                print("Nº of activations: ", str(n_activations))
-                print("On Percentage: ", str(n_activations/len(y_test) ))
-                print("Off Percentage: ", str( (len(y_test) - n_activations)/len(y_test) ))
-
-            if self.verbose != 0:
-                print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
-            
-            pred = self.model[app_name].predict(X_test)
-            pred = [ np.where(p == max(p))[0][0]  for p in pred]         
-            y_test = [ np.where(p == max(p))[0][0]  for p in y_test]
-
-            tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
-            mcc = matthews_corrcoef(y_test, pred)
-            f1 = f1_score(y_test, pred)
-
-            if self.verbose == 2:
-                print("True Positives: ", tp)
-                print("True Negatives: ", tn)  
-                print("False Negatives: ", fn)  
-                print("False Positives: ", fp)        
-                print( "MCC: ", mcc)
-                print( "F1-Score: ", f1)
-
-            if self.results_folder is not None:
-                f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
-                f.write("-"*5 + "Test Info" + "-"*5+ "\n")
-                f.write("Nº of examples: "+ str(X_test.shape[0])+ "\n")
-                f.write("Nº of activations: "+ str(n_activations)+ "\n")
-                f.write("On Percentage: "+ str(n_activations/len(y_test))+ "\n")
-                f.write("Off Percentage: "+ str((len(y_test) - n_activations)/len(y_test))+ "\n")
-                f.write("-"*10+ "\n")
-                f.write("MCC: "+str(mcc) + "\n")
-                f.write("F1-Score: "+str(f1) + "\n")
-                f.write("True Positives: "+str(tp)+ "\n")
-                f.write("True Negatives: "+str(tn)+ "\n")
-                f.write("False Positives: "+str(fp)+ "\n")
-                f.write("False Negatives: "+str(fn)+ "\n")
-                f.close()
-
-            appliance_powers_dict[app_name] = mcc
-
-        return appliance_powers_dict
+        return test_predictions_list
 
     def save_model(self, folder_name):
         
@@ -417,11 +408,92 @@ class ResNet():
 
         dropout_layer = keras.layers.Dropout(0.5)(dense_layer)
 
-        output_layer = keras.layers.Dense(2, activation='softmax')(dropout_layer)
+        output_layer = keras.layers.Dense(1)(dropout_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(),
-                        metrics=["accuracy", matthews_correlation])
+        model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(0.00001), metrics=["MeanAbsoluteError", "RootMeanSquaredError"])
+
+        return model
+
+    def create_transfer_model(self, transfer_path, input_shape, n_nodes=32):
+        
+        input_layer = keras.layers.Input(input_shape)
+
+        # BLOCK 1
+        conv_x = keras.layers.BatchNormalization()(input_layer)
+        conv_x = keras.layers.Conv2D(n_nodes, 8, 1, padding='same')(input_layer)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(n_nodes, 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(n_nodes, 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        # expand channels for the sum
+        shortcut_y = keras.layers.Conv2D(n_nodes, 1, 1, padding='same')(input_layer)
+        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+
+        output_block_1 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_1 = keras.layers.Activation('relu')(output_block_1)
+
+        drop1 = keras.layers.Dropout(0.2)(output_block_1)
+
+        # BLOCK 2
+        conv_x = keras.layers.Conv2D(n_nodes * 2, 8, 1, padding='same')(drop1)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(n_nodes * 2, 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(n_nodes * 2, 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        # expand channels for the sum
+        shortcut_y = keras.layers.Conv2D(n_nodes * 2, 1, 1, padding='same')(output_block_1)
+        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+
+        output_block_2 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_2 = keras.layers.Activation('relu')(output_block_2)
+        
+        drop2 = keras.layers.Dropout(0.2)(output_block_2)
+        # BLOCK 3
+
+        conv_x = keras.layers.Conv2D(int(n_nodes * 2), 8, 1, padding='same')(drop2)
+        conv_x = keras.layers.BatchNormalization()(conv_x)
+        conv_x = keras.layers.Activation('relu')(conv_x)
+
+        conv_y = keras.layers.Conv2D(int(n_nodes * 2), 5, 1, padding='same')(conv_x)
+        conv_y = keras.layers.BatchNormalization()(conv_y)
+        conv_y = keras.layers.Activation('relu')(conv_y)
+
+        conv_z = keras.layers.Conv2D(int(n_nodes * 2), 3, 1, padding='same')(conv_y)
+        conv_z = keras.layers.BatchNormalization()(conv_z)
+
+        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
+
+        output_block_3 = keras.layers.Add()([shortcut_y, conv_z])
+        output_block_3 = keras.layers.Activation('relu')(output_block_3)
+
+        drop3 = keras.layers.Dropout(0.2)(output_block_3)
+        # FINAL
+
+        full = keras.layers.GlobalAveragePooling2D()(drop3)
+
+        new_output_layer = keras.layers.Dense(1, name="new_output")(full)
+
+        model = keras.models.Model(inputs=input_layer, outputs=new_output_layer)
+
+        model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
+
+        for layer in model.layers[0:-1]:
+            layer.trainable = False
+        
+        model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')
 
         return model

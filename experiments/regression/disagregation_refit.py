@@ -252,7 +252,6 @@ def run_kettle(base_path, timestep, epochs, batch_size, sequence_length):
             'Seq2Point':Seq2Point({
                 'n_epochs':epochs,
                 'sequence_length': 599,
-
             }),
             'Seq2Seq':Seq2Seq({
                 'n_epochs':epochs,
@@ -678,12 +677,10 @@ def run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length):
             'Seq2Point':Seq2Point({
                 'n_epochs':epochs,
                 'sequence_length': 599,
-
             }),
             'Seq2Seq':Seq2Seq({
                 'n_epochs':epochs,
                 'sequence_length': 599,
-
             }),
             #"ResNet" : ResNet( {
             #    "verbose" : 2,
@@ -1090,7 +1087,7 @@ def run_washing_machine(base_path, timestep, epochs, batch_size, sequence_length
 if __name__ == "__main__":
     base_path= "/home/rteixeira/refit_train/"
     
-    epochs = 300
+    epochs = 1
     batch_size = 512
     sequence_length = 299
     timestep = 8

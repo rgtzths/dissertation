@@ -122,7 +122,7 @@ class DAE(Disaggregator):
             print ("Saving model for ", appliance_name)
             self.models[appliance_name].save_weights(os.path.join(path,appliance_name+".h5"))
 
-        with open(os.path.join(path,'model.json'),'w') as file:
+        with open(os.path.join(path,appliance_name+'.json'),'w') as file:
             file.write(json.dumps(params_to_save))
 
 

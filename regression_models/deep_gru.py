@@ -142,7 +142,7 @@ class DeepGRU():
                 appliance_model["mean"] = app_mean
                 appliance_model["std"] = app_std
             else:
-                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_train = generate_appliance_timeseries(data["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
 
             binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_train*app_std) + app_mean])
             
@@ -154,7 +154,7 @@ class DeepGRU():
             
             if cv_data is not None:
                 X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
-                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean, app_std)[0]
+                y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], False, timewindow, timestep, overlap, app_mean=app_mean, app_std=app_std)[0]
             
                 binary_y = np.array([ 1 if x > on_treshold else 0 for x in (y_cv*app_std) + app_mean])
                 
@@ -427,18 +427,21 @@ class DeepGRU():
     def create_transfer_model(self, transfer_path, input_shape, n_nodes=90):
         model = Sequential()
         model.add(InputLayer(input_shape))
-        model.add(GRU(n_nodes, return_sequences=True))
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(GRU(n_nodes*2, return_sequences=True))
-        model.add(GRU(n_nodes))
+        model.add(GRU(160, return_sequences=True))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(GRU(64, return_sequences=True))
+        model.add(Dense(96, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(GRU(96))
+        model.add(Dense(224, activation='relu'))
+        model.add(Dropout(0.2))
         
         model.load_weights(transfer_path, skip_mismatch=True, by_name=True)
 
         for layer in model.layers:
             layer.trainable = False
-        
-        model.add(Dense(int(n_nodes*2), activation='relu'))
-        model.add(Dropout(0.5))
+            
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')

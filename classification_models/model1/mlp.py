@@ -6,11 +6,11 @@ from os.path import join, isfile
 from os import listdir
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, LSTM, InputLayer
+from tensorflow.keras.layers import Dense, InputLayer, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 
-from sklearn.metrics import matthews_corrcoef, confusion_matrix
+from sklearn.metrics import matthews_corrcoef, confusion_matrix, f1_score
 
 import numpy as np
 import json
@@ -21,16 +21,17 @@ import json
 
 from generate_timeseries import generate_main_timeseries, generate_appliance_timeseries
 from metrics import matthews_correlation
+from wt import get_discrete_features
 
 import utils
 import plots
 
-class SimpleLSTM():
+class MLP():
     def __init__(self, params):
         #Variable that will store the models trained for each appliance.
         self.model = {}
         #Name used to identify the Model Name.
-        self.MODEL_NAME = params.get('model_name', 'SimpleLSTM')
+        self.MODEL_NAME = params.get('model_name', 'MLP')
         #Percentage of values used as cross validation data from the training data.
         self.cv_split = params.get('cv_split', 0.16)
         #If this variable is not None than the class loads the appliance models present in the folder.
@@ -49,7 +50,9 @@ class SimpleLSTM():
             'epochs' : 300,
             'batch_size' : 512,
             "on_treshold" : 50,
-            'n_nodes' : 120
+            'n_nodes' : 1024,
+            "use_dwt" : False,
+            "wavelet": 'db4',
         }
 
         self.training_history_folder = params.get("training_history_folder", None)
@@ -89,23 +92,47 @@ class SimpleLSTM():
             batch_size = appliance_model.get("batch_size", self.default_appliance['batch_size'])
             mains_std = appliance_model.get("mains_std", None)
             mains_mean = appliance_model.get("mains_mean", None)
+            use_dwt = appliance_model.get("use_dwt", self.default_appliance['use_dwt'])
 
-            if mains_mean is None:
-                X_train, mains_mean, mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
-                appliance_model["mains_mean"] = mains_mean
-                appliance_model["mains_std"] = mains_std
+            if use_dwt:
+                if self.verbose > 0:
+                    print("Using Discrete Wavelet Transforms as Features")
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+
+                X_train, mean, std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                X_train, mains_mean, mains_std = get_discrete_features(X_train*std + mean, len(data["mains"][0].columns.values), wavelet)
+                appliance_model["mains_mean"] = mean
+                appliance_model["mains_std"] = std
+                appliance_model["wavelet_mean"] = mains_mean
+                appliance_model["wavelet_std"] = mains_std
+                if cv_data is not None:
+                    X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mean, std)[0]
+                    X_cv = get_discrete_features(X_cv*std + mean, len(data["mains"][0].columns.values), wavelet, mains_mean, mains_std)[0]
             else:
-                X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
+                if self.verbose > 0:
+                    print("Using the Timeseries as Features")
+
+                if mains_mean is None:
+                    X_train, mains_mean, mains_std = generate_main_timeseries(data["mains"], timewindow, timestep, overlap)
+                    appliance_model["mains_mean"] = mains_mean
+                    appliance_model["mains_std"] = mains_std
+                else:
+                    X_train = generate_main_timeseries(data["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]  
+                
+                X_train = X_train.reshape(X_train.shape[0], -1)
+
+                if cv_data is not None:
+                    X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
+                    X_cv = X_cv.reshape(X_cv.shape[0], -1)
 
             y_train = generate_appliance_timeseries(data["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
-
+            
             if cv_data is not None:
-                X_cv = generate_main_timeseries(cv_data[app_name]["mains"], timewindow, timestep, overlap, mains_mean, mains_std)[0]
                 y_cv = generate_appliance_timeseries(cv_data[app_name]["appliance"], True, timewindow, timestep, overlap, on_treshold=on_treshold)
                 n_activations_cv = sum([ np.where(p == max(p))[0][0]  for p in y_cv ])
 
-
             n_activations_train = sum([ np.where(p == max(p))[0][0]  for p in y_train ])
+
             if( self.verbose == 2):
                 print("-"*5 + "Train Info" + "-"*5)
                 print("Nº of examples: ", str(X_train.shape[0]))
@@ -127,7 +154,7 @@ class SimpleLSTM():
                     print("Starting from previous step")
                 model = self.model[app_name]
             else:
-                model = self.create_model(n_nodes, (X_train.shape[1], X_train.shape[2]))
+                model = self.create_model(256, (X_train.shape[1],))
 
             if self.verbose != 0:
                 print("Training ", app_name, " in ", self.MODEL_NAME, " model\n", end="\r")
@@ -192,10 +219,12 @@ class SimpleLSTM():
 
             tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
             mcc = matthews_corrcoef(y, pred)
+            f1 = f1_score(y, pred)
 
             if self.verbose == 2:
                 print("Training scores")    
                 print("MCC: ", mcc )
+                print("F1-Score: ", f1 )
                 print("True Positives: ", tp)
                 print("True Negatives: ", tn)  
                 print("False Negatives: ", fn)  
@@ -224,6 +253,7 @@ class SimpleLSTM():
                 f.write("Mains Mean: " + str(mains_mean) + "\n")
                 f.write("Mains Std: " + str(mains_std) + "\n")
                 f.write("Train MCC: "+str(mcc)+ "\n")
+                f.write("Train F1-Score: "+str(f1)+ "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
                 f.write("False Positives: "+str(fp)+ "\n")
@@ -246,8 +276,23 @@ class SimpleLSTM():
             on_treshold = appliance_model.get("on_treshold", self.default_appliance['on_treshold'])
             mains_std = appliance_model.get("mains_std", None)
             mains_mean = appliance_model.get("mains_mean", None)
+            use_dwt = appliance_model.get("use_dwt", self.default_appliance['use_dwt'])
 
-            X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
+            if use_dwt:
+                if( self.verbose > 0):
+                    print("Using Discrete Wavelet Transforms as Features")
+
+                wavelet_mean = appliance_model["wavelet_mean"]
+                wavelet_std = appliance_model["wavelet_std"]
+                wavelet = appliance_model.get("wavelet", self.default_appliance['wavelet'])
+                
+                X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap)[0]
+                X_test = get_discrete_features(X_test*mains_std + mains_mean, len(test_mains[0].columns.values), wavelet, wavelet_mean, wavelet_std)[0]
+            else:
+                if( self.verbose > 0):
+                    print("Using the Timeseries as Features")
+                X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
+                X_test = X_test.reshape(X_test.shape[0], -1)
 
             if( self.verbose == 2):
                 print("Nº of test examples", X_test.shape[0])
@@ -274,12 +319,15 @@ class SimpleLSTM():
 
             tn, fn, fp, tp = confusion_matrix(y_test, pred).ravel()
             mcc = matthews_corrcoef(y_test, pred)
+            f1 = f1_score(y_test, pred)
+
             if self.verbose == 2:
                 print("True Positives: ", tp)
                 print("True Negatives: ", tn)  
                 print("False Negatives: ", fn)  
                 print("False Positives: ", fp)        
                 print( "MCC: ", mcc)
+                print( "F1-Score: ", f1)
 
             if self.results_folder is not None:
                 f = open(self.results_folder + "results_" + app_name.replace(" ", "_") + ".txt", "a")
@@ -289,7 +337,8 @@ class SimpleLSTM():
                 f.write("On Percentage: "+ str(n_activations/len(y_test))+ "\n")
                 f.write("Off Percentage: "+ str((len(y_test) - n_activations)/len(y_test))+ "\n")
                 f.write("-"*10+ "\n")
-                f.write("MCC: "+str(matthews_corrcoef(y_test, pred)) + "\n")
+                f.write("MCC: "+str(mcc) + "\n")
+                f.write("F1-Score: "+str(f1) + "\n")
                 f.write("True Positives: "+str(tp)+ "\n")
                 f.write("True Negatives: "+str(tn)+ "\n")
                 f.write("False Positives: "+str(fp)+ "\n")
@@ -311,6 +360,8 @@ class SimpleLSTM():
             app_params["std"] = float(app_params["std"])
             app_params["mains_mean"] = float(app_params["mains_mean"])
             app_params["mains_std"] = float(app_params["mains_std"])
+            app_params['wavelet_mean'] = [float(x) for x in app_params['wavelet_mean']]
+            app_params['wavelet_std'] = [float(x) for x in app_params['wavelet_std']]
             params_to_save = {}
             params_to_save['appliance_params'] = app_params
 
@@ -332,10 +383,12 @@ class SimpleLSTM():
 
     def create_model(self, n_nodes, input_shape):
         model = Sequential()
-        model.add(InputLayer(input_shape))
-        model.add(LSTM(n_nodes))
+        model.add(Dense(n_nodes, input_shape=input_shape, activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dense(int(n_nodes/2), activation='relu'))
+        model.add(Dense(int(n_nodes/4), activation='relu'))
+        model.add(Dropout(0.2))
         model.add(Dense(2, activation='softmax'))
-
         model.compile(optimizer=Adam(0.00001), loss='categorical_crossentropy', metrics=["accuracy", matthews_correlation])
-
+        
         return model

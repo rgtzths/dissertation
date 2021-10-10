@@ -19,7 +19,7 @@ from mlp import MLP
 base_path= "/home/rteixeira/classification_ukdale/"
 epochs = 300
 batch_size = 512
-sequence_length = 299
+sequence_length = 60
 timestep = 6 
 
 def run_experiment():
@@ -37,52 +37,35 @@ def run_experiment():
                     "min_on_power" : 50
             },
             "methods" : {
-                #"SVM" : SVM({
-                #    'verbose' : 2,
-                #    "results_folder" : base_path + "results/SVM/",
-                #    "appliances" : {
-                #        "fridge" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleGRU" : SimpleGRU({ #Increase to 500 epochs each
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleGRU/",
-                #    "results_folder" : base_path + "results/SimpleGRU/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
-                #    "plots_folder" : base_path + "plots/SimpleGRU/",
-                #    "appliances" : {
-                #        "fridge" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleLSTM" : SimpleLSTM({ #Increase to 500 epochs each
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleSLTM/",
-                #    "results_folder" : base_path + "results/SimpleLSTM/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleLSTM/",
-                #    "plots_folder" : base_path + "plots/SimpleLSTM/",
-                #    "appliances" : {
-                #        "fridge" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
+                "SVM" : SVM({
+                    'verbose' : 2,
+                    "results_folder" : base_path + "results/SVM/",
+                    "appliances" : {
+                        "fridge" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
+                "SimpleGRU" : SimpleGRU({
+                    'verbose' : 2,
+                    "training_history_folder" : base_path + "history/SimpleGRU/",
+                    "results_folder" : base_path + "results/SimpleGRU/",
+                    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
+                    "plots_folder" : base_path + "plots/SimpleGRU/",
+                    "appliances" : {
+                        "fridge" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'n_nodes' : 90,
+                            'epochs' : epochs,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
                 "DeepGRU" : DeepGRU({ 
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -94,7 +77,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 128,
+                            'n_nodes' : 90,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                         }
@@ -128,7 +111,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : True,
@@ -148,7 +131,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : False,
@@ -194,52 +177,35 @@ def run_experiment():
                     "min_on_power" : 2000
             },
             "methods" : {
-                #"SVM" : SVM({
-                #    'verbose' : 2,
-                #    "results_folder" : base_path + "results/SVM/",
-                #    "appliances" : {
-                #        "kettle" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'on_treshold' : 2000,
-                #        }
-                #    },
-                #}),
-                #"SimpleGRU" : SimpleGRU({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleGRU/",
-                #    "results_folder" : base_path + "results/SimpleGRU/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
-                #    "plots_folder" : base_path + "plots/SimpleGRU/",
-                #    "appliances" : {
-                #        "kettle" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleLSTM" : SimpleLSTM({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleSLTM/",
-                #    "results_folder" : base_path + "results/SimpleLSTM/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleLSTM/",
-                #    "plots_folder" : base_path + "plots/SimpleLSTM/",
-                #    "appliances" : {
-                #        "kettle" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
+                "SVM" : SVM({
+                    'verbose' : 2,
+                    "results_folder" : base_path + "results/SVM/",
+                    "appliances" : {
+                        "kettle" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'on_treshold' : 2000,
+                        }
+                    },
+                }),
+                "SimpleGRU" : SimpleGRU({
+                    'verbose' : 2,
+                    "training_history_folder" : base_path + "history/SimpleGRU/",
+                    "results_folder" : base_path + "results/SimpleGRU/",
+                    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
+                    "plots_folder" : base_path + "plots/SimpleGRU/",
+                    "appliances" : {
+                        "kettle" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'n_nodes' : 90,
+                            'epochs' : epochs,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
                 "DeepGRU" : DeepGRU({ 
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -251,7 +217,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 128,
+                            'n_nodes' : 90,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                         }
@@ -285,7 +251,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : True,
@@ -305,7 +271,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : False,
@@ -351,52 +317,35 @@ def run_experiment():
                     "min_on_power" : 200
             },
             "methods" : {
-                #"SVM" : SVM({
-                #    'verbose' : 2,
-                #    "results_folder" : base_path + "results/SVM/",
-                #    "appliances" : {
-                #        "microwave" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'on_treshold' : 200,
-                #        }
-                #    },
-                #}),
-                #"SimpleGRU" : SimpleGRU({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleGRU/",
-                #    "results_folder" : base_path + "results/SimpleGRU/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
-                #    "plots_folder" : base_path + "plots/SimpleGRU/",
-                #    "appliances" : {
-                #        "microwave" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleLSTM" : SimpleLSTM({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleSLTM/",
-                #    "results_folder" : base_path + "results/SimpleLSTM/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleLSTM/",
-                #    "plots_folder" : base_path + "plots/SimpleLSTM/",
-                #    "appliances" : {
-                #        "microwave" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
+                "SVM" : SVM({
+                    'verbose' : 2,
+                    "results_folder" : base_path + "results/SVM/",
+                    "appliances" : {
+                        "microwave" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'on_treshold' : 200,
+                        }
+                    },
+                }),
+                "SimpleGRU" : SimpleGRU({
+                    'verbose' : 2,
+                    "training_history_folder" : base_path + "history/SimpleGRU/",
+                    "results_folder" : base_path + "results/SimpleGRU/",
+                    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
+                    "plots_folder" : base_path + "plots/SimpleGRU/",
+                    "appliances" : {
+                        "microwave" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'n_nodes' : 90,
+                            'epochs' : epochs,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
                 "DeepGRU" : DeepGRU({ 
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -408,7 +357,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 128,
+                            'n_nodes' : 90,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                         }
@@ -442,7 +391,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : True,
@@ -462,7 +411,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : False,
@@ -508,52 +457,35 @@ def run_experiment():
                     "min_on_power" : 10
             },
             "methods" : {
-                #"SVM" : SVM({
-                #    'verbose' : 2,
-                #    "results_folder" : base_path + "results/SVM/",
-                #    "appliances" : {
-                #        "dish washer" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'on_treshold' : 10,
-                #        }
-                #    },
-                #}),
-                #"SimpleGRU" : SimpleGRU({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleGRU/",
-                #    "results_folder" : base_path + "results/SimpleGRU/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
-                #    "plots_folder" : base_path + "plots/SimpleGRU/",
-                #    "appliances" : {
-                #        "dish washer" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleLSTM" : SimpleLSTM({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleSLTM/",
-                #    "results_folder" : base_path + "results/SimpleLSTM/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleLSTM/",
-                #    "plots_folder" : base_path + "plots/SimpleLSTM/",
-                #    "appliances" : {
-                #        "dish washer" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
+                "SVM" : SVM({
+                    'verbose' : 2,
+                    "results_folder" : base_path + "results/SVM/",
+                    "appliances" : {
+                        "dish washer" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'on_treshold' : 10,
+                        }
+                    },
+                }),
+                "SimpleGRU" : SimpleGRU({
+                    'verbose' : 2,
+                    "training_history_folder" : base_path + "history/SimpleGRU/",
+                    "results_folder" : base_path + "results/SimpleGRU/",
+                    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
+                    "plots_folder" : base_path + "plots/SimpleGRU/",
+                    "appliances" : {
+                        "dish washer" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'n_nodes' : 90,
+                            'epochs' : epochs,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
                 "DeepGRU" : DeepGRU({ 
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -565,7 +497,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 128,
+                            'n_nodes' : 90,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                         }
@@ -599,7 +531,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : True,
@@ -619,7 +551,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : False,
@@ -665,52 +597,35 @@ def run_experiment():
                     "min_on_power" : 20
             },
             "methods" : {
-                #"SVM" : SVM({
-                #    'verbose' : 2,
-                #    "results_folder" : base_path + "results/SVM/",
-                #    "appliances" : {
-                #        "washing machine" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'on_treshold' : 20,
-                #        }
-                #    },
-                #}),
-                #"SimpleGRU" : SimpleGRU({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleGRU/",
-                #    "results_folder" : base_path + "results/SimpleGRU/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
-                #    "plots_folder" : base_path + "plots/SimpleGRU/",
-                #    "appliances" : {
-                #        "washing machine" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
-                #"SimpleLSTM" : SimpleLSTM({
-                #    'verbose' : 2,
-                #    "training_history_folder" : base_path + "history/SimpleSLTM/",
-                #    "results_folder" : base_path + "results/SimpleLSTM/",
-                #    "checkpoint_folder" : base_path + "temp_weights/SimpleLSTM/",
-                #    "plots_folder" : base_path + "plots/SimpleLSTM/",
-                #    "appliances" : {
-                #        "washing machine" : {
-                #            'timewindow' : timestep*sequence_length,
-                #            'timestep' : timestep,
-                #            'overlap' :  timestep*sequence_length - timestep,
-                #            'n_nodes' : 128,
-                #            'epochs' : epochs,
-                #            'on_treshold' : 50,
-                #        }
-                #    },
-                #}),
+                "SVM" : SVM({
+                    'verbose' : 2,
+                    "results_folder" : base_path + "results/SVM/",
+                    "appliances" : {
+                        "washing machine" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'on_treshold' : 20,
+                        }
+                    },
+                }),
+                "SimpleGRU" : SimpleGRU({
+                    'verbose' : 2,
+                    "training_history_folder" : base_path + "history/SimpleGRU/",
+                    "results_folder" : base_path + "results/SimpleGRU/",
+                    "checkpoint_folder" : base_path + "temp_weights/SimpleGRU/",
+                    "plots_folder" : base_path + "plots/SimpleGRU/",
+                    "appliances" : {
+                        "washing machine" : {
+                            'timewindow' : timestep*sequence_length,
+                            'timestep' : timestep,
+                            'overlap' :  timestep*sequence_length - timestep,
+                            'n_nodes' : 90,
+                            'epochs' : epochs,
+                            'on_treshold' : 50,
+                        }
+                    },
+                }),
                 "DeepGRU" : DeepGRU({ 
                     'verbose' : 2,
                     "training_history_folder" : base_path + "history/DeepGRU/",
@@ -756,7 +671,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : True,
@@ -776,7 +691,7 @@ def run_experiment():
                             'timewindow' : timestep*sequence_length,
                             'timestep' : timestep,
                             'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 1024,
+                            'n_nodes' : 256,
                             'epochs' : epochs,
                             'on_treshold' : 50,
                             'use_dwt' : False,
