@@ -1092,7 +1092,7 @@ if __name__ == "__main__":
     sequence_length = 299
     timestep = 8
 
-    run_fridge(base_path, timestep, epochs, batch_size, sequence_length)
+    #run_fridge(base_path, timestep, epochs, batch_size, sequence_length)
     run_kettle(base_path, timestep, epochs, batch_size, sequence_length)
     run_microwave(base_path, timestep, epochs, batch_size, sequence_length)
     run_dish_washer(base_path, timestep, epochs, batch_size, sequence_length)

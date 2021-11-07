@@ -106,7 +106,6 @@ def generate_appliance_timeseries(dfs, is_classification, timewindow, timestep, 
         else:
             [data.append(app[i+window_size -1]) for i in range(0, len(app) - window_size +1, step)]
 
-    print(app_std)
     if is_classification:
         return np.array(data)
     else:

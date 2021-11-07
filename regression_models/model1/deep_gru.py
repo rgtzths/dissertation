@@ -407,17 +407,21 @@ class DeepGRU():
             self.appliances[app_name] = params_to_load['appliance_params']
 
     def create_model(self, n_nodes, input_shape):
+        #Creates a specific model.
         model = Sequential()
-        model.add(InputLayer(input_shape))
-        model.add(GRU(160, return_sequences=True))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dropout(0.2))
-        model.add(GRU(64, return_sequences=True))
-        model.add(Dense(96, activation='relu'))
-        model.add(Dropout(0.2))
-        model.add(GRU(96))
-        model.add(Dense(224, activation='relu'))
-        model.add(Dropout(0.2))
+        #Block 1
+        model.add(GRU(n_nodes, input_shape=input_shape, return_sequences=True))
+        model.add(LeakyReLU(alpha=0.1))
+        model.add(Dropout(0.5))
+        #Block 2
+        model.add(GRU(n_nodes*2))
+        model.add(LeakyReLU(alpha=0.1))
+        model.add(Dropout(0.5))
+        #Dense Layer
+        model.add(Dense(n_nodes//2, activation='relu'))
+        model.add(LeakyReLU(alpha=0.1))
+        model.add(Dropout(0.5))
+        #Classification Layer
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', metrics=["MeanAbsoluteError", "RootMeanSquaredError"], optimizer='adam')

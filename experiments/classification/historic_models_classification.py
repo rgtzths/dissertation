@@ -5,15 +5,15 @@ warnings.filterwarnings("ignore")
 from run_experiment import run
 
 import sys
-sys.path.insert(1, "../../classification_models/model1")
+sys.path.insert(1, "../../classification_models/model2")
 sys.path.insert(1, "../../utils")
 sys.path.insert(1, "../../feature_extractors")
 
 from deep_gru import DeepGRU
 from resnet import ResNet
-from mlp import MLP
+#from mlp import MLP
 
-base_path= "/home/rteixeira/historic_classification_ukdale/model1/"
+base_path= "/home/rteixeira/historic_classification_ukdale/model2/"
 epochs = 300
 batch_size = 512
 sequence_length = 60
@@ -68,44 +68,44 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP({ 
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP/",
-                    "results_folder" : base_path + "results/MLP/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-                    "plots_folder" : base_path + "plots/MLP/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : True,
-                            'wavelet' : 'db4'
-                        }
-                    },
-                }),
-                "MLP_Raw" : MLP({ 
-                    'model_name' : 'MLP_Raw',
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP_Raw/",
-                    "results_folder" : base_path + "results/MLP_Raw/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
-                    "plots_folder" : base_path + "plots/MLP_Raw/",
-                    "appliances" : {
-                        "fridge" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : False,
-                        }
-                    },
-                }),
+                #"MLP" : MLP({ 
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP/",
+                #    "results_folder" : base_path + "results/MLP/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                #    "plots_folder" : base_path + "plots/MLP/",
+                #    "appliances" : {
+                #        "fridge" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : True,
+                #            'wavelet' : 'db4'
+                #        }
+                #    },
+                #}),
+                #"MLP_Raw" : MLP({ 
+                #    'model_name' : 'MLP_Raw',
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP_Raw/",
+                #    "results_folder" : base_path + "results/MLP_Raw/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                #    "plots_folder" : base_path + "plots/MLP_Raw/",
+                #    "appliances" : {
+                #        "fridge" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : False,
+                #        }
+                #    },
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 6,
@@ -179,44 +179,44 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP({ 
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP/",
-                    "results_folder" : base_path + "results/MLP/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-                    "plots_folder" : base_path + "plots/MLP/",
-                    "appliances" : {
-                        "kettle" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : True,
-                            'wavelet' : 'db4'
-                        }
-                    },
-                }),
-                "MLP_Raw" : MLP({ 
-                    'model_name' : 'MLP_Raw',
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP_Raw/",
-                    "results_folder" : base_path + "results/MLP_Raw/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
-                    "plots_folder" : base_path + "plots/MLP_Raw/",
-                    "appliances" : {
-                        "kettle" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : False,
-                        }
-                    },
-                }),
+                #"MLP" : MLP({ 
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP/",
+                #    "results_folder" : base_path + "results/MLP/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                #    "plots_folder" : base_path + "plots/MLP/",
+                #    "appliances" : {
+                #        "kettle" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : True,
+                #            'wavelet' : 'db4'
+                #        }
+                #    },
+                #}),
+                #"MLP_Raw" : MLP({ 
+                #    'model_name' : 'MLP_Raw',
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP_Raw/",
+                #    "results_folder" : base_path + "results/MLP_Raw/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                #    "plots_folder" : base_path + "plots/MLP_Raw/",
+                #    "appliances" : {
+                #        "kettle" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : False,
+                #        }
+                #    },
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 6,
@@ -290,44 +290,44 @@ def run_experiment():
                         }
                     },
                 }),
-                "MLP" : MLP({ 
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP/",
-                    "results_folder" : base_path + "results/MLP/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP/",
-                    "plots_folder" : base_path + "plots/MLP/",
-                    "appliances" : {
-                        "washing machine" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : True,
-                            'wavelet' : 'db4'
-                        }
-                    },
-                }),
-                "MLP_Raw" : MLP({ 
-                    'model_name' : 'MLP_Raw',
-                    'verbose' : 2,
-                    "training_history_folder" : base_path + "history/MLP_Raw/",
-                    "results_folder" : base_path + "results/MLP_Raw/",
-                    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
-                    "plots_folder" : base_path + "plots/MLP_Raw/",
-                    "appliances" : {
-                        "washing machine" : {
-                            'timewindow' : timestep*sequence_length,
-                            'timestep' : timestep,
-                            'overlap' :  timestep*sequence_length - timestep,
-                            'n_nodes' : 256,
-                            'epochs' : epochs,
-                            'on_treshold' : 50,
-                            'use_dwt' : False,
-                        }
-                    },
-                }),
+                #"MLP" : MLP({ 
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP/",
+                #    "results_folder" : base_path + "results/MLP/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP/",
+                #    "plots_folder" : base_path + "plots/MLP/",
+                #    "appliances" : {
+                #        "washing machine" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : True,
+                #            'wavelet' : 'db4'
+                #        }
+                #    },
+                #}),
+                #"MLP_Raw" : MLP({ 
+                #    'model_name' : 'MLP_Raw',
+                #    'verbose' : 2,
+                #    "training_history_folder" : base_path + "history/MLP_Raw/",
+                #    "results_folder" : base_path + "results/MLP_Raw/",
+                #    "checkpoint_folder" : base_path + "temp_weights/MLP_Raw/",
+                #    "plots_folder" : base_path + "plots/MLP_Raw/",
+                #    "appliances" : {
+                #        "washing machine" : {
+                #            'timewindow' : timestep*sequence_length,
+                #            'timestep' : timestep,
+                #            'overlap' :  timestep*sequence_length - timestep,
+                #            'n_nodes' : 256,
+                #            'epochs' : epochs,
+                #            'on_treshold' : 50,
+                #            'use_dwt' : False,
+                #        }
+                #    },
+                #}),
             },
             "model_path" : base_path+"models/",
             "timestep" : 6,

@@ -406,7 +406,7 @@ class ResNet():
 
         # FINAL
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
+        gap_layer = keras.layers.GlobalAveragePooling2D()(output_block_3)
 
         output_layer = keras.layers.Dense(2, activation='softmax')(gap_layer)
 

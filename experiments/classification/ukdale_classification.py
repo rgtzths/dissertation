@@ -11,7 +11,6 @@ sys.path.insert(1, "../../feature_extractors")
 
 from svm import SVM
 from simple_gru import SimpleGRU
-from simple_lstm import SimpleLSTM
 from deep_gru import DeepGRU
 from resnet import ResNet
 from mlp import MLP

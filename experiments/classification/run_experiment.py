@@ -61,7 +61,7 @@ def run(experiment):
                 "appliance" : y_train
             }
         }
-        if len(X_cv) > 1:
+        if len(X_cv) >= 1:
             cv_data = {
                 app : {
                     "mains" : X_cv,

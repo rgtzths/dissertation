@@ -294,9 +294,6 @@ class MLP():
                 X_test = generate_main_timeseries(test_mains, timewindow, timestep, overlap, mains_mean, mains_std)[0]
                 X_test = X_test.reshape(X_test.shape[0], -1)
 
-            if( self.verbose == 2):
-                print("Nº of test examples", X_test.shape[0])
-
             if self.verbose != 0:
                 print("Estimating power demand for '{}' in '{}'\n".format(app_name, self.MODEL_NAME))
 
