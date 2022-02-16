@@ -57,7 +57,6 @@ def convert_ukdale(ukdale_path, output_path, timestep, interpolate, house_applia
             if dups_in_index.any():
                 df = df[~dups_in_index]
 
-
             df = clean_data(df, timestep, interpolate)
 
             df.columns = pd.MultiIndex.from_tuples([column_mapping[x] for x in df.columns])

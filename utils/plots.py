@@ -94,15 +94,29 @@ def compare_errors_classification(model_history_1, model_history_2):
 
     plt.show()
 
-def compare_errors_regfression(model_history_1, model_history_2):
-
+def compare_errors_regression(model_history_1, model_history_2):
+    font = {'family' : 'DejaVu Sans',
+        'weight' : 'bold',
+        'size'   : 20}
     n_epochs = len(model_history_1['loss'])
 
-    plt.plot(range(1, n_epochs+1), model_history_1['mean_absolute_error'], label="Training MAE Model 1")
-    plt.plot(range(1, n_epochs+1), model_history_1['val_mean_absolute_error'], label="Validation MAE Model 1")
+    plt.rc('font', **font)
+    plt.subplots_adjust(left=0.07, right=0.98, top=0.94, bottom=0.08)
+    plt.figure(figsize=(21, 10))
 
-    plt.plot(range(1, n_epochs+1), model_history_2['mean_absolute_error'], label="Training MAE Model 2")
-    plt.plot(range(1, n_epochs+1), model_history_2['val_mean_absolute_error'], label="Validation MAE Model 2")
+    plt.plot(range(1, n_epochs+1), model_history_1['mean_absolute_error'], label="Training MAE Model Before")
+    plt.plot(range(1, n_epochs+1), model_history_2['mean_absolute_error'], label="Training MAE Model After")
+    plt.xlabel("Nº Epochs")
+    plt.ylabel("Mean Absolute Error")
+    plt.title("Comparisson of Mean Absolute Error")
+
+    plt.legend()
+
+    plt.subplots_adjust(left=0.07, right=0.98, top=0.94, bottom=0.08)
+    plt.figure(figsize=(21, 10))
+    
+    plt.plot(range(1, n_epochs+1), model_history_1['val_mean_absolute_error'], label="Validation MAE Model Before")
+    plt.plot(range(1, n_epochs+1), model_history_2['val_mean_absolute_error'], label="Validation MAE Model After")
 
     plt.xlabel("Nº Epochs")
     plt.ylabel("Mean Absolute Error")
@@ -110,7 +124,6 @@ def compare_errors_regfression(model_history_1, model_history_2):
     plt.legend()
 
     plt.show()
-
 
 def plot_predictions(model, dataset_path, app_name, building, beginning, end ):
     
@@ -187,14 +200,20 @@ def plot_experiment(experiment):
                 plt.show()
 
 def plot_signature(dataset_location, building, appliance, beggining, end):
+
+    #redd.set_window(start='2011-04-21', end='2011-04-22')
+    #elec.plot();
+    #plt.xlabel("Time");
+    
     dataset = DataSet(dataset_location)
 
     dataset.set_window(start=beggining,end=end)
 
     mains = next(dataset.buildings[building].elec.mains().load())
     app_df = next(dataset.buildings[building].elec[appliance].load())
+
     plt.plot(mains.index, mains["power"]["apparent"], label="Mains Energy")
-    plt.plot(app_df.index, app_df["power"]["active"], label=appliance + " Energy")
+    plt.plot(app_df.index, app_df["power"]["apparent"], label=appliance + " Energy")
 
 
     plt.xlabel("Time")

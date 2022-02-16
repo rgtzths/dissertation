@@ -84,9 +84,58 @@ plug_meter:
   sample_period: 2
   max_sample_period: 30
   measurements: 
-    - {
-      upper_limit: 1000000,
-      lower_limit: 0, 
-      physical_quantity: power, 
-      type: active
+    - { #Valores Exemplo
+      upper_limit: 1000000, #Leitura máxima do meter
+      lower_limit: 0, #Leitura mínima do meter
+      physical_quantity: power, #{‘power’, ‘energy’, ‘cumulative energy’, ‘voltage’, ‘current’, ‘frequency’, ‘power factor’, ‘state’, ‘phase angle’, ‘total harmonic distortion’, ‘temperature’}
+                                #Units: phase angle: degrees; power: watts; energy: kWh; voltage: volts; current: amps; temperature: degrees Celsius.
+      type: apparent # {‘reactive’, ‘active’, ‘apparent’}.- necessário para power, energy e AC
       }
+    - { #Valores Exemplo
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: power,
+      type: reactive
+      }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: power, 
+      type: active 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: power factor, 
+      type: active 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: frequency, 
+      type: active 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: current, 
+      type: active 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: cumulative energy, 
+      type: active 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: cumulative energy, 
+      type: reactive 
+    }
+    - { 
+      upper_limit: 1000000,
+      lower_limit: 0,
+      physical_quantity: cumulative energy, 
+      type: apparent 
+    }

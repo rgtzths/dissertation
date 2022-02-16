@@ -54,6 +54,7 @@ class MLP():
         self.results_folder = params.get("results_folder", None)
         self.checkpoint_folder = params.get("checkpoint_folder", None)
         self.plots_folder = params.get("plots_folder", None)
+        self.chunk_wise_training = True
 
         if self.training_history_folder is not None:
             utils.create_path(self.training_history_folder)
@@ -71,8 +72,8 @@ class MLP():
         if self.load_model_path:
             self.load_model(self.load_model_path)
 
-    def partial_fit(self, train_data, cv_data=None):
-
+    def partial_fit(self, train_data, epoch=None):
+        cv_data = None
         #For each appliance to be classified
         for app_name, data in train_data.items():
 

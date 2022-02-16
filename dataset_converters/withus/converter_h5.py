@@ -74,7 +74,6 @@ def convert_withus(withus_path, output_filename):
                 store.put(str(key), df)
                 
             else:
-                measure = "power_plus"
 
                 #Same login as in mains but using only one measure.
                 csv_filename = withus_path + "house_" + house_id + "/" + str(appliance) + ".csv"
@@ -83,13 +82,15 @@ def convert_withus(withus_path, output_filename):
                 #Converts the time column from a unix timestamp to datetime and uses it as index
                 df.index = pd.to_datetime(df.index)
 
+                #Calculate apparent power, apparent cummultative energy and unify the reactive power and cumultative energy
+                df = preprocess_mains(df)
                 #appends that dataframe to an array
                 for c in df.columns:
-                    if c != measure:
+                    if c not in column_mapping:
                         del df[c]
 
                 #Labels the value column with the appliance name
-                df.columns = pd.MultiIndex.from_tuples([column_mapping[measure]], names=LEVEL_NAMES)
+                df.columns = pd.MultiIndex.from_tuples([column_mapping[measure] for measure in df.columns], names=LEVEL_NAMES)
 
                 #Sort index and drop duplicates
                 df = df.sort_index()
@@ -182,7 +183,8 @@ column_mapping = {
 appliance_meter_mapping = {
     "688AB5006CFE" : {
         "mains" : 1,
-        "fridge" : 2
+        "fridge" : 2,
+        "swimming pool pump" : 3
     },
     "688AB50004EF" : {
         "mains" : 1,
@@ -192,17 +194,22 @@ appliance_meter_mapping = {
     "F88A3C900128" : {
         "mains" : 1,
         "fridge" : 2
+    },
+    "688AB50067BB" : {
+        "mains" : 1,
+        "laptop computer" : 2
     }
 }
 
 house_mapping = {
     "688AB5006CFE" : 1,
     "688AB50004EF" : 2,
-    "F88A3C900128" : 3
+    "F88A3C900128" : 3,
+    "688AB50067BB" : 4
 }
 
-withus_path = "../../../../datasets/withus_classification/"
+withus_path = "../../../datasets/withus/"
 metada_path = "./metadata"
-output_filename = "../../../../datasets/withus_h5/withus.h5"
+output_filename = "../../../datasets/withus/withus.h5"
 
 convert_withus(withus_path, output_filename)

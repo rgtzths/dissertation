@@ -184,3 +184,38 @@ if __name__ == "__main__":
     timestep = 2
 
     convert_aveiro(aveiro_path, output_filename, timestep, interpolate)
+
+
+from nilmtk.utils import get_datastore
+from nilmtk.datastore import Key
+from nilmtk.measurement import LEVEL_NAMES
+from nilm_metadata import save_yaml_to_datastore
+import pandas as pd
+
+houses = [1, 2]
+appliance_meter_mapping = {
+    "mains" : 1,
+    "heatpump" : 2,
+    "carcharger" : 3
+}
+base_path = "./data/"
+metada_path = base_path + "metadata"
+output_filename = base_path + "dataset.h5"
+
+store = get_datastore(output_filename, "HDF", mode='w')
+
+for house_id in houses:
+    for appliance, meter in appliance_meter_mapping.items():
+        key = Key(building=house_id, meter=meter)
+
+        csv_filename = base_path + "house_" + str(house_id) + "/" + appliance +".csv"
+        df = pd.read_csv(csv_filename)
+
+        df.columns = pd.MultiIndex.from_tuples([column_mapping[c] for c in df.columns.values], names=LEVEL_NAMES)
+        store.put(str(key), df)
+
+# Add metadata
+save_yaml_to_datastore(metada_path, store)
+
+store.close()
+    

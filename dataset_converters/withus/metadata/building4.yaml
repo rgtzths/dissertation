@@ -1,6 +1,6 @@
-instance: 1 #Instância no dataset NILM
+instance: 4 #Instância no dataset NILM
 
-original_name: House 1 #Nome dado no dataset
+original_name: house_F88A3C900128 #Nome dado no dataset
 
 description: Descrição da casa
 
@@ -34,7 +34,7 @@ geo_location: {country: PT, latitude: 40.6333333, longitude: -8.65, locality: Av
 
 timezone: Europe/London  #Caso a timezeno seja diferente da do dataset
 
-timeframe: {end: '2021-06-08T23:04:40', start: '2021-03-25T13:31:00'}
+timeframe: {end: '2021-06-08T07:44:30', start: '2021-03-21T14:29:00'}
 
 #periods_unoccupied: #Alturas em que os habitantes foram de férias etc.
 #  - {end: '2020-11-25T18:35:53+01:00', start: '2020-11-25T22:28:15+00:00'} # Dados de exemplo
@@ -45,42 +45,31 @@ elec_meters:
     submeter_of: 0 # Indica qual dos outros meters é upstream deste (0 significa que é um site meter)
     submeter_of_is_uncertain: false #Indica que não sabemos de qual este meter é submeter
     site_meter: true #Indica que é um site meter
-    timeframe: {end: '2021-06-08T23:04:40', start: '2021-03-25T13:31:00'} # Tempo em que esteve ligado
-    name: Aggregated meter
-    data_location: house_688AB5006CFE/mains.csv #Localização dos dados extraídos pelo sensor
+    timeframe: {end: '2021-06-08T07:44:30', start: '2021-03-21T14:29:00'} # Tempo em que esteve ligado
+    name: Aggregated meter # Opcional, identificador do meter
+    #phase: Usado em casos de análise de múltiplas fases
+    data_location: house_F88A3C900128/mains.csv #Localização dos dados extraídos pelo sensor
     disabled: false #Colocar a verdadeiro se o sensor deve ser ignorado pelo NILMTK
+    #preprocessing_applied:
+    #  clip: {upper_limit: 4000}  #Remove todos os dados que passem o valor 4000 para este meter
+    warning: Aviso de alguma anormalidade que aconteceu com este sensor.
 
   2:
     device_model: plug_meter 
     submeter_of: 1 
     submeter_of_is_uncertain: false
     site_meter: false 
-    timeframe: {end: '2021-06-08T23:04:40', start: '2021-03-25T13:31:00'}
-    name: fridge 
-    data_location: house_688AB5006CFE/fridge.csv
-    disabled: false
-
-  3:
-    device_model: plug_meter 
-    submeter_of: 1 
-    submeter_of_is_uncertain: false
-    site_meter: false 
-    timeframe: {end: '2021-06-08T23:00:00', start: '2021-03-21T14:36:04'}
-    name: swimming pool pump
-    data_location: house_688AB50004EF/swimming pool pump.csv
+    timeframe: {end: '2021-06-08T07:44:30', start: '2021-03-21T14:29:00'}
+    name: laptop computer 
+    room: kitchen.1 
+    floor: 0 
+    data_location: house_F88A3C900128/fridge.csv
     disabled: false
 
 appliances:
-  - type: fridge
+  - type: laptop computer
     instance: 1
     meters: [2]
     dates_active: [ #Lista de timeframes na qual o eletrodoméstico esteve ligado (pode representar a substituição do eletrodoméstico)
-      timeframe: {end: '2021-06-08T23:04:40', start: '2021-03-25T13:31:00'}
-    ]
-
-  - type: swimming pool pump
-    instance: 1
-    meters: [3]
-    dates_active: [
-      {end: '2021-06-08T23:00:00', start: '2021-03-21T14:36:04'}
+      timeframe: {end: '2021-06-08T07:44:30', start: '2021-03-21T14:29:00'}
     ]

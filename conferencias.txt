@@ -7,3 +7,6 @@ ieeeglobalsip - Não têm announcments próximos.
 https://www.mdpi.com/journal/sustainability - journal - Não consegui encontrar onde enquadrar o nosso artigo (posso enviar um email)
 http://eecsi.org/2021/ - Até 1 agosto
 https://icmlc.com/cfp.html - ML até 10 Sep - Escolhida
+
+### Competição
+Kaggle. Belkin Energy Disaggregation Competition[EB/OL]. [2013]. https://www.kaggle.com/c/belkin-energy-disaggregation-competition.
