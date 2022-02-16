@@ -1,4 +1,4 @@
-# thesis
+# Dissertation
 
 ## Python Requirements
 ### Create a conda environment
